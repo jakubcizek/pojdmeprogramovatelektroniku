@@ -17,7 +17,7 @@ uint8_t casovaZona = 2; // Letni cas, GMT+2
 
 WiFiUDP Udp; // S NTP serverem budeme komunikovat skrze rychly protokol UDP
 uint16_t udpPort = 8888; // UDP port
-byte ntpPaket[48]; // 48B na zpravu pro NTP server a odpoved
+uint8_t ntpPaket[48]; // 48B na zpravu pro NTP server a odpoved
 
 time_t staryCas = 0; // Pomocna promenna pro smycku loop, jestli se uz zmenil cas
 
