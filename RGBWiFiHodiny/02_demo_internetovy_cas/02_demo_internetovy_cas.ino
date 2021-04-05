@@ -90,11 +90,11 @@ time_t ziskejInternetovyCas() {
       /* 40-43 bajt odpovedi prepocitej na uplynule sekundy od roku 1900
        * a pripocitej take mistni casovou zonu (bezny cas: +1, letni cas +2)
       */
-      unsigned long sekundyOd1900;
-      sekundyOd1900 =  (unsigned long)ntpPaket[40] << 24;
-      sekundyOd1900 |= (unsigned long)ntpPaket[41] << 16;
-      sekundyOd1900 |= (unsigned long)ntpPaket[42] << 8;
-      sekundyOd1900 |= (unsigned long)ntpPaket[43];
+      uint32_t sekundyOd1900;
+      sekundyOd1900 =  (uint32_t)ntpPaket[40] << 24;
+      sekundyOd1900 |= (uint32_t)ntpPaket[41] << 16;
+      sekundyOd1900 |= (uint32_t)ntpPaket[42] << 8;
+      sekundyOd1900 |= (uint32_t)ntpPaket[43];
       return sekundyOd1900 - 2208988800UL + casovaZona * SECS_PER_HOUR;
     }
   }
