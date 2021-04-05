@@ -60,7 +60,7 @@ uint8_t pixely[24][3] = {
 
 WiFiUDP Udp; // S NTP serverem budeme komunikovat skrze rychly protokol UDP
 uint16_t udpPort = 8888; // UDP port
-byte ntpPaket[48]; // 48B na zpravu pro NTP server a odpoved
+uint8_t ntpPaket[48]; // 48B na zpravu pro NTP server a odpoved
 
 uint8_t dvojtecka = 1; // Promenna ridici blikani dvojtecky segmentoveho displeje
 time_t staryCas = 0; // Pomocna promenna pro porovnani, jeslti uz se zmenil cas ve smycce loop
