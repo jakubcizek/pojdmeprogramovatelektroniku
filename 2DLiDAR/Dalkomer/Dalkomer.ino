@@ -1,5 +1,5 @@
 /*
- * 2D LiDAR, cast, ktera meri vzdalenost a otaci motorem
+ * 2D LiDAR, cast pro Arduino, ktera meri vzdalenost a otaci motorem
  *
  * Pouzite knihovny:
  * Servo: https://www.arduino.cc/reference/en/libraries/servo/attach/
