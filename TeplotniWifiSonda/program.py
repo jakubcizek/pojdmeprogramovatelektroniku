@@ -35,7 +35,7 @@ def ziskej_ip(interface):
         adresy = re.findall(r"(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})", radek)
         return adresy[0]
 
-# Funcke pro ziskani teplot z teplomeru a jejich odeslani na web
+# Funkce pro ziskani teplot z teplomeru a jejich odeslani na web
 def mereni():
     teplomery = glob.glob(zarizeni + "28*") # Ziskej seznam adresaru teplomeru, ktere odpovidaji vyrazu /sys/bus/w1/devices/28*
     if len(teplomery) == 0: # Pokud jsem zadne teplomery nenasel, rozsvitim cervenou chybovou LED
