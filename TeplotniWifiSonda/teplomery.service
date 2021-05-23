@@ -1,0 +1,16 @@
+[Unit]
+Description=Teplomery
+Before=basic.target
+After=local-fs.target sysinit.target
+DefaultDependencies=no
+
+[Service]
+ExecStart=/usr/bin/python3 -u program.py
+WorkingDirectory=/home/pi
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=basic.target

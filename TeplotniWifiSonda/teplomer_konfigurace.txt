@@ -1,0 +1,4 @@
+{
+  "url": "webova adresa, na kterou se maji posilat data. Na konec se doplni ?t0=xxx&t1=xxx&t2=xxx a tak dale podle poctu rozpoznanych teplomeru",
+  "prodleva": 60
+}
