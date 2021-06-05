@@ -6,7 +6,7 @@
 #define SHARP_SCK  36 // Pin SCK sbernice SPI (zalezi na pouzite desce/cipu)
 #define SHARP_MOSI 35 // Pin MOSI sbernice SPI (zalezi na pouzite desce/cipu)
 #define SHARP_SS   34 // Pin SS sbernice SPI (zalezi na pouzite desce/cipu)
-#define SHARP_5V_ON 42 // Pomocny pin konkretni desky od Lubose Moravce (@bastlir), ktery aktivuje 65V napajeni displeje
+#define SHARP_5V_ON 42 // Pomocny pin konkretni desky od Lubose Moravce (@bastlir), ktery aktivuje 5V napajeni displeje
 
 #define SIRKA 400 // Sirka displeje
 #define VYSKA 240 // Vyska displeje
