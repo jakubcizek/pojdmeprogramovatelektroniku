@@ -1,7 +1,7 @@
 #include <Adafruit_GFX.h> // Knihovna pro pokrocile graficke operace, https://github.com/adafruit/Adafruit-GFX-Library
 #include <Adafruit_SharpMem.h> // Knihovna pro praci s Memory LCD od Sharpu, https://github.com/adafruit/Adafruit_SHARP_Memory_Display
 #include "Bungee_Regular30pt7b.h" // Rasterizovane pismo Bungee pomoci nastroje truetype2gfx, https://rop.nl/truetype2gfx/
-#include "logo.h" // Bitmapa loga Computeru pomoci nastroje image2cpp, https://javl.github.io/image2cpp/
+#include "logo.h" // Bitmapa loga Zive.cz pomoci nastroje image2cpp, https://javl.github.io/image2cpp/
 
 #define SHARP_SCK  36 // Pin SCK sbernice SPI (zalezi na pouzite desce/cipu)
 #define SHARP_MOSI 35 // Pin MOSI sbernice SPI (zalezi na pouzite desce/cipu)
