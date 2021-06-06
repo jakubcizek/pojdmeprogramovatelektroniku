@@ -38,7 +38,7 @@ void setup() {
   displej.refresh(); // Konecne posli frame buffer radek po radku skrze sbernici SPI do displeje
 }
 
-// Obsah smycky loop se opakuje stale dokola a funcke nastartuje po zpracovani funkce setup
+// Obsah smycky loop se opakuje stale dokola a funkce nastartuje po zpracovani funkce setup
 // Tady bychom mohli periodicky cokoliv vypisovat na displej atp.
 void loop() {
 }
