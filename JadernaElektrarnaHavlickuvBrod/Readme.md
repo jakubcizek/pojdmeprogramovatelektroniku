@@ -1,1 +1,4 @@
-
+## Ukázka zranitelnosti typu „buffer overflow“ v ovládacím pultu hypotetické jaderné elektrárny Havlíčkův Brod 
+Tentokrát si ukážeme naprosté základy programování v C/C++ a pomocí zastaralé funkce getc necháme přetéci pole pro uložení hesla ze standardního vstupu. Díky přetečení se přepíšou i další proměnné ve stacku a program nás i bez hesla pustí dál. Ukázka přetečení funguje na Linuxu, pokud v překladači GCC použijeme přepínač -fno-stack-protector. K dispozici je Makefile pro rychlý překlad s tímto přepínačem. Program na Linuxu tak přeložíte příkazy „make release“ a „make debug“. Druhý jmenovaný bude za běhu vypisovat stav proměnných, takže bude patrné přetečení. Součástí repozitáře jsou i již přeložené programy pro Linux (x64) a Windows (x64, x86), kde je však už přetečení kompilátorem MSVC++ opravené. Můžete si ale program vyzkoušet na svém PC, protože je „zábavný.“  
+ - **[Programování elektroniky: Když přeteče zásobník, vybuchne jaderná elektrárna Havlíčkův Brod](https://www.zive.cz/clanky/programovani-elektroniky-kdyz-pretece-zasobnik-vybuchne-jaderna-elektrarna-havlickuv-brod/sc-3-a-212112/default.aspx
+)**
