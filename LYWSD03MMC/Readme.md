@@ -1,1 +1,4 @@
-
+## Odposlech BLE zpráv z teploměru Xiaomi (LYWSD03MMC)
+Tentokrát se spojíme s maličkým teploměrem LYWSD03MMC od Xiaomi. Na asijských e-shopech jej seženete za stokorunu, přiotm je ale vybavený řídícím SoC mikrokontrolerem TLSR8251, který podporuje i rádiovou komuniakci skrze Bluetooth 5.0 Low Energy a IEEE802.15.4. V článku se nejrpve s teploěmrem spojíme s Raspberry Pi a v Pythonu. V druhé ukázce, které se týká i tento kód, pak budeme bez přímého P2P spojení zachytávat přímo advertizační zprávy čipem ESP32 a programem napsaným v Arduinu. Aby to bylo možné, teploměr krze OTA Bluetooth přeflashujeme alternativním firmwarem. Postup a další teoretické povídání najdete v článku, C/C++ kód samotný pro ESP32 a Arduino IDE pak v přiloženém souboru ESP32BLESkener.ino. 
+ - **[Programování elektroniky: Jak odposlouchávat roztomilý teploměr od Xiaomi](https://www.zive.cz/clanky/programovani-elektroniky-jak-odposlouchavat-roztomily-teplomer-od-xiaomi/sc-3-a-212382/default.aspx
+)**
