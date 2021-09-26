@@ -1,0 +1,5 @@
+sudo apt-get install libopencv-dev
+
+V Makefile odstranit -Werror:
+BASE_CFLAGS = -Wall -Wno-missing-braces,
+jinak bude vyhazovat chybu kvuli memcpy s overlaps
