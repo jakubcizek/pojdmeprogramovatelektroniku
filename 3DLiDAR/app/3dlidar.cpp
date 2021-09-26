@@ -63,12 +63,12 @@ int main(int argc, char *argv[]){
 	signal(SIGINT, onSignal); // Registrace funkce onSignal pri stisku CTRL+C (signal SIGINT)
 
 
-	// NAstartovani 1. kamery v poradi skrze OpenCV
+	// Nastartovani 1. kamery v poradi skrze OpenCV
 	VideoCapture cap(0);
-    if (!cap.isOpened()){
-         printf("Nelze otevrit RPi kameru\r\n");
-         return -1;
-    }
+        if (!cap.isOpened()){
+        	printf("Nelze otevrit RPi kameru\r\n");
+        	return -1;
+        }
 
 	// Inicializace sbernice I2C
 	// A prvni pokus spojeni s dalkomerem na adrese 0x29
@@ -104,7 +104,7 @@ int main(int argc, char *argv[]){
 	if(vl53l5cx_set_ranging_mode(&vl53l5cx, rezim)) printf("CHYBA\r\n");
 	else printf("OK\r\n");
 
-    // Spusteni mereni
+        // Spusteni mereni
 	printf("\r\n*** Zacatek mereni (vzdalenosti v mm) ***\r\n");
 	vl53l5cx_start_ranging(&vl53l5cx);
 
@@ -114,7 +114,7 @@ int main(int argc, char *argv[]){
 	// Obdoba funkce loop v Arduinu
 	while(loop){
 		Mat frame; // Snimek kamery
-        cap.read(frame); // Precteni snimku z kamery
+         	cap.read(frame); // Precteni snimku z kamery
 		namedWindow("Kamera",1); // Nazev okna pro snimek kamery
 		namedWindow("Lidar", 1); // NAzev okna pro hloubkovou mapu z dalkomeru
 
@@ -169,7 +169,7 @@ int main(int argc, char *argv[]){
 		// Detekce stisku klavesy ESC, ktera ukonci program
 		// Druha moznost vedle CTRL-C v textovem terminalu
 		char c = (char)waitKey(25);
-        if(c == 27) loop = 0;
+        	if(c == 27) loop = 0;
 
 		// Pockej 5 ms a opakuj
 		// Abychom nezahltili neustalym dotazovanim,
@@ -181,7 +181,7 @@ int main(int argc, char *argv[]){
 	// korektne ukoncime spojeni s kamerou a dalkomerem a
 	// ukoncime program
 	cap.release();
-    destroyAllWindows();
+    	destroyAllWindows();
 	vl53l5cx_stop_ranging(&vl53l5cx);
 	vl53l5cx_comms_close(&vl53l5cx.platform);
 	return 0;
