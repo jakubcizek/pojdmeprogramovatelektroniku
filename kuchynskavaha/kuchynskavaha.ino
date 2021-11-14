@@ -10,7 +10,7 @@
 // Knihovna pro praci s A/D prevodnikem HX711
 // www.arduino.cc/reference/en/libraries/gyverhx711/
 #include <GyverHX711.h>
-// Knihovna pro praci se segmentovy displejem s radicem TM1637
+// Knihovna pro praci se segmentovym displejem s radicem TM1637
 // www.arduino.cc/reference/en/libraries/gyvertm1637/
 #include <GyverTM1637.h>
 
@@ -20,7 +20,7 @@
 // Vahu napajime z pinu 3,3V a GND
 GyverHX711 vaha(8, 9);
 
-// Obejkt displeje
+// Objekt displeje
 // Pin CLK je pripojeny na pin 7 desky Arduino Uno
 // Pin DIO je pripojeny na pin 6 desky Arduino Uno
 // Displej napajime z pinu 5V a GND
@@ -41,9 +41,9 @@ long ziskejPrumer(int opakovani) {
   if (vaha.available()) {
     adc = vaha.read();
   }
-  // Cteme tak dlouho, dokud neziskame pozadovany pcoet hodnot
-  // Pozor, pokud spojeni s A/D prevodnikem nebdue fungovat,
-  // tato smycka bude blokvoat beh az do kocne veku
+  // Cteme tak dlouho, dokud neziskame pozadovany pocet hodnot
+  // Pozor, pokud spojeni s A/D prevodnikem nebude fungovat,
+  // tato smycka bude blokovat beh az do konce veku
   while (pozice < opakovani) {
     if (vaha.available()) {
       adc = vaha.read();
@@ -71,9 +71,9 @@ void cekejNaZnak(char hledej) {
 
 // Hlavni funkce setup nastartuje jako prvni
 void setup() {
-  Serial.begin(115200); // Start seriove linky do PC rychlsoti 115 200 b/s
+  Serial.begin(115200); // Start seriove linky do PC rychlosti 115 200 b/s
   displej.clear(); //  Vymazani displeje
-  displej.brightness(7); // NAstaveni jasu na maximum
+  displej.brightness(7); // Nastaveni jasu na maximum
 
   // Kalibrace klidove hodnoty
   // Vaha bez zateze
@@ -106,7 +106,7 @@ void loop() {
   if (vaha.available()) {
     // Precti hodnotu
     long adc = vaha.read();
-    // ORez hodnotu podle kalibracniho minima a maxima
+    // Orez hodnotu podle kalibracniho minima a maxima
     adc = constrain(adc, nula, petkilogramu);
     // Podle kalibracniho minima a maxima ji prepocitej na rozsah 0-5000 gramu
     long hmotnost_g = map(adc, nula, petkilogramu, 0, 5000);
