@@ -2,7 +2,7 @@
 import RPi.GPIO as GPIO
 # Knihovna pro práci se znakovým displejem
 # Subor RPi_I2C_driver.py stáhnete z adresy:
-# gist.github.com/DenisFromHR/cc863375a6e19dce359d#file-rpi_i2c_driver-py
+# https://gist.github.com/DenisFromHR/cc863375a6e19dce359d#file-rpi_i2c_driver-py
 # Umístěte jej do stejného adresáře jako náš program
 import RPi_I2C_driver
 # Knihovna pro práci s čipem INA219
