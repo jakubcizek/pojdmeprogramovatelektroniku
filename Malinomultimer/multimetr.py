@@ -11,7 +11,7 @@ import RPi_I2C_driver
 # Umístěte jej do stejného adresáře jako náš program
 import ina219
 # Knihovna pro práci ee systémovými signaly
-# Použijeme j i kzachycení stisku přerušení programu CTRL+C
+# Použijeme ji k zachycení stisku přerušení programu CTRL+C
 import signal
 # Knihovna pro práci s OS
 # Použijeme ji ke spuštění systémového příkazu pro zjištění IP adresy
