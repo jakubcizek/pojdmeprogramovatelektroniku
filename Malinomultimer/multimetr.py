@@ -13,7 +13,7 @@ import ina219
 # Knihovna pro práci ee systémovými signaly
 # Použijeme j i kzachycení stisku přerušení programu CTRL+C
 import signal
-# Knihovna pro príci s OS
+# Knihovna pro práci s OS
 # Použijeme ji ke spuštění systémového příkazu pro zjištění IP adresy
 import os
 # Knihovna pro práci s regulárnímu výrazy
