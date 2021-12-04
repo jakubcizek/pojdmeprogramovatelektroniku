@@ -57,6 +57,7 @@ def stiskTlacitka(pin):
     if not True in tlacitkaStavy:
         vypisZdravici()
 
+# Funkce pro vypsání zdravice na znakový displej 
 def vypisZdravici():
     lcd.lcd_display_string(" Malinomultimer 1.0 ", 1)
     lcd.lcd_display_string("   *** Zive.cz ***  ", 2)
@@ -84,7 +85,7 @@ def mereni():
             for wsKlient in wsKlienti:
                 wsKlient.write_message(f"Čidlo {i}: {zprava}")
 
-# Po příchodu systémoé zrávy SIGINT,
+# Po příchodu systémové zprávy SIGINT
 # zastav všechny smyčky, vypni podsvětlení displeje
 # a nech korektně ukončit program
 def sigint(sig, frame):
@@ -95,7 +96,7 @@ def sigint(sig, frame):
     lcd.backlight(0)
 
 
-# Funkce pro zskání IP adresy podle zadaného rozhraní
+# Funkce pro získání IP adresy podle zadaného rozhraní
 # Pro Wi-Fi se přečte odpověď systémového příkazu: ip a show wlan0 | grep inet 
 def ziskejIP(rozhrani):
     radek = os.popen("ip a show " + rozhrani + "| grep inet").read().split("\n")[0].strip()
@@ -111,7 +112,7 @@ class HttpIndex(web.RequestHandler):
     def get(self):
         self.render("index.html")
 
-# Třída pro WebScket
+# Třída pro WebSocket
 # Při novém spojení si uložíme klienta do pole
 class WebSock(websocket.WebSocketHandler):
     def open(self):
@@ -143,13 +144,13 @@ if __name__== "__main__":
     # Nastav GPIO piny tlačítek na vstup
     # Aktivuj na těchto pinech interní pull-down (v rozpojeném stavu bude na pinu zaručeně logická 0)
     # Aktivuj na těchto pinech detektor náběžné hrany (při změně na logickou 1 se zavolá funkce stiskTlacítka)
-    # NAstav bouncetime na 600 ms (zabrání možnému šumu při stisku mechanického tlačítka)
+    # Nastav bouncetime na 600 ms (zabrání možnému šumu při stisku mechanického tlačítka)
     print("Registruji stisky tlačítek")
     for tlacitko in tlacitkaPiny:
         GPIO.setup(tlacitko, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         GPIO.add_event_detect(tlacitko, GPIO.RISING, callback=stiskTlacitka, bouncetime=600)
 
-    # NAstartuj multimetry INA219 na I2C adresách 0x40, 0x41, 0x42 a 0x43
+    # Nastartuj multimetry INA219 na I2C adresách 0x40, 0x41, 0x42 a 0x43
     print("Startuji multimetry")
     multimetry = []
     multimetry.append(ina219.INA219(addr=0x40))
@@ -163,7 +164,7 @@ if __name__== "__main__":
         (r'/', HttpIndex),
         (r'/websocket', WebSock)
     ])
-    # Nastartuj HTTP/WenScoket server na TCP portu 80
+    # Nastartuj HTTP/WebScoket server na TCP portu 80
     webserver.listen(80)
 
     # Vytvoř sekundární smyčku třídy Tornado, která se bude opakovat každých 1 000 ms
