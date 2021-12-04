@@ -24,24 +24,6 @@ from tornado import ioloop
 from tornado import web
 from tornado import websocket
 
-# Nastavení typu číslování pinů na desce Raspberry Pi
-GPIO.setmode(GPIO.BCM)
-
-# Tlačítka budou na těchto pinech GPIO
-tlacitkaPiny = [
-    23, # tlacitko 1
-    27, # tlacitko 2
-    17, # tlacitko 3
-    22  # tlacitko 4
-]
-
-# Uložené stavy tlačítek
-tlacitkaStavy = [
-    False,
-    False,
-    False,
-    False
-]
 
 # Funkce, která se zpracuje po stisku některého z tlačítek
 def stiskTlacitka(pin):
@@ -125,6 +107,25 @@ class WebSock(websocket.WebSocketHandler):
 # TADY ZAČÍNÁ BĚH NAŠEHO PROGRAMU
 if __name__== "__main__":
     print("Startuji Malinomultimer 1.0")
+
+    # Nastavení typu číslování pinů na desce Raspberry Pi
+    GPIO.setmode(GPIO.BCM)
+
+    # Tlačítka budou na těchto pinech GPIO
+    tlacitkaPiny = [
+        23, # tlacitko 1
+        27, # tlacitko 2
+        17, # tlacitko 3
+        22  # tlacitko 4
+    ]
+
+    # Uložené stavy tlačítek
+    tlacitkaStavy = [
+        False,
+        False,
+        False,
+        False
+    ]
 
     # Vytvoř pole se seznamem připojených websocketových klientů
     wsKlienti = []
