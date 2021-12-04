@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="cs">
+    <head>
+        <title>Malinomultimer 1.0</title>
+        <meta charset="UTF-8">
+        <style>
+            #vystup{    
+                font-family: monospace;
+                font-size: 16px;
+                line-height: 110%;
+                font-weight: bold;
+        }
+        </style>
+        <script type="text/javascript">
+        function main(){
+            try{
+                let websocket = new WebSocket("ws://" + window.location.hostname + "/websocket");
+                console.log("WebSocket spojeni otevreno...");
+                websocket.onmessage = function(udalost){
+                    let vystup = document.querySelector("#vystup");
+                    vystup.innerHTML = vystup.innerHTML + "<br />" + udalost.data;
+                };
+            }catch(e){
+                console.log("Nelze se spojit s Raspberry Pi skrze WebSocket");
+            }
+        }
+
+        window.addEventListener("load", main, false);
+
+        </script>
+    </head>
+    <body>
+        <h1>Malinomultimer 1.0</h1>
+        <div id="vystup">Čekám na data...</div>
+    </body>
+</html>
