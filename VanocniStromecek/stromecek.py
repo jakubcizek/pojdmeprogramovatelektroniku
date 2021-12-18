@@ -1,7 +1,7 @@
 # Knihovna stromečku
 # https://github.com/ThePiHut/rgbxmastree
 # Z GitHubu je třeba stáhnout soubor tree.py a umístit jej do stejného adresáře
-# Stromeček vyžaduje knihovnu gpiozero pro Raspberry Pi 3
+# Stromeček vyžaduje knihovnu gpiozero pro Raspberry Pi
 # Měla být součástí oficiální distribuce Raspberry Pi OS, anebo ji doinstalujte ručně:
 # sudo apt install python3-gpiozero
 from tree import RGBXmasTree
@@ -33,7 +33,7 @@ zakladniBarvy = [
     (0, 1, 0), # zelená
     (0, 0, 1), # modrá
     (1, 1, 0), # žlutá
-    (1, 0, 1), #  purpurová
+    (1, 0, 1), # purpurová
     (0, 1, 1), # tyrkysová
     (1, 1, 1)  # bílá
 ]
