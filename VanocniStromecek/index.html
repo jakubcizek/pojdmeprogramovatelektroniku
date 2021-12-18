@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+    <title>Stromeček 1.0</title>
+    <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2&display=swap" rel="stylesheet">
+        <style>
+            body, select, input{
+                font-family: "Baloo Bhaijaan 2", cursive;
+            }
+            .vycentruj {
+              margin: auto;
+              width: 600px;
+              padding: 10px;
+            }
+            #odpoved{
+                color: gray;
+            }
+            </style>
+        <script>
+            function nastavitStromecek(akce="", barva="", led=""){
+                let _akce = document.querySelector("#akce").value;
+                let _barva = document.querySelector("#barva").value;
+                let _led = document.querySelector("#led").value;
+
+                if(akce.length > 0) _akce = akce;
+                if(barva.length > 0) _barva = akce;
+                if(led.length > 0) _led = akce;
+                
+                console.log("Akce: " + _akce);
+                console.log("Led: " + _led);
+                console.log("Barva: " + _barva);
+
+                let url = "/?prikaz=" + _akce + "&";
+                url += "led=" + _led + "&";
+                url += "rgb=" + _barva.substring(1);
+
+                console.log("Načítám URL: " + url);
+                fetch(url)
+                    .then(response => response.text())
+                    .then(data => {
+                        let zprava = "<b>Odpověď stromečku:</b> " + data
+                        document.querySelector("#odpoved").innerHTML = zprava; 
+
+                    })
+                    .catch(error => console.error(error));
+                
+            }
+        </script>
+    </head>
+    <body>
+
+        <div class="vycentruj">
+            <h1>Stromeček 1.0</h1>
+
+            <p>
+                Ovládací pult stromečku. Nejprve vyber akci. Pokud to bude akce <b>rozsvítit</b>, dále zvol <b>LED</b> stromečku a konečně <b>barvu</b>. Nakonec odešli instrukci do stromečku klepnutím na <b>Nastavit</b>. Stromeček můžeš kdykoliv zhasnout klepnutím na <b>Zhasnout</b>.
+            </p>
+            <p>
+                <b>Akce:</b>&nbsp;<select id="akce" name="akce">
+                    <option value="rozsvitit" selected>Rozsvítit vybranou LED</option>
+                    <option value="animujnahodne">Animace náhodných světýlek</option>
+                    <option value="animujhue">Animace HUE</option>
+                </select>&nbsp;
+
+                <b>LED:</b>&nbsp;<select id="led" name="led">
+                    <option value="-1" selected>Všechny</option>
+                    <option value="0">LED 0</option>
+                    <option value="1">LED 1</option>
+                    <option value="2">LED 2</option>
+                    <option value="3">LED 3 (HVĚZDA)</option>
+                    <option value="4">LED 4</option>
+                    <option value="5">LED 5</option>
+                    <option value="6">LED 6</option>
+                    <option value="7">LED 7</option>
+                    <option value="8">LED 8</option>
+                    <option value="9">LED 9</option>
+                    <option value="10">LED 10</option>
+                    <option value="11">LED 11</option>
+                    <option value="12">LED 12</option>
+                    <option value="13">LED 13</option>
+                    <option value="14">LED 14</option>
+                    <option value="15">LED 15</option>
+                    <option value="16">LED 16</option>
+                    <option value="17">LED 17</option>
+                    <option value="18">LED 18</option>
+                    <option value="19">LED 19</option>
+                    <option value="20">LED 20</option>
+                    <option value="21">LED 21</option>
+                    <option value="22">LED 22</option>
+                    <option value="23">LED 23</option>
+                    <option value="24">LED 24</option>
+                </select>&nbsp;
+                <b>Barva:</b>&nbsp;
+                <input type="color" id="barva" name="barva" value="#ff0000">
+            </p>
+
+            <p>
+                <input type="button" value="Nastavit" onclick="javascript:nastavitStromecek()">&nbsp;
+                <input type="button" value="Zhasnout" onclick="javascript:nastavitStromecek('zhasni')">
+            </p>
+            <p id="odpoved"></p>
+        
+        </div>
+    </body>
+</html>
