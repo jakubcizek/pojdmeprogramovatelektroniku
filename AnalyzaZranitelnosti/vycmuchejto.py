@@ -175,7 +175,7 @@ if __name__ == "__main__":
                 zranitelny_produkt[typ] = dict(sorted(zranitelny_produkt[typ].items(), key=lambda item: item[1], reverse=True))
 
             
-            # Ulozeni do CSV a vypis nejzranitelnejsich produktu
+            # Ulozeni do CSV a vypis n nejzranitelnejsich produktu
             for typ in zranitelny_produkt:
                 print(f"TOP{delka_zebricku} {typ_friendly[typ]} podle zranitelnosti:")
                 print("===================================================")
@@ -184,12 +184,12 @@ if __name__ == "__main__":
                 for produkt, pocet in zranitelny_produkt[typ].items():
                     if i <= delka_zebricku:
                         print(f"{str(i).rjust(2)}) {produkt}: {pocet}")
-                    f.write(f"{produkt};{pocet}")
+                    f.write(f"{produkt};{pocet}\n")
                     i += 1 
                 f.close()
                 print("")
 
-            # Ulozeni do CSV a vypis 10 nejzranitelnejsich firem
+            # Ulozeni do CSV a vypis n nejzranitelnejsich firem
             print(f"TOP{delka_zebricku} Firmy podle zranitelnosti:")
             print("===================================================")
             f = open("Firmy.csv", "w")
@@ -197,12 +197,12 @@ if __name__ == "__main__":
             for vendor, pocet in zranitelny_vendor.items():
                 if i <= delka_zebricku:
                     print(f"{str(i).rjust(2)}) {vendor}: {pocet}")
-                f.write(f"{vendor};{pocet}")
+                f.write(f"{vendor};{pocet}\n")
                 i += 1
             f.close()
             print("")
 
-            # Ulozeni do CSV a vypis 10 nejzranitelnejsich firem se zranitelnosti high
+            # Ulozeni do CSV a vypis n nejzranitelnejsich firem se zranitelnosti high
             print(f"TOP{delka_zebricku} Firmy podle nejzavaznejsich zranitelnosti high:")
             print("===================================================")
             f = open("Firmy_high.csv", "w")
@@ -210,7 +210,7 @@ if __name__ == "__main__":
             for vendor, pocet in zranitelny_vendor_high.items():
                 if i <= delka_zebricku:
                     print(f"{str(i).rjust(2)}) {vendor}: {pocet}")
-                f.write(f"{vendor};{pocet}")
+                f.write(f"{vendor};{pocet}\n")
                 i += 1
             f.close()
             print("")
