@@ -135,7 +135,7 @@ if __name__ == "__main__":
                 uris = []
                 for node in nodes:
 
-                    # Iteruj vsechny vborene deti
+                    # Iteruj vsechny vnorene deti
                     if "children" in node:
                         children = node
                         while "children" in children:
