@@ -18,19 +18,19 @@
 
 		<script>
 			// Pomocny objekt s typy vozidel podle formatu GTFS a vlastnosti route_type
-            // Viz https://developers.google.com/transit/gtfs/reference#routestxt
-            // Kazde vozidlo ma svoji ikonu a pocitadlo pro statistiku 
+                        // Viz https://developers.google.com/transit/gtfs/reference#routestxt
+                        // Kazde vozidlo ma svoji ikonu a pocitadlo pro statistiku 
 			let vozidla_typy = {
 				"0": {"ikona": L.icon({iconUrl:"tram.png", iconSize:[24,24]}), "nazev": "Tramvaj", "pocet": 0},
-                "1": {"ikona": L.icon({iconUrl:"metro.png", iconSize:[24,24]}), "nazev": "Metro", "pocet": 0},
+                                "1": {"ikona": L.icon({iconUrl:"metro.png", iconSize:[24,24]}), "nazev": "Metro", "pocet": 0},
 				"2": {"ikona": L.icon({iconUrl:"train.png", iconSize:[24,24]}), "nazev": "Vlak", "pocet": 0},
 				"3": {"ikona": L.icon({iconUrl:"bus.png", iconSize:[24,24]}), "nazev": "Autobus", "pocet": 0},
-                "4": {"ikona": L.icon({iconUrl:"ship.png", iconSize:[24,24]}), "nazev": "Loď", "pocet": 0},
+                                "4": {"ikona": L.icon({iconUrl:"ship.png", iconSize:[24,24]}), "nazev": "Loď", "pocet": 0},
 				"5": {"ikona": L.icon({iconUrl:"tram.png", iconSize:[24,24]}), "nazev": "Lanová tramvaj", "pocet": 0},
-                "6": {"ikona": L.icon({iconUrl:"lift.png", iconSize:[24,24]}), "nazev": "Lanovka", "pocet": 0},
-                "7": {"ikona": L.icon({iconUrl:"lift.png", iconSize:[24,24]}), "nazev": "Pozemní lanovka", "pocet": 0},
-                "11": {"ikona": L.icon({iconUrl:"bus.png", iconSize:[24,24]}), "nazev": "Trolejbus", "pocet": 0},
-                "12": {"ikona": L.icon({iconUrl:"train.png", iconSize:[24,24]}), "nazev": "Jednokolejka", "pocet": 0}
+                                "6": {"ikona": L.icon({iconUrl:"lift.png", iconSize:[24,24]}), "nazev": "Lanovka", "pocet": 0},
+                                "7": {"ikona": L.icon({iconUrl:"lift.png", iconSize:[24,24]}), "nazev": "Pozemní lanovka", "pocet": 0},
+                                "11": {"ikona": L.icon({iconUrl:"bus.png", iconSize:[24,24]}), "nazev": "Trolejbus", "pocet": 0},
+                                "12": {"ikona": L.icon({iconUrl:"train.png", iconSize:[24,24]}), "nazev": "Jednokolejka", "pocet": 0}
 			};
 
 			// Pomocny objekt pro statistiku dopravcu
@@ -47,15 +47,15 @@
 			// Klic si muzete bezplatne vygenerovat na webu:
 			// https://api.golemio.cz/api-keys/dashboard
 			// Dokumentaci ke Golemio API najdete na webu:
-			// https://golemioapi.docs.apiary.io
-            // !!! BEZ RUCNIHO NASTAVENI TETO HODNOTY NEBUDE MAPA FUNGOVAT !!!
+			// https://golemioapi.docs.apiary.io/#reference/public-transport/realtime-vehicle-positions/get-all-vehicle-positions
+                        // !!! BEZ RUCNIHO NASTAVENI TETO HODNOTY NEBUDE MAPA FUNGOVAT !!!
 			const golemio_klic = "";
 
 			// Po nacteni stranky spust tuto funkci
 			window.onload = () =>{
 
 				// Objekt mapy Leaflet vycentrovane na souradnice stredu Prahy a priblizeni 10 (vyssí cislo, vyssi priblizeni)
-                // Dokumentace knihovny Leaflet: https://leafletjs.com/SlavaUkraini/reference.html
+                                // Dokumentace knihovny Leaflet: https://leafletjs.com/SlavaUkraini/reference.html
 				let mapa = L.map("mapa").setView([50.0835494, 14.4341414], 8);
 
 				// Objekt poskytovatele mapovych dlazdic pro Leaflet
@@ -66,8 +66,8 @@
 				let dlazdice = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 					attribution: 'Bastl: <a href="https://www.zive.cz">Živě.cz</a> | ' +
 					             'Data: <a href="https://pid.cz/">PID</a> | ' +
-								 'API: <a href="https://golemio.cz/projects">Golemio</a> | ' +
-								 'Mapa: <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+						     'API: <a href="https://golemio.cz/projects">Golemio</a> | ' +
+						     'Mapa: <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 				}).addTo(mapa);
 
 				// Spojim se asynchronne s HTTP serverem Golemio, ktere zpracovava API pro ROPID
@@ -96,23 +96,23 @@
 							let zs = vozidlo.geometry.coordinates[1]; // Zemepisna sirka vozidla
 							let linka = vozidlo.properties.trip; // Informace o lince a vozidlu
 
-                            // Typ linky ve form8tu GTFS
-                            // Viz https://developers.google.com/transit/gtfs/reference#routestxt
+                                                        // Typ linky ve form8tu GTFS
+                                                        // Viz https://developers.google.com/transit/gtfs/reference#routestxt
 							let typ = linka.gtfs.route_type;
 
 							// Navysim pocitadlo zjisteneho dopravniho prostredku kvuli statistice
-                            vozidla_typy[typ].pocet++;
+                                                        vozidla_typy[typ].pocet++;
                             
 							// Podle GPS polohy a typu vozidla vytvorim na mape znacku s konkretni ikonou
 							let marker = L.marker([zs, zd], {icon: vozidla_typy[typ].ikona}).addTo(mapa);
 
 							// Po klepnuti na znacku se zobrazi bublina s popisem linky
-                            let nizkopodlazni = (linka.wheelchair_accessible)? "ano" : "ne";
+                                                        let nizkopodlazni = (linka.wheelchair_accessible)? "ano" : "ne";
 							marker.bindPopup(`<h2>Linka ${linka.gtfs.route_short_name}</h2>` +
-                                             `<b>Vozidlo</b>: ${vozidla_typy[typ].nazev}<br>` + 
-											 `<b>Dopravce:</b> ${linka.agency_name.scheduled}<br />` +
-											 `<b>Jede do:</b> ${linka.gtfs.trip_headsign}<br />` +
-                                             `<b>Nízkopodlažní:</b> ${nizkopodlazni}`);
+                                                                         `<b>Vozidlo</b>: ${vozidla_typy[typ].nazev}<br>` + 
+	                                                                 `<b>Dopravce:</b> ${linka.agency_name.scheduled}<br />` +
+									 `<b>Jede do:</b> ${linka.gtfs.trip_headsign}<br />` +
+                                                                         `<b>Nízkopodlažní:</b> ${nizkopodlazni}`);
 
 							// pridam znacku do pole znacek, kdybych s nim ichtel dale hroamdne pracovat
 							// Treba kdybych je chtel smazat
