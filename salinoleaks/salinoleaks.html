@@ -1,162 +1,160 @@
 <!DOCTYPE html>
 <html lang="cs">
-	<head>
-		<title>Šalinoleaks: PRAHA</title>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin=""/>
-		<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
+    <head>
+        <title>Šalinoleaks: PRAHA</title>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin=""/>
+        <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
 
-		<style>
-			.leaflet-container {
-				width: 1024px;
-				height: 768px;
-				max-width: 100%;
-				max-height: 100%;
-			}
-		</style>
+        <style>
+            .leaflet-container {
+                width: 1024px;
+                height: 768px;
+                max-width: 100%;
+                max-height: 100%;
+            }
+        </style>
 
-		<script>
-			// Pomocny objekt s typy vozidel podle formatu GTFS a vlastnosti route_type
-                        // Viz https://developers.google.com/transit/gtfs/reference#routestxt
-                        // Kazde vozidlo ma svoji ikonu a pocitadlo pro statistiku 
-			let vozidla_typy = {
-				"0": {"ikona": L.icon({iconUrl:"tram.png", iconSize:[24,24]}), "nazev": "Tramvaj", "pocet": 0},
-                                "1": {"ikona": L.icon({iconUrl:"metro.png", iconSize:[24,24]}), "nazev": "Metro", "pocet": 0},
-				"2": {"ikona": L.icon({iconUrl:"train.png", iconSize:[24,24]}), "nazev": "Vlak", "pocet": 0},
-				"3": {"ikona": L.icon({iconUrl:"bus.png", iconSize:[24,24]}), "nazev": "Autobus", "pocet": 0},
-                                "4": {"ikona": L.icon({iconUrl:"ship.png", iconSize:[24,24]}), "nazev": "Loď", "pocet": 0},
-				"5": {"ikona": L.icon({iconUrl:"tram.png", iconSize:[24,24]}), "nazev": "Lanová tramvaj", "pocet": 0},
-                                "6": {"ikona": L.icon({iconUrl:"lift.png", iconSize:[24,24]}), "nazev": "Lanovka", "pocet": 0},
-                                "7": {"ikona": L.icon({iconUrl:"lift.png", iconSize:[24,24]}), "nazev": "Pozemní lanovka", "pocet": 0},
-                                "11": {"ikona": L.icon({iconUrl:"bus.png", iconSize:[24,24]}), "nazev": "Trolejbus", "pocet": 0},
-                                "12": {"ikona": L.icon({iconUrl:"train.png", iconSize:[24,24]}), "nazev": "Jednokolejka", "pocet": 0}
-			};
+        <script>
+            // Pomocny objekt s typy vozidel podle formatu GTFS a vlastnosti route_type
+            // Viz https://developers.google.com/transit/gtfs/reference#routestxt
+            // Kazde vozidlo ma svoji ikonu a pocitadlo pro statistiku 
+            let vozidla_typy = {
+                "0": {"ikona": L.icon({iconUrl:"tram.png", iconSize:[24,24]}), "nazev": "Tramvaj", "pocet": 0},
+                "1": {"ikona": L.icon({iconUrl:"metro.png", iconSize:[24,24]}), "nazev": "Metro", "pocet": 0},
+                "2": {"ikona": L.icon({iconUrl:"train.png", iconSize:[24,24]}), "nazev": "Vlak", "pocet": 0},
+                "3": {"ikona": L.icon({iconUrl:"bus.png", iconSize:[24,24]}), "nazev": "Autobus", "pocet": 0},
+                "4": {"ikona": L.icon({iconUrl:"ship.png", iconSize:[24,24]}), "nazev": "Loď", "pocet": 0},
+                "5": {"ikona": L.icon({iconUrl:"tram.png", iconSize:[24,24]}), "nazev": "Lanová tramvaj", "pocet": 0},
+                "6": {"ikona": L.icon({iconUrl:"lift.png", iconSize:[24,24]}), "nazev": "Lanovka", "pocet": 0},
+                "7": {"ikona": L.icon({iconUrl:"lift.png", iconSize:[24,24]}), "nazev": "Pozemní lanovka", "pocet": 0},
+                "11": {"ikona": L.icon({iconUrl:"bus.png", iconSize:[24,24]}), "nazev": "Trolejbus", "pocet": 0},
+                "12": {"ikona": L.icon({iconUrl:"train.png", iconSize:[24,24]}), "nazev": "Jednokolejka", "pocet": 0}
+            };
 
-			// Pomocny objekt pro statistiku dopravcu
-			let dopravci = {};
+            // Pomocny objekt pro statistiku dopravcu
+            let dopravci = {};
 
-			// Pomocne pole se znackami vsech vozidel v mape
-			// Nevyuzivame jej, ale mohlo by pomoci s dalsim managementem
-			// Treba s mazanim znacek, filtrovanim atp.
-			let vozidla_markery = [];
+            // Pomocne pole se znackami vsech vozidel v mape
+            // Nevyuzivame jej, ale mohlo by pomoci s dalsim managementem
+            // Treba s mazanim znacek, filtrovanim atp.
+            let vozidla_markery = [];
 
-			// Klic do systemu Golemio, ktere pro PID zpracovava
-			// aplikacni rozhrani o pohybu vozidel. Je soucasti
-			// HTTP dotazu na server https://api.golemio.cz
-			// Klic si muzete bezplatne vygenerovat na webu:
-			// https://api.golemio.cz/api-keys/dashboard
-			// Dokumentaci ke Golemio API najdete na webu:
-			// https://golemioapi.docs.apiary.io/#reference/public-transport/realtime-vehicle-positions/get-all-vehicle-positions
-                        // !!! BEZ RUCNIHO NASTAVENI TETO HODNOTY NEBUDE MAPA FUNGOVAT !!!
-			const golemio_klic = "";
+            // Klic do systemu Golemio, ktere pro PID zpracovava
+            // aplikacni rozhrani o pohybu vozidel. Je soucasti
+            // HTTP dotazu na server https://api.golemio.cz
+            // Klic si muzete bezplatne vygenerovat na webu:
+            // https://api.golemio.cz/api-keys/dashboard
+            // Dokumentaci ke Golemio API najdete na webu:
+            // https://golemioapi.docs.apiary.io/#reference/public-transport/realtime-vehicle-positions/get-all-vehicle-positions
+            // !!! BEZ RUCNIHO NASTAVENI TETO HODNOTY NEBUDE MAPA FUNGOVAT !!!
+            const golemio_klic = "";
 
-			// Po nacteni stranky spust tuto funkci
-			window.onload = () =>{
 
-				// Objekt mapy Leaflet vycentrovane na souradnice stredu Prahy a priblizeni 10 (vyssí cislo, vyssi priblizeni)
-                                // Dokumentace knihovny Leaflet: https://leafletjs.com/SlavaUkraini/reference.html
-				let mapa = L.map("mapa").setView([50.0835494, 14.4341414], 8);
+            // Po nacteni stranky spust tuto funkci
+            window.onload = () =>{
 
-				// Objekt poskytovatele mapovych dlazdic pro Leaflet
-				// Pouziji bezplartny pristup k OSM
-				// Pozor, dodruzjte politiku fair use a nepretezujte OSM!
-				// Mohl bych pouzit take placeny Mapbox a dalsi poskytovatele 
-				// V mape nezapomenu uvest zdroje dat "attribution", ktere se zobrazi v paticce
-				let dlazdice = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-					attribution: 'Bastl: <a href="https://www.zive.cz">Živě.cz</a> | ' +
-					             'Data: <a href="https://pid.cz/">PID</a> | ' +
-						     'API: <a href="https://golemio.cz/projects">Golemio</a> | ' +
-						     'Mapa: <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-				}).addTo(mapa);
+                // Objekt mapy Leaflet vycentrovane na souradnice stredu Prahy a priblizeni 10 (vyssí cislo, vyssi priblizeni)
+                // Dokumentace knihovny Leaflet: https://leafletjs.com/SlavaUkraini/reference.html
+                let mapa = L.map("mapa").setView([50.0835494, 14.4341414], 8);
 
-				// Spojim se asynchronne s HTTP serverem Golemio, ktere zpracovava API pro ROPID
-				// a polozim dotaz /vehiclepositions, ktery vrati obrovsky JSON
-				// s polohami vsech vozidel prazske integrovane dopravy
-				console.log("Stahuji šaliny a další věci, které jezdí v Praze...");
-				fetch("https://api.golemio.cz/v2/vehiclepositions", {
-					method: "GET",
-					// V HTTP dotazu musi byt hlavicka x-access-token,
-					// ktera obsahuje osobni klic API
-					headers: {
-						"Content-Type": "application/json; charset=utf-8",
-						"x-access-token": golemio_klic
-					}
-				})
-					.then(response => response.json()) // Pokud jsem ziskal odpoved, interpretuji ji jako JSON
-					.then(data => { // Objekt "data" nyni obsahuje citelny JSON
+                // Objekt poskytovatele mapovych dlazdic pro Leaflet
+                // Pouziji bezplartny pristup k OSM
+                // Pozor, dodruzjte politiku fair use a nepretezujte OSM!
+                // Mohl bych pouzit take placeny Mapbox a dalsi poskytovatele 
+                // V mape nezapomenu uvest zdroje dat "attribution", ktere se zobrazi v paticce
+                let dlazdice = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: 'Bastl: <a href="https://www.zive.cz">Živě.cz</a> | ' +
+                                 'Data: <a href="https://pid.cz/">PID</a> | ' +
+                                 'API: <a href="https://golemio.cz/projects">Golemio</a> | ' +
+                                 'Mapa: <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                }).addTo(mapa);
 
-						// Jednotliva vozdila jsou ve vnorenem poli features,
-						// a tak pro kontrolu vypisu jeho delku
-						console.log(`Ale ne, v Praze a okolí se pohybuje ${data.features.length} prostředků MHD. To je více než v Brně!`);
-						
-						// Projdu pole features s vozdily
-						for(const vozidlo of data.features){
-							let zd = vozidlo.geometry.coordinates[0]; // Zemepisna delka vozdila
-							let zs = vozidlo.geometry.coordinates[1]; // Zemepisna sirka vozidla
-							let linka = vozidlo.properties.trip; // Informace o lince a vozidlu
+                // Spojim se asynchronne s HTTP serverem Golemio, ktere zpracovava API pro ROPID
+                // a polozim dotaz /vehiclepositions, ktery vrati obrovsky JSON
+                // s polohami vsech vozidel prazske integrovane dopravy
+                console.log("Stahuji šaliny a další věci, které jezdí v Praze...");
+                fetch("https://api.golemio.cz/v2/vehiclepositions", {
+                    method: "GET",
+                    // V HTTP dotazu musi byt hlavicka x-access-token,
+                    // ktera obsahuje osobni klic API
+                    headers: {
+                        "Content-Type": "application/json; charset=utf-8",
+                        "x-access-token": golemio_klic
+                    }
+                })
+                    .then(response => response.json()) // Pokud jsem ziskal odpoved, interpretuji ji jako JSON
+                    .then(data => { // Objekt "data" nyni obsahuje citelny JSON
 
-                                                        // Typ linky ve form8tu GTFS
-                                                        // Viz https://developers.google.com/transit/gtfs/reference#routestxt
-							let typ = linka.gtfs.route_type;
+                        // Jednotliva vozdila jsou ve vnorenem poli features,
+                        // a tak pro kontrolu vypisu jeho delku
+                        console.log(`Ale ne, v Praze a okolí se pohybuje ${data.features.length} prostředků MHD. To je více než v Brně!`);
+                        
+                        // Projdu pole features s vozdily
+                        for(const vozidlo of data.features){
+                            let zd = vozidlo.geometry.coordinates[0]; // Zemepisna delka vozdila
+                            let zs = vozidlo.geometry.coordinates[1]; // Zemepisna sirka vozidla
+                            let linka = vozidlo.properties.trip; // Informace o lince a vozidlu
 
-							// Navysim pocitadlo zjisteneho dopravniho prostredku kvuli statistice
-                                                        vozidla_typy[typ].pocet++;
+                            // Typ linky ve form8tu GTFS
+                            // Viz https://developers.google.com/transit/gtfs/reference#routestxt
+                            let typ = linka.gtfs.route_type;
+
+                            // Navysim pocitadlo zjisteneho dopravniho prostredku kvuli statistice
+                            vozidla_typy[typ].pocet++;
                             
-							// Podle GPS polohy a typu vozidla vytvorim na mape znacku s konkretni ikonou
-							let marker = L.marker([zs, zd], {icon: vozidla_typy[typ].ikona}).addTo(mapa);
+                            // Podle GPS polohy a typu vozidla vytvorim na mape znacku s konkretni ikonou
+                            let marker = L.marker([zs, zd], {icon: vozidla_typy[typ].ikona}).addTo(mapa);
 
-							// Po klepnuti na znacku se zobrazi bublina s popisem linky
-                                                        let nizkopodlazni = (linka.wheelchair_accessible)? "ano" : "ne";
-							marker.bindPopup(`<h2>Linka ${linka.gtfs.route_short_name}</h2>` +
-                                                                         `<b>Vozidlo</b>: ${vozidla_typy[typ].nazev}<br>` + 
-	                                                                 `<b>Dopravce:</b> ${linka.agency_name.scheduled}<br />` +
-									 `<b>Jede do:</b> ${linka.gtfs.trip_headsign}<br />` +
-                                                                         `<b>Nízkopodlažní:</b> ${nizkopodlazni}`);
+                            // Po klepnuti na znacku se zobrazi bublina s popisem linky
+                            let nizkopodlazni = (linka.wheelchair_accessible)? "ano" : "ne";
+                            marker.bindPopup(`<h2>Linka ${linka.gtfs.route_short_name}</h2>` +
+                                             `<b>Vozidlo</b>: ${vozidla_typy[typ].nazev}<br>` + 
+                                             `<b>Dopravce:</b> ${linka.agency_name.scheduled}<br />` +
+                                             `<b>Jede do:</b> ${linka.gtfs.trip_headsign}<br />` +
+                                             `<b>Nízkopodlažní:</b> ${nizkopodlazni}`);
 
-							// pridam znacku do pole znacek, kdybych s nim ichtel dale hroamdne pracovat
-							// Treba kdybych je chtel smazat
-							vozidla_markery.push(marker);
+                            // pridam znacku do pole znacek, kdybych s nim ichtel dale hroamdne pracovat
+                            // Treba kdybych je chtel smazat
+                            vozidla_markery.push(marker);
 
-							// Aktualizuji pocitadlo dopravcu
-							if(dopravci.hasOwnProperty(linka.agency_name.scheduled)){
-								dopravci[linka.agency_name.scheduled]++;
-							}else{
-								dopravci[linka.agency_name.scheduled] = 1;
-							}
-						}
+                            // Aktualizuji pocitadlo dopravcu
+                            if(dopravci.hasOwnProperty(linka.agency_name.scheduled)) dopravci[linka.agency_name.scheduled]++;
+                            else dopravci[linka.agency_name.scheduled] = 1;
+                        }
 
-						// Na zaver vypisu statisrtiku vozdel, tedy pocet pro kazdy typ
-						console.log("---------------------------------------------------");
-						console.log("Statistika vozidel:");
-						for (const [vozidlo, vlastnosti] of Object.entries(vozidla_typy)) {
-							console.log(` ${vlastnosti.nazev}: ${vlastnosti.pocet}`);
-						}
+                        // Na zaver vypisu statisrtiku vozdel, tedy pocet pro kazdy typ
+                        console.log("---------------------------------------------------");
+                        console.log("Statistika vozidel:");
+                        for (const [vozidlo, vlastnosti] of Object.entries(vozidla_typy)) {
+                            console.log(` ${vlastnosti.nazev}: ${vlastnosti.pocet}`);
+                        }
 
-						// A také statistiku dopravcu, tedy pocet vozdel, ktere prave vypravili
-						console.log("---------------------------------------------------");
-						console.log("Statistika dopravcu:");
-						for (const [operator, pocet] of Object.entries(dopravci)) {
-							console.log(` ${operator}: pocet`);
-						}
+                        // A také statistiku dopravcu, tedy pocet vozdel, ktere prave vypravili
+                        console.log("---------------------------------------------------");
+                        console.log("Statistika dopravcu:");
+                        for (const [operator, pocet] of Object.entries(dopravci)) {
+                            console.log(` ${operator}: pocet`);
+                        }
 
-						// A jeste vypisu kompletni JSON, pro dalsi studium, co vsechno obsahuje
-						console.log("---------------------------------------------------");
-						console.log("Surový JSON:");
-						console.log(data)
+                        // A jeste vypisu kompletni JSON, pro dalsi studium, co vsechno obsahuje
+                        console.log("---------------------------------------------------");
+                        console.log("Surový JSON:");
+                        console.log(data)
 
-					})
-					// V pripade jakekoliv chyby zobrazim v konzoli chybove hlaseni
-					.catch(e => {
-						console.log("Ale ně, něco se pokazilo. Uklidni se u pořadu Týden Živě, a pak to zkus znovu!");
-						console.log(e);
-					});
-			}
+                    })
+                    // V pripade jakekoliv chyby zobrazim v konzoli chybove hlaseni
+                    .catch(e => {
+                        console.log("Ale ně, něco se pokazilo. Uklidni se u pořadu Týden Živě, a pak to zkus znovu!");
+                        console.log(e);
+                    });
+            }
 
-		</script>
-	</head>
-	<body>
-		<h1>Šalinoleaks: PRAHA</h1>
-		<div id="mapa"></div>
-	</body>
+        </script>
+    </head>
+    <body>
+        <h1>Šalinoleaks: PRAHA</h1>
+        <div id="mapa"></div>
+    </body>
 </html>
