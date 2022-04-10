@@ -109,7 +109,8 @@
 
                             // Po klepnuti na znacku se zobrazi bublina s popisem linky
                             let nizkopodlazni = (linka.wheelchair_accessible)? "ano" : "ne";
-                            marker.bindPopup(`<h2>Linka ${linka.gtfs.trip_short_name}</h2>` +
+                            let cislo_linky = (linka.gtfs.trip_short_name != null)? linka.gtfs.trip_short_name : linka.gtfs.route_short_name;
+                            marker.bindPopup(`<h2>Linka ${cislo_linky}</h2>` +
                                              `<b>Vozidlo</b>: ${vozidla_typy[typ].nazev}<br>` + 
                                              `<b>Dopravce:</b> ${linka.agency_name.scheduled}<br />` +
                                              `<b>Jede do:</b> ${linka.gtfs.trip_headsign}<br />` +
