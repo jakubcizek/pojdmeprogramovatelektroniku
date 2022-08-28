@@ -42,7 +42,7 @@ void mouseWheel(MouseEvent event) {
 // Funkce setup se zpracuje hned na začátku
 // Analogie funkce setup ze světa Arduino
 void setup() {
-  surface.setTitle("Živě.cz Mrija Simulátor 2022");
+  surface.setTitle("Mrija Simulátor 2022");
   surface.setResizable(false);
   // Vytvoříme 3D scénu v okně s rozměry 1280x720 pixelů
   size(1280, 720, P3D);
