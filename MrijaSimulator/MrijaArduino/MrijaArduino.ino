@@ -24,7 +24,7 @@
 #include <MPU6050_tockn.h>     // Gyroskop MPU6050
 #include <Adafruit_SSD1306.h>  // OLED displej
 
-// SSID a heslo Wi-Fi,
+// SSID a heslo Wi-Fi (2 GHz),
 // ke ktere se bude pripojovat fyzicka Mrija
 // Pro jednoduchost natvrdo soucasti firmwaru
 const char *ssid = "nazev-wifi-site";
