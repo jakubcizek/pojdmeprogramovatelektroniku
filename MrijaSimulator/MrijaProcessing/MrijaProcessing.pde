@@ -39,38 +39,6 @@ void mouseWheel(MouseEvent event) {
   z += event.getCount();
 }
 
-// Tato funkce se bude volat, jakmile z WebSocketu dorazí nějaká textová data
-void webSocketEvent(String data){
-  if(data != null){
-    // Zprávy se znakem # na začátku neobsahují souřadnice
-    if(data.charAt(0) == '#'){
-      data = data.substring(1);
-      println(data);
-      // Touto zprávou websocketový server přivítá každého nového klienta
-      // Jedná se tedy o ověření, že spojení funguje 
-      if(data.equals("Mrija Websocket Server te vita!")) spojeniOk = true;
-    }
-    // Pokud zpráva neobsahuje na začátku znak #,
-    // musí to být trojice úhlů X, Y a Z ve formátu:
-    // XX.XXXX,YY.YYYY,Z.ZZZZ
-    // Dekódujeme tyto hodnoty a uložíme do proměnných
-    else{
-      String[] casti = split(data, ',');
-      try{
-      xGyro = -1 * Float.parseFloat(casti[0]);
-      yGyro = Float.parseFloat(casti[1]);
-      zGyro = Float.parseFloat(casti[2]);
-      dataOk = true;
-      dataPocet++;
-      }
-      catch(Exception e){
-        dataOk = false;
-        println("Nemohu dekódovat úhly X, Y, Z ");
-      }
-    }
-  }
-}
-
 // Funkce setup se zpracuje hned na začátku
 // Analogie funkce setup ze světa Arduino
 void setup() {
@@ -89,7 +57,7 @@ void setup() {
   // nahrajeme 3D model Mriji a začneme přehrávat zvuk motorů
   pozadi = loadImage("brno.jpg");
   letadlo = loadShape("mrija.obj");
-  file = new SoundFile(this, "motory.wav");
+  file = new SoundFile(this, "motory.mp3");
   file.play();
   
   // Otevřeme spojení s websocketovým serverem
@@ -107,7 +75,7 @@ void setup() {
 // Je to tedy analogie funkce loop ze světa Arduino
 void draw() {
   // Aktualizujeme nadpis okna, ve kterém vypisujeme FPS
-  surface.setTitle("Mrija Simulátor 2022 (" + round(frameRate) + " fps)");
+  surface.setTitle("Mrija Simulátor 2022");
   // Pokud nehraje stopa s hlukem motorů, začni ji přehrávat
   if(!file.isPlaying()) file.play();
   // Jako pozadí okna nastav fotografii Brna
@@ -176,4 +144,36 @@ void draw() {
   text(dataPocet, width-110, 57);
   
   hint(ENABLE_DEPTH_TEST);
+}
+
+// Tato funkce se bude volat, jakmile z WebSocketu dorazí nějaká textová data
+void webSocketEvent(String data){
+  if(data != null){
+    // Zprávy se znakem # na začátku neobsahují souřadnice
+    if(data.charAt(0) == '#'){
+      data = data.substring(1);
+      println(data);
+      // Touto zprávou websocketový server přivítá každého nového klienta
+      // Jedná se tedy o ověření, že spojení funguje 
+      if(data.equals("Mrija Websocket Server te vita!")) spojeniOk = true;
+    }
+    // Pokud zpráva neobsahuje na začátku znak #,
+    // musí to být trojice úhlů X, Y a Z ve formátu:
+    // XX.XXXX,YY.YYYY,Z.ZZZZ
+    // Dekódujeme tyto hodnoty a uložíme do proměnných
+    else{
+      String[] casti = split(data, ',');
+      try{
+      xGyro = -1 * Float.parseFloat(casti[0]);
+      yGyro = Float.parseFloat(casti[1]);
+      zGyro = Float.parseFloat(casti[2]);
+      dataOk = true;
+      dataPocet++;
+      }
+      catch(Exception e){
+        dataOk = false;
+        println("Nemohu dekódovat úhly X, Y, Z ");
+      }
+    }
+  }
 }
