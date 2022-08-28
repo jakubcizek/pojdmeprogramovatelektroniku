@@ -27,8 +27,8 @@
 // SSID a heslo Wi-Fi,
 // ke ktere se bude pripojovat fyzicka Mrija
 // Pro jednoduchost natvrdo soucasti firmwaru
-const char *ssid = "Kloboukovo2G";
-const char *password = "ajtamata";
+const char *ssid = "nazev-wifi-site";
+const char *password = "heslo-k-wifi";
 
 // Trida gyroskopu
 MPU6050 mpu6050(Wire);
