@@ -8,17 +8,19 @@ const char *ssid = "Nazev 2.4GHz Wi-Fi site";
 const char *heslo = "Heslo Wi-Fi site";
 
 // Objekt pro ovladani adresovatelnych RGB LED
-// Je jich 72 a jso uv serii pripojene na GPIO pin 25
+// Je jich 72 a jsou v serii pripojene na GPIO pin 25
 Adafruit_NeoPixel pixely(72, 25, NEO_GRB + NEO_KHZ800);
 // HTTP server bezici na standardnim TCP portu 80
 WebServer server(80);
 // Pamet pro JSON s povely
-// Alokujeme pro nej 10 000 B, co je hodne,
-// ale melo by to stacit i pro jSON,
-// ktery bude obsahovat instrukce pro vsech 72 RGB LED
+// Alokujeme pro nej 10 000 B, coz je fakt hodne,
+// ale melo by to stacit i pro jSON, ktery bude 
+// obsahovat instrukce pro vsech 72 RGB LED
+// Mohli bychom JSON zjendodusit a usetrit bajty,
+// anebo misto nej pouzit jiny format dat
 StaticJsonDocument<10000> doc;
 
-// Tuto funkci HTTP server zavola v pripade HTTP GET/POST pzoadavku na korenovou cestu /
+// Tuto funkci HTTP server zavola v pripade HTTP GET/POST pozoadavku na korenovou cestu /
 void httpDotaz(void) {
   // Pokud HTTP data obsahuji parametr mesta
   // predame jeho obsah JSON dekoderu
@@ -71,7 +73,7 @@ void httpDotaz(void) {
 
 // Hlavni funkce setup se zpracuje hned po startu cipu ESP32
 void setup() {
-  // Nastartujeme serivou linku rychlosti 115200 b/s
+  // Nastartujeme seriovou linku rychlosti 115200 b/s
   Serial.begin(115200);
   // Pripojime se k Wi-Fi a pote vypiseme do seriove linky IP adresu
   WiFi.disconnect();
@@ -82,9 +84,8 @@ void setup() {
     delay(500);
     Serial.print(".");
   }
-  // Vypiseme do seriove linky pro kontrolu LAN IP adresu mapy
   Serial.printf(" OK\nIP: %s\r\n", WiFi.localIP().toString());
-  // Pro HTTP pozadavku / zavolame funkci httpDotaz
+  // Pri HTTP pozadavku / zavolame funkci httpDotaz
   server.on("/", httpDotaz);
   // Aktivujeme server
   server.begin();
