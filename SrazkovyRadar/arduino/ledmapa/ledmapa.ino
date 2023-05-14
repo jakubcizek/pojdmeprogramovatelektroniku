@@ -14,10 +14,10 @@ Adafruit_NeoPixel pixely(72, 25, NEO_GRB + NEO_KHZ800);
 WebServer server(80);
 // Pamet pro JSON s povely
 // Alokujeme pro nej 10 000 B, coz je fakt hodne,
-// ale melo by to stacit i pro jSON, ktery bude 
+// ale melo by to stacit i pro JSON, ktery bude 
 // obsahovat instrukce pro vsech 72 RGB LED
-// Mohli bychom JSON zjendodusit a usetrit bajty,
-// anebo misto nej pouzit jiny format dat
+// Mohli bychom JSON zjednodusit a usetrit bajty,
+// anebo misto nej pouzit jiny format dat (BSON, CBOR...)
 StaticJsonDocument<10000> doc;
 
 // Tuto funkci HTTP server zavola v pripade HTTP GET/POST pozoadavku na korenovou cestu /
