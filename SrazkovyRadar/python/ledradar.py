@@ -74,7 +74,7 @@ if __name__ == "__main__":
     vyska_stupne = lat0 - lat1
 
     # Pokusím se stáhnout bitmapu s radarovými daty
-    # Pokud se to podaří, ok = True, bajty = HTTP data odpovědi (obrázku), txt_datum = YYYYMMDD.HHM0 staženého snímky
+    # Pokud se to podaří, ok = True, bajty = HTTP data odpovědi (obrázku), txt_datum = YYYYMMDD.HHM0 staženého snímku
     ok, bajty, txt_datum = stahni_radar()
     if not ok:
         printl("Nepodařilo se stáhnout radarová data, končím :-(")
@@ -87,7 +87,7 @@ if __name__ == "__main__":
             printl("Nepodařilo se načíst bitmapu srážkového radaru")
             sys.exit(1)
 
-        # Původní obrázek používá indexovanou plaetu barev. To se sice může hodit,
+        # Původní obrázek používá indexovanou paletu barev. To se sice může hodit,
         # pro jendoduchost příkladu ale převedeme snímek na plnotučné RGB
         printl("Převádím snímek na RGB... ")
         bitmapa = bitmapa.convert("RGB")
@@ -95,7 +95,7 @@ if __name__ == "__main__":
             platno = ImageDraw.Draw(bitmapa)
 
         # Z pixelového rozměru bitmapy spočítáme stupňovou velikost vertikálního
-        # a horizontálního pixelu pro další přepočty mezi stupniu a pixely
+        # a horizontálního pixelu pro další přepočty mezi stupni a pixely
         velikost_lat_pixelu = vyska_stupne / bitmapa.height
         velikost_lon_pixelu = sirka_stupne / bitmapa.width
 
@@ -121,13 +121,13 @@ if __name__ == "__main__":
                     nazev = bunky[1]
                     lat = float(bunky[2])
                     lon = float(bunky[3])
-                    # Spočítáme pixelové souřadnice města radarovém snímku
+                    # Spočítáme pixelové souřadnice města na radarovém snímku
                     x = int((lon - lon0) / velikost_lon_pixelu)
                     y = int((lat0 - lat) / velikost_lat_pixelu)
                     # Zjistíme RGB na dané souřadnici, tedy případnou barvu deště
                     r,g,b = bitmapa.getpixel((x, y))
-                    # Pokud je v daném místě na radarovém snímnku nenulová barva (transaprentní/transparentní PNG)
-                    # asi v něm prší. Intenzitu deště určí konkrétní barva v rozsahu od světle modré přes zelenou, rudou až bílou
+                    # Pokud je v daném místě na radarovém snímnku nenulová barva, asi v něm prší
+                    # Intenzitu deště určí konkrétní barva v rozsahu od světle modré přes zelenou, rudou až bílou
                     # Právě zde bychom tedy mohli detekovat i sílu deště, pro jednoduchost ukázky si ale vystačíme s prostou barvou 
                     if r+g+b > 0:
                         # Pokud jsme na začátku programu aktivovali kreslení,
@@ -135,13 +135,12 @@ if __name__ == "__main__":
                         # Čtvereček bude mít barvu deště a červený obrys
                         if kresleni:
                             platno.rectangle((x-5, y-5, x+5, y+5), fill=(r, g, b), outline=(255, 0, 0))
-                        # Pokud je aktivní logování, vypíšeme barevný text s údajem, že v daném městě prší
+                        # Pokud je aktivní logování, vypíšeme barevný text s údajem, že v daném městě prší,
                         # a přidáme město na seznam jako strukturu {"id":id, "r":r, "g":g, "b":b}  
                         printl(f"💦  Ve městě {nazev} ({idx}) asi právě prší {rgb_text(r,g,b, f'(R={r} G={g} B={b})')}")
                         mesta_s_destem.append({"id": idx, "r": r, "g": g, "b": b})
                     else:
-                            # Pokud v daném městě neprší, nakreslíme v jeho souřadnicích prázdný čtvereček
-                            # s bílým obrysem
+                            # Pokud v daném městě neprší, nakreslíme v jeho souřadnicích prázdný čtvereček s bílým obrysem
                             if kresleni:
                                 platno.rectangle((x-5, y-5, x+5, y+5), fill=(0, 0, 0), outline=(255, 255, 255))
         
@@ -151,7 +150,7 @@ if __name__ == "__main__":
             # Pokud jsme aktivovali odesílání dat do LaskaKit mapy ČR,
             # uložíme seznam měst, ve kterých pršelo, jako JSON pole struktur
             # a tento JSON poté skrze HTTP POST formulář s názvem proměnné "mesta"
-            # odešleme do LaskaKit mapy ČR, na které běží jenodudchý HTTP server
+            # odešleme do LaskaKit mapy ČR, na které běží jednoduchý HTTP server
             if odesilani == True:
                 printl("\nPosílám JSON s městy do LaskaKit mapy ČR...")
                 form_data = {"mesta": json.dumps(mesta_s_destem)}
