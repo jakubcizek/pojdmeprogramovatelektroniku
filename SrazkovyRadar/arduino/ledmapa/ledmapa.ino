@@ -13,10 +13,10 @@ Adafruit_NeoPixel pixely(72, 25, NEO_GRB + NEO_KHZ800);
 // HTTP server bezici na standardnim TCP portu 80
 WebServer server(80);
 // Pamet pro JSON s povely
-// Alokujeme pro nej 3 000 B, co je hodne,
+// Alokujeme pro nej 10 000 B, co je hodne,
 // ale melo by to stacit i pro jSON,
 // ktery bude obsahovat instrukce pro vsech 72 RGB LED
-StaticJsonDocument<3000> doc;
+StaticJsonDocument<10000> doc;
 
 // Tuto funkci HTTP server zavola v pripade HTTP GET/POST pzoadavku na korenovou cestu /
 void httpDotaz(void) {
