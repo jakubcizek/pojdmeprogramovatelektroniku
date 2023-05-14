@@ -4,11 +4,11 @@
 #include <ArduinoJson.h>
 
 // Nazev a heslo Wi-Fi
-const char *ssid = "Nazev 2.4GHz Wi-Fi";
-const char *heslo = "WPA Heslo Wi-Fi";
+const char *ssid = "Nazev 2.4GHz Wi-Fi site";
+const char *heslo = "Heslo Wi-Fi site";
 
 // Objekt pro ovladani adresovatelnych RGB LED
-// Je jich 72 a jsou v serii pripojene na GPIO pin 25
+// Je jich 72 a jso uv serii pripojene na GPIO pin 25
 Adafruit_NeoPixel pixely(72, 25, NEO_GRB + NEO_KHZ800);
 // HTTP server bezici na standardnim TCP portu 80
 WebServer server(80);
@@ -24,23 +24,32 @@ void httpDotaz(void) {
   // predame jeho obsah JSON dekoderu
   if (server.hasArg("mesta")) {
     DeserializationError e = deserializeJson(doc, server.arg("mesta"));
-    if(e){
-      server.send(200, "text/plain", "CHYBA\nChyba v JSON");
-      Serial.print("Spatne formatovany JSON");
+    if (e) {
+      if (e == DeserializationError::InvalidInput) {
+        server.send(200, "text/plain", "CHYBA\nSpatny format JSON");
+        Serial.print("Spatny format JSON");
+      } else if (e == DeserializationError::NoMemory) {
+        server.send(200, "text/plain", "CHYBA\nMalo pameti RAM pro JSON. Navys ji!");
+        Serial.print("Malo pameti RAM pro JSON. Navys ji!");
+      }
+      else{
+        server.send(200, "text/plain", "CHYBA\nNepodarilo se mi dekodovat jSON");
+        Serial.print("Nepodarilo se mi dekodovat jSON");
+      }
     }
     // Pokud se nam podarilo dekodovat JSON,
     // zhasneme vsechny LED na mape a rozsvitime korektni barvou jen ty,
     // ktere jsou v JSON poli
-    else{
+    else {
       server.send(200, "text/plain", "OK");
       pixely.clear();
       JsonArray mesta = doc.as<JsonArray>();
-      for(JsonObject mesto : mesta){
+      for (JsonObject mesto : mesta) {
         int id = mesto["id"];
         int r = mesto["r"];
         int g = mesto["g"];
         int b = mesto["b"];
-        Serial.printf("Rozsvecuji mesto %d barvou R=%d G=%d B=%d\r\n", id,r,g,b);
+        Serial.printf("Rozsvecuji mesto %d barvou R=%d G=%d B=%d\r\n", id, r, g, b);
         pixely.setPixelColor(id, pixely.Color(r, g, b));
       }
       // Teprve ted vyrobime signal na GPIO pinu 25,
@@ -55,7 +64,7 @@ void httpDotaz(void) {
     pixely.show();
   }
   // Ve vsech ostatnich pripadech odpovime chybovym hlasenim
-  else{
+  else {
     server.send(200, "text/plain", "CHYBA\nNeznamy prikaz");
   }
 }
@@ -82,7 +91,7 @@ void setup() {
   // Nakonfigurujeme adresovatelene LED do vychozi zhasnute pozice
   // Nastavime 8bit jas na hodnotu 5
   // Nebude svitit zbytecne moc a vyniknou mene kontrastni barvy
-  pixely.begin(); 
+  pixely.begin();
   pixely.setBrightness(5);
   pixely.clear();
   pixely.show();
