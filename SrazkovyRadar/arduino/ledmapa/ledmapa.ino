@@ -1,7 +1,7 @@
 #include <WiFi.h>
 #include <WebServer.h>
-#include <Adafruit_NeoPixel.h>
-#include <ArduinoJson.h>
+#include <Adafruit_NeoPixel.h> // https://github.com/adafruit/Adafruit_NeoPixel
+#include <ArduinoJson.h> // https://arduinojson.org/
 
 // Nazev a heslo Wi-Fi
 const char *ssid = "Nazev 2.4GHz Wi-Fi site";
