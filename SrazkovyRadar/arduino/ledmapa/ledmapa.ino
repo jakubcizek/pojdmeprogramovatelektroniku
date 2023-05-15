@@ -76,7 +76,7 @@ void setup() {
   // Nastartujeme seriovou linku rychlosti 115200 b/s
   Serial.begin(115200);
   // Pripojime se k Wi-Fi a pote vypiseme do seriove linky IP adresu
-  WiFi.disconnect();
+  WiFi.disconnect(); // Vynuceny reset; obcas pomuze, kdyz se enchce cip pripojit
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, heslo);
   Serial.printf("Pripojuji se k %s ", ssid);
@@ -84,6 +84,9 @@ void setup() {
     delay(500);
     Serial.print(".");
   }
+  // Automaticke pripojeni pri ztrate Wi-Fi
+  WiFi.setAutoReconnect(true);
+  WiFi.persistent(true);
   Serial.printf(" OK\nIP: %s\r\n", WiFi.localIP().toString());
   // Pri HTTP pozadavku / zavolame funkci httpDotaz
   server.on("/", httpDotaz);
