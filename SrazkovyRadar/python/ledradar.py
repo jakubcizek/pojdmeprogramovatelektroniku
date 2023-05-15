@@ -117,7 +117,7 @@ if __name__ == "__main__":
             for mesto in mesta:
                 bunky = mesto.split(";")
                 if len(bunky) == 4:
-                    idx = bunky[0]
+                    idx = int(bunky[0])
                     nazev = bunky[1]
                     lat = float(bunky[2])
                     lon = float(bunky[3])
