@@ -7,6 +7,6 @@ Ve složce **arduino/ledmapa_klient** je verze firmwaru, který vedle HTTP serve
  - **[LaskaKit Interaktivní Mapa ČR](https://www.laskakit.cz/laskakit-interaktivni-mapa-cr-ws2812b/)**
  - **[LaskaKit Interaktivní Mapa ČR (GitHub)](https://github.com/LaskaKit/LED_Czech_Map)**
  - **[Srážkový radar ČHMÚ](https://www.chmi.cz/files/portal/docs/meteo/rad/inca-cz/short.html)**
- - **[JSON API]([https://www.chmi.cz/files/portal/docs/meteo/rad/inca-cz/short.html](https://oracle-ams.kloboukuv.cloud/radarmapa/?chcu=posledni.json))**
+ - **[JSON API](https://oracle-ams.kloboukuv.cloud/radarmapa/?chcu=posledni.json)**
 
 
