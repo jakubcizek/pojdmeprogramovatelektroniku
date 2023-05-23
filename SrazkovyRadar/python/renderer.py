@@ -26,7 +26,7 @@ print(f"Stazene bajty: {stazeno}")
 print(f"4bit kodovani, takze: {stazeno * 2} pixelu")
 if stazeno == 128000:
     # 4bit kodovani po radcich a dle palety
-    for bajt in r.content:
+    for bajt in data:
             px0 = bajt >> 4
             px1 = bajt & 0x0f
             bitmapa.putpixel((x,y), paleta[px0])
