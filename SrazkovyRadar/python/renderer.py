@@ -34,7 +34,7 @@ if stazeno == 128000:
             if x == 640:
                 x = 0
                 y += 1
-            bitmapa.putpixel((x,y), paleta[px0])
+            bitmapa.putpixel((x,y), paleta[px1])
             x += 1
             if x == 640:
                 x = 0
