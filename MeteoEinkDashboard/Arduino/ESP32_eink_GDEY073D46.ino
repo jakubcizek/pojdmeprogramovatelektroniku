@@ -88,7 +88,7 @@ void setup() {
   eink_init();  
   // Posleme bitmapu do frame bufferu e-inku a vyvolame refresh/prekresleni               
   Serial.print("Kreslim bitmapu...");
-  eink_bitmapa(bitmap_buffer); 
+  eink_bitmapa(); 
   // Prepneme e-ink do usporneho/vypnuteho rezimu 
   Serial.println("Vypinam e-ink...");
   eink_spanek();
