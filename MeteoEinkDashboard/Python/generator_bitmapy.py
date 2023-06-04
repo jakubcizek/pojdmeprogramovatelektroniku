@@ -20,7 +20,7 @@ import struct
 logovani = True
 
 # Absolutn icesta k souborum v pripade spousteni skriptu z jineho adresare
-cesta = ""
+cesta = "/www/radar/"
 
 # Sedmibarevná paleta pro displeje E-ink ACeP/Gallery Palette
 # Použijeme ji pro vytvoření bitmapy pro náš 7,3" 800x480 e-ink displej GDEY073D46 https://www.good-display.com/product/442.html
@@ -283,7 +283,7 @@ if __name__ == "__main__":
         # Převod bitmapy na sedmibarevnou paletu ACeP/Gallery Palette 
         printl("Převádím RGB na sedmibarevnou paletu E-ink Gallery Palette...")
         printl("Provádím zákaldní bezztrátovou kompresi RLE...")
-        binarni = open(ff"{cesta}dashboard_rle.bin", "wb")
+        binarni = open(f"{cesta}dashboard_rle.bin", "wb")
         bajty = []
         for y in range(podklad.height):
             for x in range((int(podklad.width/2))):
