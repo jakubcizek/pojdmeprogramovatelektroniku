@@ -8,7 +8,7 @@ const char* heslo = "WPA heslo k Wi-Fi";
 
 // URL bitmapy pro eink
 // Soubor vytvori generator v Pythonu, musite jej ale spoustet na vlastnim serveru
-String url = "URL adresa...";
+String url = "http:// ???? /dashboard_rle.bin";
 
 RTC_DATA_ATTR uint32_t pocitadlo_probuzeni = 0; // Pocitadlo probuzeni (vypisuje se pro kontrolu do seriove lniky)
 uint64_t prodleva_s = 3600; // Prodleva v sekundach mezi probuzenim hlavniho procesoru z hlubokeho spanku (1 hodina)
