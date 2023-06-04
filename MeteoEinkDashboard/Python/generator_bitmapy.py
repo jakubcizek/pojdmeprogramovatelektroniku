@@ -253,15 +253,12 @@ if __name__ == "__main__":
 
        # Nakreslení dat z meteostanice
         printl("Zjišťuji stav redakční meteostanice...")
-        fi = open("/www/solar2.txt", "r")
-        lines = fi.readlines()
-        fi.close()
-        last = lines[-1]
-        chops = last.split(";")
-        teplota = chops[1]
-        vlhkost = chops[2]
-        svetlo = chops[3]
-        baterie = chops[4]
+        
+        # ZDE SI DOPLNTE SVUJ VLASTNI KOD, JAK ZISKAT DATA Z VLASTNICH ZDROJU
+        teplota = "10.256"
+        vlhkost = "56"
+        svetlo = "25698"
+        baterie = "3.95"
 
         printl("Kreslím údaje z meteostanice...")
         pismo_meteo_datum = ImageFont.truetype(f"{cesta}BakbakOne-Regular.ttf", 80)
