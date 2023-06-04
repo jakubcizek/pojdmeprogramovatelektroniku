@@ -58,7 +58,9 @@ void eink_cmd(uint8_t data);
 void eink_init(void);
 void eink_spanek(void);
 void eink_cekej_na_vykresleni(void);
+void eink_bitmapa(void);
 void bitmap_psram_init(void);
+
 
 // Vytvoreni pameti pro lokalni frame buffer
 // Vytvarime ho v externi PSRAM SoC modulu ESP32-WROVER-E
@@ -192,7 +194,7 @@ void eink_spanek(void) {
 }
 
 // Funkce pro kresleni bitmapy
-void eink_bitmapa(uint8_t* picData) {
+void eink_bitmapa(void) {
   // Zapisujeme pixely do frame bufferud displeje
   eink_cmd(0x10);
   for (uint32_t bajt = 0; bajt < BITMAP_SIZE; bajt++) {
