@@ -1,16 +1,15 @@
 #include <SPI.h>
 
-// Ukazatel na pametu pro bitmapu
+// Ukazatel na pamet pro bitmapu
 uint8_t* bitmap_buffer;
+// Velikost pameti pro bitmapu
+#define BITMAP_SIZE (800 * 480) / 2
 
 // GPIO piny pro pomocne signaly displeje
 #define BUSY_Pin 27
 #define RES_Pin 26
 #define DC_Pin 25
 #define CS_Pin 5
-
-// Velikost pameti pro bitmapu
-#define BITMAP_SIZE (800 * 480) / 2
 
 // Makra pro nastaveni digitalnich stavu na pomocnych pinech
 #define DIGITALNI_STAV_CS_0 digitalWrite(CS_Pin, LOW)
@@ -21,7 +20,8 @@ uint8_t* bitmap_buffer;
 #define DIGITALNI_STAV_RST_1 digitalWrite(RES_Pin, HIGH)
 #define BUSY_STAV digitalRead(BUSY_Pin)
 
-//4bit
+// 4bit paleta barev, pokud bychom chteli menit pixely bitmapy za behu
+// V nasem prikladu nicmene nepouzivame
 #define black 0x00   /// 000
 #define white 0x01   /// 001
 #define green 0x02   /// 010
@@ -61,20 +61,17 @@ void eink_cekej_na_vykresleni(void);
 void eink_bitmapa(void);
 void bitmap_psram_init(void);
 
-
 // Vytvoreni pameti pro lokalni frame buffer
 // Vytvarime ho v externi PSRAM SoC modulu ESP32-WROVER-E
-
 // ps_malloc JE TREBA ZMENIT za malloc, POKUD POUZIVATE JINY CIP !!!! 
-
 // Anebo upravit kod takovym zpusobem, aby se pamet vubec nealokovala,
 // pokud na ni neni v RAM misto. Treba tak, ze budou bajty odesilat do
 // frame bufferu displeje uz pri stahovani. Viz funcke stahni_a_dekomprimuj
 void bitmap_psram_init(void){
-  bitmap_buffer = (uint8_t*)ps_malloc(BITMAP_SIZE);
+  bitmap_buffer = (uint8_t*) ps_malloc(BITMAP_SIZE);
 }
 
-// Funkce pro oodeslani prikazu do e-inku
+// Funkce pro odeslani prikazu do e-inku
 void eink_cmd(uint8_t prikaz) {
   DIGITALNI_STAV_CS_0;
   DIGITALNI_STAV_DC_0;
@@ -195,7 +192,7 @@ void eink_spanek(void) {
 
 // Funkce pro kresleni bitmapy
 void eink_bitmapa(void) {
-  // Zapisujeme pixely do frame bufferud displeje
+  // Zapisujeme pixely do frame bufferu displeje
   eink_cmd(0x10);
   for (uint32_t bajt = 0; bajt < BITMAP_SIZE; bajt++) {
     eink_data(bitmap_buffer[bajt]);
