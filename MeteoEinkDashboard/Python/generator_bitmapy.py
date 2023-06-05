@@ -9,7 +9,7 @@ import requests
 # Knihovna Pytz pro práci s časovými pásmy
 # https://pytz.sourceforge.net/
 import pytz
-# Ostatní pomocné knihovny, kterou jso usoučástí instalace Pythonu
+# Ostatní pomocné knihovny, kterou jsou součástí instalace Pythonu
 from io import BytesIO
 from datetime import datetime, timedelta
 import sys
