@@ -267,7 +267,7 @@ if __name__ == "__main__":
         platno.text((670, 90), f"{vlhkost.replace('.',',')} %", font=pismo_meteo_data, fill="black")
         platno.text((480, 177), f"{svetlo.replace('.',',')} lx", font=pismo_meteo_data_mensi, fill="black")
         platno.text((670, 166), f"{baterie.replace('.',',')} V", font=pismo_meteo_data, fill="black")
-        dny_v_tydnu = ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne']
+        dny_v_tydnu = ["Po", "Út", "St", "Čt", "Pá", "So", "Ne"]
         datum = datetime.now()
         platno.text((425, -20), f"{datum.strftime('%d.%m.')} {dny_v_tydnu[datum.weekday()]}", font=pismo_meteo_datum, fill="black")
 
