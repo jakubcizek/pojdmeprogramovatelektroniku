@@ -48,7 +48,7 @@ def prevedPixel(r, g, b):
             nova_barva =  i
     return nova_barva
 
-# Funkce pro okamžité psaní do výstupu, pokud je povioleno logování
+# Funkce pro okamžité psaní do výstupu, pokud je povoleno logování
 def printl(txt):
     if logovani:
         print(txt, flush=True)
@@ -139,8 +139,8 @@ if __name__ == "__main__":
     ok_radar, bajty_radar, datum_radar = stahni_snimek_radar()
     ok_heatmapa, bajty_heatmapa, datum_heatmapa = stahni_snimek_heatmapa()
     ok_druzice, bajty_druzice, datum_druzice = stahni_snimek_druzice()
-    # Pokud se některé snímyk nestáhly, ukončíme skript,
-    # protože nemáme kompletní fdata ke konstrukci dashboardu pro e-ink
+    # Pokud se některé snímky nestáhly, ukončíme skript,
+    # protože nemáme kompletní data ke konstrukci dashboardu pro e-ink
     if not ok_radar or not ok_heatmapa or not ok_druzice:
         printl("Nepodařilo se stáhnout snimky, končím :-(")
     # V opačném případě...
@@ -155,7 +155,7 @@ if __name__ == "__main__":
             sys.exit(1)
 
         # Některé stažené snímky jsou v indexovaných barvách,
-        # a tak všechn ysjeednotíme převodem na formát RGB
+        # a tak všechny sjeednotíme převodem na formát RGB
         printl("Převádím snímky na RGB...")
         snimek_radar = snimek_radar.convert("RGB")
         snimek_heatmapa = snimek_heatmapa.convert("RGB")
@@ -186,7 +186,7 @@ if __name__ == "__main__":
         # KRESBA BLOKU S DRUŽICOVÝM SNÍMKEM
         # ---------------------------------
         printl("Kreslím družicový snímek v umělých barvách a s maskou republiky...")
-        # Protože budeme zjišťovat a modifikovat stav jendotlivých pixelů, projdeme je jeden p odruhým
+        # Protože budeme zjišťovat a modifikovat stav jednotlivých pixelů, projdeme je jeden po druhém
         # Pomalý, ale jednoduchý/naivní postup
         for y in range(snimek_druzice.height):
             for x in range(snimek_druzice.width):
@@ -214,7 +214,7 @@ if __name__ == "__main__":
         # KRESBA BLOKU S RADAROVÝM SNÍMKEM
         # --------------------------------
         printl("Kreslím radarový snímek a s maskou republiky...")
-        # Protože budeme zjišťovat a modifikovat stav jendotlivých pixelů, projdeme je jeden p odruhým
+        # Protože budeme zjišťovat a modifikovat stav jendotlivých pixelů, projdeme je jeden po druhém
         # Pomalý, ale jednoduchý/naivní postup
         for y in range(snimek_radar.height):
             for x in range(snimek_radar.width):
@@ -222,14 +222,13 @@ if __name__ == "__main__":
                 _r,_g,_b  = maska_cesko_radar.getpixel((x,y))
                 # Pokud je pixel masky černý, nakresli pixel masky
                 if _r == 0:
-                        podklad.putpixel((x, y+240), (1, 1, 1))
+                    podklad.putpixel((x, y+240), (1, 1, 1))
                 # V opačném případě vykreslíme radarová data
                 # Ignoroujeme hodnotu kanálu 0 (černá/transparentní/pozadí)
                 else:
                     if (r+g+b) > 0:
                         podklad.putpixel((x, y+240), (r, g, b))
             
-
         printl("Kreslím popisky...")
         platno = ImageDraw.Draw(podklad)
         pismo_mapy = ImageFont.truetype(f"{cesta}BakbakOne-Regular.ttf", 20)
@@ -239,7 +238,7 @@ if __name__ == "__main__":
         platno.text((10,30), datum_heatmapa.strftime("%H:%M"), font=pismo_mapy, fill="black")
 
         # Popisky radarové mapy
-        # Datum radarové mapy je v UTC, takže převedeme na časové pádsmo Česka
+        # Datum radarové mapy je v UTC, takže převedeme na časové pásmo Česka
         casova_zona_cr = pytz.timezone("Europe/Prague")
         datum_radar = datum_radar.replace(tzinfo=pytz.utc).astimezone(casova_zona_cr)
         platno.text((10,250), "SRÁŽKY", font=pismo_mapy, fill="black")
@@ -254,7 +253,7 @@ if __name__ == "__main__":
        # Nakreslení dat z meteostanice
         printl("Zjišťuji stav redakční meteostanice...")
         
-        # ZDE SI DOPLNTE SVUJ VLASTNI KOD, JAK ZISKAT DATA Z VLASTNICH ZDROJU
+        # ZDE SI DOPLŇTE SVŮJ VLASTNÍ KOD, JAK ZÍSKAT DATA Z VLASTNÍCH ZDROJŮ
         teplota = "10.256"
         vlhkost = "56"
         svetlo = "25698"
@@ -278,8 +277,8 @@ if __name__ == "__main__":
 
 
         # Převod bitmapy na sedmibarevnou paletu ACeP/Gallery Palette 
-        printl("Převádím RGB na sedmibarevnou paletu E-ink Gallery Palette...")
-        printl("Provádím zákaldní bezztrátovou kompresi RLE...")
+        printl("Převádím RGB na sedmibarevnou paletu E-ink ACeP/Gallery Palette...")
+        printl("Provádím záklAdní bezztrátovou kompresi RLE...")
         binarni = open(f"{cesta}dashboard_rle.bin", "wb")
         bajty = []
         for y in range(podklad.height):
@@ -294,7 +293,7 @@ if __name__ == "__main__":
         hodnota = bajty[0]
         pocet = 0
         # Bezztrátová komprese základním algoritmem RLE s osmibitovou délkou
-        # Naivní a pomalý přístup pro demosntraci a pochopení
+        # Naivní a pomalý přístup pro demonstraci a pochopení
         for bajt in bajty:
             if bajt != hodnota:
                 komprimovano.append(pocet)
@@ -310,8 +309,9 @@ if __name__ == "__main__":
                 else:
                     pocet += 1
         printl(f"Komprimováno: {len(komprimovano)} bajtů")
-        printl("Ukládám...")
+       
         # Uložíme zkomprimovanou bitmapu do souboru
+        printl("Ukládám...")
         for bajt in komprimovano:
             binarni.write(struct.pack("B", bajt))
         binarni.close()
