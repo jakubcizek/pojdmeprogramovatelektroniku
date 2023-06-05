@@ -278,7 +278,7 @@ if __name__ == "__main__":
 
         # Převod bitmapy na sedmibarevnou paletu ACeP/Gallery Palette 
         printl("Převádím RGB na sedmibarevnou paletu E-ink ACeP/Gallery Palette...")
-        printl("Provádím záklAdní bezztrátovou kompresi RLE...")
+        printl("Provádím základní bezztrátovou kompresi RLE...")
         binarni = open(f"{cesta}dashboard_rle.bin", "wb")
         bajty = []
         for y in range(podklad.height):
