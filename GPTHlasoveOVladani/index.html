@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <title>Smart Home Živák</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sofia+Sans+Semi+Condensed&display=swap" rel="stylesheet">
+    <style>
+        /* CSS styl stránky
+         * Bez okraje, bez posuvníků
+         * S rozložením tabulky
+        */
+        html, body{
+            font-family: "Sofia Sans Semi Condensed", sans-serif;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            display: table;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        /* CSS styl hlavního okna s výsledkem
+         * Pružná velikost písma podle výšky okna,
+         * zobrazení jako tabulková buňka s vycentrovaným obsahem
+        */
+        #outputbox{
+            font-size: 5vh;
+            display: table-cell;
+            text-align: center;
+            vertical-align: middle;
+            padding: 50px 50px;
+        }
+        /* CSS styl pomocného okna v zápatí
+         * Druhý řádek tabulky, funkce patičky stránky
+        */
+        #infobox{
+            color: #bbbbbb;
+            font-size: 3vh;
+            display: table-row;
+            text-align: center;
+        }
+        /* Třída stylu error pro obarvení chyby do ruda */
+        .error{
+            color:coral;
+        }
+
+
+    </style>
+    <script>
+        let smarthome_url = "http://127.0.0.1/smarthome/speech/" // HTTP cesta k webovému serveru
+        let stt; // Proměnná objektu převodu hlasu na text (Speech To Text)
+        let tokens_input_total = 0; 
+        let tokens_output_total = 0; 
+        let tokens_input_price_total = 0; 
+        let tokens_output_price_total = 0; 
+
+        // Po kliknuti myší na stránku zavolej funkci listening
+        document.onclick = (event) => listening();
+
+        // Po stisku klávesy zavolej funkci listening
+        document.onkeydown = (event) => {
+           listening();
+        }
+
+        // Po kompletním načtení stránky zpracuj tuto anonymní funkci
+        window.onload = (event) => {
+            document.title = "Smart Home Živák";
+            outputBox("Klepni a řekni povel"); // Napiš hlášku do okna
+            console.log("Komandére, okénko prohlížeče je připraveno k hrátkám"); // Vypiš do konzole prohlížeče uvítání
+            stt = new webkitSpeechRecognition(); // Nastartuj technologii Web Speech API v prohlížeči Chrome
+            stt.continuous = false; // Nechceme získávat průběžné výsledky, ale až celou větu
+            stt.lang = "cs-CZ"; // Chceme na text převádět hlas v češtině
+            stt.interimResults = false; // Nechceme dostávat (rychlejší) předběžné výsledky, ale až finální a kvalitní
+
+            // Jakmile převod řeči na text uslyší delší ticho, přestane poslouchat, zpracuje zvuk a zavolá tuto anonymní funkci  
+            stt.onresult = (event) => {
+                if(event.results.length > 0){ // Pokud jsme získali alespoň 1 výsledek
+                    let text = event.results[0][0].transcript; // Ulož do pomocné proměnné první výsledek z pole přepisů
+                    console.log("========================================"); // Vypiš do konzole pro kontrolu, co prohlížeč uslyšel
+                    console.log("Hlas: „" + text + "“");
+                    outputBox("Zpracovávám povel..."); // Napiš hlášku do okna
+                    smartHome(text.toLowerCase()); // Pošli text k sémantické analýze
+                }
+                // Pokud žádný výsledek nemáme,
+                // resetuj pohled a do patičky naiš důvod
+                else{
+                    outputBox("Klepni a něco řekni...");
+                    infoBox("Žádné mluvené slovo");
+                }
+            }
+            stt.onspeechend = () => stt.stop(); // Na konci detekce mluveného slova ukonči poslech
+            // V případě chyby převodu Speech To Text
+            stt.onerror = (event) => {
+                console.log(event.error);
+                outputBox("Klepni a něco řekni...");
+                infoBox("Chyba analýzy hlasu: <span class='error'>" + event.error + '</spann>');
+            }
+            // V případě, že Speech To Text nedokáže najít žádné mluvené slovo
+            stt.onnomatch = (event) => {
+                outputBox("Klepni a něco řekni...");
+                infoBox("Nerozpoznal jsem žádné mluvené slovo");
+            }
+        }
+
+        // Funkce listening spustí převod hlasu na text
+        function listening(){
+            console.log("🎤 Poslouchám...");
+            window.speechSynthesis.cancel(); // Pokud hlasový syntetizátor právě mluví, ukončí ho
+            outputBox("Poslouchám...");// Do textového okna napiš informační zprávičku
+            stt.start(); // Konečně aktivuj poslech
+        }
+
+        // Pomocná funkce pro zobrazení textu v patičce
+        function infoBox(text){
+            document.querySelector("#infobox").innerHTML = text;
+        }
+
+        // Pomocná funkce pro zobrazení hlavního textu na středu obrazovky
+        function outputBox(text){
+            document.querySelector("#outputbox").innerHTML = text;
+        }
+
+        // Hlavní funkce pro analýzu textu, který jsme získali z STT (Speech-To-Text) 
+        // Na náš server posílám HTTP POST s tělem fe formátu JSON:
+        // {"text": "převedený text z hlasu"}
+        function smartHome(text){
+            console.log("🤖 Povel pro server chytré domácnosti: '" + text + "'")
+            fetch(smarthome_url, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({"text": text})
+                })
+                // Čekáme na odpověď ve formátu JSON
+                .then((odpoved) => odpoved.json())
+                .then((json) =>{
+                    // Pokud je klíč return pravda
+                    if(json.return){
+                        // V odpovědi dorazila textová hláška (zapnul jsme zařízení XYZ apod.)
+                        // A také statistika se spotřebou tokenů a jejich cenou (dle kurzu, viz skript v Pythonu)
+                        let text = json.text;
+                        let tokens_input = json.tokensInput;
+                        let tokens_output = json.tokensOutput;
+                        let tokens_input_price = json.tokensInputPrice;
+                        let tokens_output_price = json.tokensOutputPrice;
+                        tokens_input_total += tokens_input;
+                        tokens_output_total += tokens_output;
+                        tokens_input_price_total += tokens_input_price;
+                        tokens_output_price_total += tokens_output_price;
+
+                        // Textovou hlášku vypíšeme do hlavního okna
+                        outputBox(text);
+
+                        // Do patičky vypíšeme statistiku spotřebovaných tokenů
+                        let total_price = tokens_input_price_total + tokens_output_price_total;
+                        let info = "Cena dotazu: <b>" + tokens_input_price.toFixed(6) + " USD</b> (" + tokens_input + " tokenů)";
+                        info += "<br>Cena odpovědi: <b>" + tokens_output_price.toFixed(6) + " USD</b> (" + tokens_output + " tokenů)";
+                        info += "<br><br />Celková cena sezení: <b>" + total_price.toFixed(6) + " USD</b> (vstup: " + tokens_input_total + " tokenů, výstup: " + tokens_output_total + " tokenů)";
+                        infoBox(info);
+                    }
+                    // Pokud je klíč return nepravda,
+                    // vypíšeme chybové hlášení
+                    else{
+                        console.log(json.text);
+                        outputBox(json.text);
+                        infoBox("Chytrá domácnost neprovedla žádnou akci");
+                    }
+                });
+        }
+    </script>
+</head>
+<body>
+    <!-- HTML prvek DIV s identifikátorem vysledek. Tady se budou zobrazovat výsledky -->
+    <div id="outputbox">Klepni a na něco se zeptej</div>
+    <!-- HTML prvek DIV s identifikátorem infrormace. Slouží jako patička s dodytatečnými informacemi -->
+    <div id="infobox">Hlasové ovládání domácnosti s využitím AI GPT-3.5</div>
+</body>
+</html> 
