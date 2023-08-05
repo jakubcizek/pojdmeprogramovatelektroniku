@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="cs">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="x-ua-compatible" content="ie=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@100;500;900&display=swap" rel="stylesheet">
+        <link rel="icon" type="image/png" href="assets/icon.png">
+        <style>
+            html, body{
+                font-family: "Roboto Slab", cursive;
+                text-align: center;
+                background-color: white;
+                color: black}
+            #output{
+                font-size: 6vmin;
+                font-weight: normal;
+                margin-top: 50px;
+            }
+            #output p{
+                margin-top: 50px;
+                margin-bottom: 20px;
+                display: block;
+                font-size: 3vmin;
+                font-weight: normal;
+            }
+            #output p.bigger{
+                font-size: 5vmin;
+                font-weight: bolder;
+            }
+            #output input{
+                font-family: "Roboto Slab", cursive;
+                font-size: 4vmin;
+                font-weight: normal;
+            }
+        </style>
+        <title>Fabiobot</title>
+        <script>
+            // Funcke pro presmerovani na autorizacni dialog Strava API
+            function auth(){
+                let client_id = "108836"; // ID API aplikace (https://www.strava.com/settings/api)
+                let redirect_url = "http://127.0.0.1/fabiobot/exchange_token"; // Na jakou URL ma Strava presmerovat prohlizec po schvaleni autorizacniho dialogu
+                let scope = "activity:read_all"; // O jaka prava  apliakce zada? Kompletni pristup k aktivitam
+                window.location.replace("http://www.strava.com/oauth/authorize?client_id=" + client_id + "&response_type=code&redirect_uri=" + redirect_url + "&approval_prompt=force&scope=" + scope);
+            }
+
+            // Funkce pro zjisteni hodnoty HTTP Cookies podle nazvu
+            function getCookieByName(name){
+                let cookies = decodeURIComponent(document.cookie).split(";");
+                for(cookie of cookies){
+                    let parts = cookie.split("=");
+                    if(parts[0].includes(name)) return parts[1].trim();
+                }
+                return undefined;
+            }
+
+            // Funkce pro prevod cisla na cesky format
+            function localizeNumber(value){
+                let options = { useGrouping: true, minimumFractionDigits: 0 };
+                return value.toLocaleString("cs-CZ", options);
+            }
+
+            // Anonymni funkce, ktera se spusti po plnem nacteni stranky
+            window.onload = (event) => {
+                // Pokud mame v prohlizeci ulozenou HTTP Cookies fabiobot_access_token,
+                // uz jsme autorizovani, mame (asi) platny access_token, a tak se skrze nas HTTP server rovnou zeptame Strava API
+                // Odpoved dorazi jako JSON s celkovymi statistikami ve formatu ActivityStats (https://developers.strava.com/docs/reference/#api-models-ActivityStats)
+                if (document.cookie.includes("fabiobot_access_token")) {
+                    fetch("/fabiobot/stats")
+                    .then(response => response.json())
+                    .then(json => {
+                        console.log(json); // Vypiseme JSON pro kontrolu do konzole prohlizece
+                        // Z HTTP Cookies vytahneme cele jmeno sportovce a zacneme konstruovat HTNL odpoved
+                        let name = getCookieByName("fabiobot_user_name");
+                        let output = document.querySelector("#output");
+                        output.innerHTML = name + " byl fabiobotizován!";
+                        
+                        // Vytahneme ze statistiky JSON jen  ujete kilometry na kole za celou dobu a od zacatku roku (YTD)
+                        let total_rides = json.all_ride_totals.distance;
+                        let ytd_rides = json.ytd_ride_totals.distance;
+
+                        const fabia_length = 4.107; // Delka Skoda Fabia IV. generace (2021-) v metrech
+
+                        // Prepocet metru na fabie
+                        let ytd_fabia = ytd_rides / fabia_length;
+                        let total_fabia = total_rides / fabia_length;
+
+                        // Konstruovani HTML kodu se statistikou
+                        let stats = "<p>Od začátku roku jsi na kole najezdil <b>" + localizeNumber((ytd_rides/1000)) + "</b> kilometrů!</p>"
+                        stats += "<p class='bigger'>Dělá to " + localizeNumber(ytd_rides / fabia_length) + " fabií";
+                        stats += "<p>Za celou dobu jsi na kole najezdil <b>" + localizeNumber((total_rides/1000)) + "</b> kilometrů!</p>"
+                        stats += "<p class='bigger'>Dělá to " + localizeNumber(total_rides / fabia_length) + " fabií";
+
+                        // Vypsani cele HTML odpovedi do DIV s id #output
+                        output.innerHTML += stats;
+                    });
+                }
+            };
+
+        </script>
+    </head>
+    <body>
+        <div id="output">
+            Toto je Fabiobot!
+            <p>Abych mohl přepočítat tvoje kilometry na fabie, musíš mě autorizovat na Stravě</p>
+            <input type="button" value="Autorizuj mě!" onclick="javascript:auth();">
+        </div>
+
+    </body>
+</html>
