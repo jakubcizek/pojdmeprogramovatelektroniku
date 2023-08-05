@@ -1,0 +1,9 @@
+Nejprve je treba nastavit konfiguraci API ve skriptu fabiobot.py
+
+Program pote muzeme spustit prikazem:
+
+python fabiobot.py
+
+Program spusti HTTP server na standardnim TCP portu 80. K tomu bude potreba mit na nekterych OS prava spravce, nebo zvolit na konci zdrojoveho kodu fabiobot.py odlisny TCP port
+
+Pred spustenim ve skriptu fabiobot.py spravne nastavte promennou strava_aplikace, ktera obsahuje identifikacni udaje konkretni aplikace
