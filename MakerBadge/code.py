@@ -1,4 +1,5 @@
 # https://github.com/makerfaireczech/maker_badge/blob/main/SW/CircuitPython/examples/MF%20basic%20rev.D/code.py
+# Ugly 5 views swithing. Memory hungry!!!
 import time
 import terminalio
 import board
