@@ -1,3 +1,4 @@
+# https://github.com/makerfaireczech/maker_badge/blob/main/SW/CircuitPython/examples/MF%20basic%20rev.D/code.py
 import time
 import terminalio
 import board
