@@ -14,4 +14,6 @@ Ve složce **arduino/ledmapa_klient** je verze firmwaru, který vedle HTTP serve
  - **[JSON API (přesná shoda polohy města)](https://oracle-ams.kloboukuv.cloud/radarmapa/?chcu=posledni.json)**
  - **[JSON API (shoda s širším čtvercem okolo města)](https://oracle-ams.kloboukuv.cloud/radarmapa/?chcu=posledni_v2.json)**
 
-V adresáři **[BodovyArealovyDetektor](https://github.com/jakubcizek/pojdmeprogramovatelektroniku/tree/master/SrazkovyRadar/BodovyArealovyDetekto)** se nachází komplentí příklad v Python upro spuštění HTTP serveru pomocí knihovny Tornado, který bude každých deset minut kontrolovat stav a vytvářet chace soubory s JSON pro bodové i areálové měření. V adresáři najdete také upravený příklad pro Arduino, který stahuje JSON z vlastního serveru, anbo z mého webového API.
+V adresáři **[BodovyArealovyDetektor](https://github.com/jakubcizek/pojdmeprogramovatelektroniku/tree/master/SrazkovyRadar/BodovyArealovyDetektor)** se nachází komplentí příklad v Python upro spuštění HTTP serveru pomocí knihovny Tornado, který bude každých deset minut kontrolovat stav a vytvářet chace soubory s JSON pro bodové i areálové měření. V adresáři najdete také upravený příklad pro Arduino, který stahuje JSON z vlastního serveru, anbo z mého webového API.
+
+Bodovému a areálovému měření se více věnuji ** v časopisu Computer, vydání 10/2023 (říjen) **. Více zde: [ikiosek.cz/computer](https://www.ikiosek.cz/computer).
