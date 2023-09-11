@@ -8,13 +8,13 @@ Ve složce **arduino/ledmapa_klient** je verze firmwaru, který vedle HTTP serve
  - **[LaskaKit Interaktivní Mapa ČR (GitHub)](https://github.com/LaskaKit/LED_Czech_Map)**
  - **[Srážkový radar ČHMÚ](https://www.chmi.cz/files/portal/docs/meteo/rad/inca-cz/short.html)**
 
-**JSON API s aktuálním stavem**
+**JSON API s aktuálním stavem:**
  
  K dispozici je JSON, který vrací pouze seznam měst, kde prší přesně na jejich bodové GPS pozici, a JSON, který pokrývá širší oblast okolo středu.
  - **[JSON API (přesná shoda polohy města)](https://oracle-ams.kloboukuv.cloud/radarmapa/?chcu=posledni.json)**
  - **[JSON API (shoda s širším čtvercem okolo města)](https://oracle-ams.kloboukuv.cloud/radarmapa/?chcu=posledni_v2.json)**
 
-**Bodové vs. areálové měření shody**
+**Bodové vs. areálové měření shody:**
 
 V adresáři **[BodovyArealovyDetektor](https://github.com/jakubcizek/pojdmeprogramovatelektroniku/tree/master/SrazkovyRadar/BodovyArealovyDetektor)** se nachází komplentí příklad v Python upro spuštění HTTP serveru pomocí knihovny Tornado, který bude každých deset minut kontrolovat stav a vytvářet chace soubory s JSON pro bodové i areálové měření. V adresáři najdete také upravený příklad pro Arduino, který stahuje JSON z vlastního serveru, anbo z mého webového API.
 
