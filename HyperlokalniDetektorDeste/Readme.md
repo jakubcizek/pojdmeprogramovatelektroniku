@@ -10,5 +10,6 @@ Samotný detektor **radar.py** lze spouštět i samostatně. V takovém případ
  - **[Srážkový radar ČHMÚ](https://www.chmi.cz/files/portal/docs/meteo/rad/inca-cz/short.html)**
 
 **Podívejte se také na projekt s mapou ČR od LaskaKitu**
+
 Na odkazu níže si pohrajeme s tištěnou mapou Česka se 72 RGB ELD, na kterých zobrazíme déšť v jendotlivých městech republiky.
 **[Srážkový radar na mapě Česka od LaskaKitu](https://github.com/jakubcizek/pojdmeprogramovatelektroniku/tree/master/SrazkovyRadar)** 
