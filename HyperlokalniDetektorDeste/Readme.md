@@ -1,8 +1,6 @@
 ## Detektor deště v oblasti zájmu pomocí Pythonu, JS a HTML
 Tentokrát si vyrobíme detektor deště v oblasti zájmu (obdélníku), který nakreslíme nad mapou pomocí HTML aplikace. Server v Pythonu bude každých deset minut analyzovat déšť v oblasti zájmu na radarových snímcích ČHMÚ
 
-Ve složce **arduino/ledmapa_klient** je verze firmwaru, který vedle HTTP serveru každých 10 minut automaticky stahuje nová radarová data pomocí **JSON API**. API je dostupné skrze HTTPS i HTTP a aktualizuje data každých 10 minut vždy 5. minutu (5, 15, 25, 35...)
-
  - **[Článek na Živě.cz](https://www.zive.cz/clanky/naprogramovali-jsme-radarovou-mapu-ceska-ukaze-kde-prave-prsi-a-muzete-si-ji-dat-na-zed/sc-3-a-222111/default.aspx)**
  - **[Srážkový radar ČHMÚ](https://www.chmi.cz/files/portal/docs/meteo/rad/inca-cz/short.html)**
 
