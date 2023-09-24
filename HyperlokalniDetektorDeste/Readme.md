@@ -1,5 +1,5 @@
 ## Detektor deště v oblasti zájmu pomocí Pythonu, JS a HTML
-Tentokrát si vyrobíme detektor deště v oblasti zájmu (obdélníku), který nakreslíme nad mapou pomocí HTML aplikace. Server v Pythonu bude každých deset minut analyzovat déšť v oblasti zájmu na radarových snímcích ČHMÚ.
+Tentokrát si vyrobíme detektor deště v oblasti zájmu (obdélníku), který nakreslíme nad mapou pomocí HTML aplikace. Server v Pythonu bude každých deset minut analyzovat déšť v oblasti zájmu na radarových snímcích ČHMÚ. Data bude ukládat do **historie.csv** a budou dostupná i skrze HTTP GET API n adrese **/?chcu=stav**. 
 
 Skript **server.py** po spuštění nastartuje HTTP server na standardním TCP portu 80, začne periodicky analyzovat radarové snímky a ukládat stav v oblasti zájm udo souboru historie.csv
 Projekt potřebuje k běhu vedle Pythonu 3.x ještě knihovny **[Tornado](https://www.tornadoweb.org/en/stable/)**, **[Schedule](https://schedule.readthedocs.io/en/stable/)** a **[Pillow](https://pillow.readthedocs.io/en/stable/)** 
