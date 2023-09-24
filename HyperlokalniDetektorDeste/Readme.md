@@ -4,6 +4,8 @@ Tentokrát si vyrobíme detektor deště v oblasti zájmu (obdélníku), který 
 Skript **server.py** po spuštění nastartuje HTTP server na standardním TCP portu 80, začne periodicky analyzovat radarové snímky a ukládat stav v oblasti zájm udo souboru historie.csv
 Projekt potřebuje k běhu vedle Pythonu 3.x ještě knihovny **[Tornado](https://www.tornadoweb.org/en/stable/)**, **[Schedule](https://schedule.readthedocs.io/en/stable/)** a **[Pillow](https://pillow.readthedocs.io/en/stable/)** 
 
+Samotný detektor **radar.py** lze spouštět i samostatně. V takovém případě pro kontrolu vypíše JSON s deštěm v oblasti, která je definovaná v souboru **nastaveni_radaru.json**.
+
  - **[Článek na Živě.cz](https://www.zive.cz/clanky/naprogramovali-jsme-radarovou-mapu-ceska-ukaze-kde-prave-prsi-a-muzete-si-ji-dat-na-zed/sc-3-a-222111/default.aspx)**
  - **[Srážkový radar ČHMÚ](https://www.chmi.cz/files/portal/docs/meteo/rad/inca-cz/short.html)**
 
