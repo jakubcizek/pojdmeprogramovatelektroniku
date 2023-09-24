@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Nastavení oblasti zájmu radaru</title>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        #informace {
+            margin-top: 20px; 
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <div id="informace"></div>
+    <script>
+        // Objekty bloku s informacemi, obrázku podkladove mapy
+        // a take Canvasu, pomocí kterého budeme kreslit obdélník
+        const informace = document.getElementById("informace"); 
+        const img = new Image();
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+
+        // Funkce pro vypsaní statistiky pod obrázkem
+        function nakresliStatistiku(data){
+            if(data.prsi){
+                informace.innerHTML = 
+                    "<strong><span style='color:red'>Ve vybrané oblasti právě prší</span></strong><br>" +
+                    "<strong>Poslední aktualizace:</strong> " + data.datum +"<br>" +
+                    "<strong>Plocha deště:</strong> " + data.plocha_procenta.toFixed(2) + " %<br>" + 
+                    "<strong>Pixely s deštěm:</strong> " + data.pixely_s_destem + "<br>" + 
+                    "<strong>Skóre nejsilnějšího deště:</strong> " + data.nejvyssi_skore.skore + "/100<br>" + 
+                    "<strong>Průměrné skóre deště:</strong> " + data.prumerne_skore.toFixed(2) + "/100<br>";
+            }
+            else{
+                informace.innerHTML = 
+                    "<strong><span style='color:green'>Ve vybrané oblasti právě prší</span></strong><br>" +
+                    "<strong>Poslední aktualizace:</strong> " + data.datum +"<br>";
+            }
+        }
+
+        // Nastavíme URL obrázku na náš server
+        img.src = "/?chcu=podkladova-mapa";
+
+        // Po načtení obrázku zpracujeme veškerou další logiku programu
+        img.onload = function() {
+            // Upravime rozměry plátna Canvas a nakreslíme do něj obrázek
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0);
+
+            // Stáhneme statistiku a zobrazíme ji pod obrázkem
+            fetch("/?chcu=stav")
+            .then(r=>r.json())
+            .then(data=>{
+                console.log(data);
+                nakresliStatistiku(data);
+            });
+
+            // ZJištění souřadnic oblasti zájmu a vykreslení obdélníku
+            fetch("/?chcu=nastaveni-radaru")
+            .then(r=>r.json())
+            .then(data=>{
+                console.log(data);
+                ctx.strokeRect(
+                    data.souradnice[0], 
+                    data.souradnice[1], 
+                    data.souradnice[2] - data.souradnice[0], 
+                    data.souradnice[3] - data.souradnice[1], 
+                );
+            });
+
+            // Pomocné proměnné pro kreslení oblasti zájmu
+            let kresleni = false;
+            let startX, startY;
+            
+            // Po stisku myši nad plátnem Canvas začneme kreslít obdélník 
+            canvas.onmousedown = function(e) {
+                startX = e.clientX - canvas.getBoundingClientRect().left;
+                startY = e.clientY - canvas.getBoundingClientRect().top;
+                kresleni = true;
+            };
+
+            // Pohybem myši překreslujeme podle její polohy plátno s podkladovou mapou a obdélníkem
+            canvas.onmousemove = function(e) {
+                if (!kresleni) return;
+                const x = e.clientX - canvas.getBoundingClientRect().left;
+                const y = e.clientY - canvas.getBoundingClientRect().top;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0);
+                ctx.strokeRect(startX, startY, x - startX, y - startY);
+            };
+
+            // Po uovlnení tlačítka myši se spojíme s webovým serverem
+            // a pošleme mu novou konfiguraci oblasti zájmu
+            canvas.onmouseup = function(e) {
+                kresleni = false;
+                const endX = e.clientX - canvas.getBoundingClientRect().left;
+                const endY = e.clientY - canvas.getBoundingClientRect().top;
+                console.log(`Nove souradnice: ${startX}, ${startY}, ${endX}, ${endY}`);
+                fetch("/?chcu=nastavit-radar" + 
+                    "&x0=" + parseInt(startX) +
+                    "&y0=" + parseInt(startY) +
+                    "&x1=" + parseInt(endX) +
+                    "&y1=" + parseInt(endY)
+                )
+                // Webový server provede novou analýzu a vrátí nám výsledek, který zobrazíme
+                // v bloku pod obrázekem s mapou
+                .then(r=>r.json())
+                .then(data=>{
+                    console.log(data);
+                    nakresliStatistiku(data);
+                });
+            };
+        }
+    </script>
+</body>
+</html>
