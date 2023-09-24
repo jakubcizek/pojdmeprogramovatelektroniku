@@ -20,7 +20,7 @@ lat0 = 52.1670717
 lon1 = 20.7703153
 lat1 = 48.1
 
-# Funcke pro výpis do standardního výstupu, pokud je povolené logování
+# Funkce pro výpis do standardního výstupu, pokud je povolené logování
 def printl(txt):
     if logovani:
         print(txt, flush=True)
@@ -31,11 +31,11 @@ def printl(txt):
 def premapuj_rozsah(x, in_min, in_max, out_min, out_max):
     return int((x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
 
-# Funcke pro výpočet skóre deště pomocí barevného model uHSV
+# Funkce pro výpočet skóre deště pomocí barevného model uHSV
 def spocitej_skore(r, g, b):
     if r+g+b == 0:
         return 0
-    h, s, v, = colorsys.rgb_to_hsv(r, g, b)
+    h, s, v = colorsys.rgb_to_hsv(r, g, b)
     # Pokud nám pixel svítí bíle, vrátím maximální intenzitu deště
     if s == 0 and v == 1:
         return 100
@@ -221,7 +221,7 @@ def analyzuj_radar(areal_zajmu):
                     "datum": datetime.now().strftime("%H:%M:%S, %d.%m.%Y")
                 }
             
-# Funcke pro nahrání nastavení oblasti zájmu
+# Funkce pro nahrání nastavení oblasti zájmu
 def nahraj_nastaveni_radaru():
     with open("nastaveni_radaru.json", "r") as soubor:
         return json.loads(soubor.read())      
