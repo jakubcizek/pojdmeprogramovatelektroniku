@@ -1,0 +1,6 @@
+## Ukázka spojení s flow kamerou PixArt Iamging PMW3901 
+Tentokrát se podíváme na zoubek optical flow senzorům, které najdete i ve své myši. Vyzkoušíme si totiž práci s čipem PMW3901. Sestreský modul od stejného výrobce najdete třeba v počítačových myších od Logitechu (MX Master aj.). V příkladu Framebuffer řečteme ze snímače maličko ufotografii v rozlišení 35x35 pixelů. V příkladu Dron proměníme kameru v polohovací zařízení a pohyb kamery v osách XY budeme přenášet na obrázek dornu na herním plátně. Každý příklad se skládá z části pro Arduino, která poběží na desce XIAO ESP32C3 (nebo jakékoliv jin és 3,3V logikou) a z části pro Processing, která se na PC postará o samotné zobrazení výsledku v okně. KOmuniakce bude probíhat po sériové lince.
+ - **[Článek na Živě.cz](https://www.zive.cz/clanky/programujeme-flow-kameru-stejnou-najdete-ve-sve-pocitacove-mysi-a-na-dronech/sc-3-a-224570/default.aspx)**
+ - **[Produktová stránka flow kamery PMW3901](https://www.pixart.com/products-detail/44/PMW3901MB-TXQT)**
+ - **[Datasheet flow kamery PMW3901](https://octopart.com/datasheet/pmw3901mb-txqt-pixart-77804687)**
+ - **[KNihovna pro Arudino od Bitcraze](https://github.com/bitcraze/Bitcraze_PMW3901)**
