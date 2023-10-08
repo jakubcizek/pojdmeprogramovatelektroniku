@@ -3,4 +3,4 @@ Tentokrát se podíváme na zoubek optical flow senzorům, které najdete i ve s
  - **[Článek a video na Živě.cz](https://www.zive.cz/clanky/programujeme-flow-kameru-stejnou-najdete-ve-sve-pocitacove-mysi-a-na-dronech/sc-3-a-224570/default.aspx)**
  - **[Produktová stránka flow kamery PMW3901](https://www.pixart.com/products-detail/44/PMW3901MB-TXQT)**
  - **[Datasheet flow kamery PMW3901](https://octopart.com/datasheet/pmw3901mb-txqt-pixart-77804687)**
- - **[KNihovna pro Arudino od Bitcraze](https://github.com/bitcraze/Bitcraze_PMW3901)**
+ - **[Knihovna pro Arudino od Bitcraze](https://github.com/bitcraze/Bitcraze_PMW3901)**
