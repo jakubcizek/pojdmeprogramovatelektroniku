@@ -1,0 +1,10 @@
+## Ukázka spojení s modulem radaru HLK-LD2450
+Tentokrát se podíváme na zoubek čínskému modulu **[HLK-LD2450](en.hlktech.com/index.php?id=1157&cateid=755)** s radarem **[S5KM312CL](www.iclegend.com/en/product/list/S5KM312CL/¨)**. Ke čtení dat z radaru si upravíme **[tento zdrojový kód](https://github.com/tsunglung/esphome-ld2450/tree/master)** pro komponentu ESPHome od tsunglunga
+
+Každý příklad se skládá z části pro Arduino, která poběží na desce **[XIAO ESP32C3](https://www.seeedstudio.com/Seeed-XIAO-ESP32C3-p-5431.html)** (nebo jakékoliv jiné s 3,3V logikou) a z části pro **[Processing](https://processing.org/)**, který se na PC postará o samotné zobrazení výsledku v okně. Komunikace bude probíhat po sériové lince.
+ - **[Článek a video na Živě.cz]()**
+ - **[Hromada materiálů v čínštině](h.hlktech.com/Mobile/download/fdetail/239.html)**
+ - **[GUI aplikace pro Windows při použití USB/UART převodníku](r0.hlktech.com/download/HLK-LD2450-24G/2/HLK-2450_TOOL(v1.4.2.0_20230515_1).zip)**
+ - **[Vlákno v diskuzi komunity Home Assistant](https://community.home-assistant.io/t/hlk-ld2450-initial-experiments-to-connect-to-homeassistant/578878)**
+ - **[Vlákno v české diskuzi komunity Home Assistant](https://www.homeassistant-cz.cz/viewtopic.php?p=10816)**
+ - 
