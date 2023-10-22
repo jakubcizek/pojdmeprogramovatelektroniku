@@ -7,4 +7,4 @@ Každý příklad se skládá z části pro Arduino, která poběží na desce *
  - **[GUI aplikace pro Windows při použití USB/UART převodníku](r0.hlktech.com/download/HLK-LD2450-24G/2/HLK-2450_TOOL(v1.4.2.0_20230515_1).zip)**
  - **[Vlákno v diskuzi komunity Home Assistant](https://community.home-assistant.io/t/hlk-ld2450-initial-experiments-to-connect-to-homeassistant/578878)**
  - **[Vlákno v české diskuzi komunity Home Assistant](https://www.homeassistant-cz.cz/viewtopic.php?p=10816)**
- - 
+   
