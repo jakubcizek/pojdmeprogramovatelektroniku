@@ -3,7 +3,7 @@ Tentokrát se podíváme na zoubek čínskému modulu **[HLK-LD2450](en.hlktech.
 
  - **[Článek a video na Živě.cz](https://www.zive.cz/clanky/programovani-elektroniky-cinsky-radar-na-lidi-za-tri-stovky-hlk-ld2450/sc-3-a-224831/default.aspx)**
  - **[Hromada materiálů v čínštině](https://h.hlktech.com/Mobile/download/fdetail/239.html)**
- - **[GUI aplikace pro Windows při použití USB/UART převodníku](r0.hlktech.com/download/HLK-LD2450-24G/2/HLK-2450_TOOL(v1.4.2.0_20230515_1).zip)**
+ - **[GUI aplikace pro Windows při použití USB/UART převodníku](https://r0.hlktech.com/download/HLK-LD2450-24G/2/HLK-2450_TOOL(v1.4.2.0_20230515_1).zip)**
  - **[Vlákno v diskuzi komunity Home Assistant](https://community.home-assistant.io/t/hlk-ld2450-initial-experiments-to-connect-to-homeassistant/578878)**
  - **[Vlákno v české diskuzi komunity Home Assistant](https://www.homeassistant-cz.cz/viewtopic.php?p=10816)**
    
