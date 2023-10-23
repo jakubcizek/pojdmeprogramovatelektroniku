@@ -1,7 +1,7 @@
-// Kniuhovna pro praci se seriovou linkou
+// Knihovna pro praci se seriovou linkou
 import processing.serial.*;
 
-// Objekty obrazku opic
+// Objekty obrazku barevnych a cernobilých opic
 PImage[] opice = new PImage[6];
 
 // Souradnice a rychlost pro tri detekovane objekty
@@ -20,7 +20,7 @@ int posun_y = 50;
 // Hlavni funkce setup se zpracuje hned na zacatku
 void setup() {
   
-  // Velikost okna, barva pzoadi a titulek
+  // Velikost okna, barva pozadi a titulek
   size(1280, 720);
   background(0);
   surface.setTitle("Radar LD2450");
@@ -35,7 +35,7 @@ void setup() {
   opice[4] = loadImage("opice2cb.png");
   opice[5] = loadImage("opice3cb.png");
   
-  // Otevreni prvniho dostupneho serioveho portu rychlost 115200
+  // Otevreni prvniho dostupneho serioveho portu rychlosti 115200
   Serial serial = new Serial(this, Serial.list()[0], 115200);
   // Budeme ze seriove linky cist data po radcich
   serial.bufferUntil('\n');
@@ -55,7 +55,7 @@ void setup() {
 void draw() {    
   background(0);
   
-  // Nejprve nakreslime trajektorie histoire pohybu
+  // Nejprve nakreslime trajektorie historie pohybu
   for(int cil = 0; cil < 3; cil++){
     for (int i = 1; i < historie_x[cil].length; i++) {     
       stroke(100, 100, 100);
@@ -65,7 +65,7 @@ void draw() {
   }
   
   // A jeste jednou, ale tentokrat pro kresleni obrazku opicek
-  // Chceme totiz, aby prekryly pripadno utrajektorii historie
+  // Chceme totiz, aby prekryly pripadnou trajektorii historie
   for(int cil = 0; cil < 3; cil++){
     imageMode(CENTER);
     // Pokud je XY != 0, opicka bude barevna 
@@ -87,9 +87,9 @@ void draw() {
 }
 
 // Zpracovani prichozich dat ze seriove linky
-void serialEvent(Serial _serial) {
+void serialEvent(Serial serial) {
   try{
-    String radek = _serial.readString().trim();
+    String radek = serial.readString().trim();
     println(radek);
     int[] data = int(split(radek, ","));
     if(data.length == 4){
