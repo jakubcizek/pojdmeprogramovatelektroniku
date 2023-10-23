@@ -1,15 +1,15 @@
 /*
 
 Prepracovany zdrojovy kod komponenty pro ESPHome od tsunglung
-do podoby bezneho perogramu pro Arduino, ktery cte data z radaru
-a vypisuje udaje o pohybu do seriove linky ve formatu>
+do podoby bezneho programu pro Arduino, ktery cte data z radaru
+a vypisuje udaje o pohybu do seriove linky ve formatu:
 
 id,x,y,rychlost
 
 x a y je v centimetrech, rychlost v cm/s
-id je index podle prom2nne sledovaneCile
+id je index podle promenne sledovaneCile
 
-Puvodni zdrojovy kod>:
+Puvodni zdrojovy kod:
 https://github.com/tsunglung/esphome-ld2450/tree/master
 
 */
@@ -20,11 +20,11 @@ uint8_t data[160];
 // Kolik budeme sledovat cilu? 1 az 3
 uint8_t sledovaneCile = 3;
 // Prodleva mezi merenimi na 1000 ms
-// Halvne rpo preheldnost, surova vychozi rychlost je zhruba 10 Hz
+// Hlavne pro prehlednost, surova vychozi rychlost je zhruba 10 Hz
 uint16_t minimalniProdleva = 1000;
 uint32_t posledniAktualizace = millis();
 
-// Funkce pro slocueni dvou bajtku na 16bit cislo
+// Funkce pro slouceni dvou bajtu na 16bit cislo
 uint16_t sloucitDvaBajty(uint8_t prvni, uint8_t druhy) {
   return (uint16_t)(druhy << 8) + prvni;
 }
@@ -69,7 +69,7 @@ void zpracovatData(uint8_t *data, uint8_t delka) {
 }
 
 // Zpracovani dat ze seriove linky znak po znaku
-void precistData(uint8_t znak, uint8_t *data, int delka) {
+void precistData(uint8_t znak, uint8_t *data, uint8_t delka) {
   static uint8_t pozice = 0;
   if (znak >= 0) {
     if (pozice < delka - 1) {
@@ -91,15 +91,15 @@ void precistData(uint8_t znak, uint8_t *data, int delka) {
 
 // V hlavni funkci setup nastartujeme dve seriove linky
 // Serial pro vypis informaci do PC po USB
-// Serial2 pro komuniakci s radarem
-// Toto nastaveni plati pro ESP32-S3 na desce DevkitC
+// Serial2 pro komunikaci s radarem
+// Toto nastaveni plati pro ESP32-S3 na desce DevkitC-1
 // Upravte dle vlastni potreby
 void setup() {
   Serial.begin(115200);
   Serial2.begin(256000, SERIAL_8N1, 18, 17);  // 18 = RX,  17 = TX na ridici desce
 }
 
-// Ve smycce loop cekame na prichozi bajty z radaru 
+// Ve smycce loop cekame na prichozi bajty z radaru
 // a posilame je ke zpracovani do funkce precistData
 // Ta ma k dispozici 160B buffer data
 void loop() {
