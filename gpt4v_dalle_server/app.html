@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>AI Webkamera</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Baloo+Bhaijaan+2&display=swap" rel="stylesheet">
+        <style>
+            div{
+                font-family: "Baloo Bhaijaan 2", sans-serif;
+            }
+            span{
+                font-weight: bold;
+            }
+            .flex-container {
+            display: flex;
+            justify-content: space-around;     
+            padding: 15px;
+            gap: 5px;
+        
+            }
+            .rows{
+                display: flex;
+                width: 680px;
+                flex-direction: column;
+                align-items: center; 
+                justify-content: center;
+            }
+            .columns{
+                display: flex;
+                flex-direction: row;
+                align-items: center; 
+                justify-content: center;
+                margin-bottom: 10px;
+            }
+            img {
+                border-radius: 5px;
+                margin: 5px;
+            }
+            video{
+                border-radius: 5px;
+            }
+            hr {
+                width: 600px;
+                height: 3px;  
+                border: none; 
+                background-color: black;
+                margin: 20px; 
+            } 
+        </style>
+        <script>
+            // Začátek programu, který se spustí po načten ícelé stránky
+            window.addEventListener("load", (event) => {
+                var canvas = document.querySelector("#canvas"); // Kreslící plátno využijeme pro vytvoření obrázku z kamery
+                var context = canvas.getContext("2d"); // Kreslící kontext plátna
+                var video = document.querySelector("#webkamera"); // Objekt videa
+                var status = document.querySelector("h1"); // Objekt úvodního nadpisu, ktery slouží i pro stavové zprávy
+                let image_description; // Popis obrázku, jak ho vyrobil model GPT-4 Vision
+
+                // Spustíme kameru. Ať už tu na notebooku, nebo USB pro videokonference
+                // Při přístupu na http://localhost by mělo vše fungovat
+                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                    navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(function(stream) {
+                        video.srcObject = stream;
+                        video.play();
+                    })
+                    .catch(function(error) {
+                        console.log("Chyba při přístupu k webové kameře: " + error);
+                        alert("Chyba při přístupu k webové kameře: " + error);
+                    });
+                } else {
+                    alert("Vaš zařízení nepodporuje webové kamery, nebo není povolen přístup!");
+                }
+
+                // Otevřeme trvalé a obousměrné spojení s websocketovým serverem,
+                // který poslouchá na adrese: ws://localhost/ws
+                let socket = new WebSocket("ws://localhost/ws");
+                
+                // Pokud přijde webosocketová zpráva
+                socket.onmessage = function(event) {
+                    // Náš server posílá zprávy jako struktury JSON,
+                    // takže příchozí text převedeme na objekt JSON
+                    let message = JSON.parse(event.data);
+                    console.log(message); // A vypíšeme jej pro kontrolu do konzole prohlížeče
+                    // Pokud se jedná o chybovou zprávu, vypíšeme do konzole, kde k chybě došlo
+                    if(message.type == "error"){
+                        status.innerHTML = "Namiř kameru na něco zajímavého a klepni";
+                        video.play();
+                        console.error("Chyba serveru!");
+                        console.error("Důvod chyby: " + message.data.reason);
+                        console.error("Kód chyby: " + message.data.reason);
+                        console.error("Funkce, ve které došlo k chybě: " + message.data.function);
+
+                    }
+                    // Pokud se jedná o potvrzení, že jsme nahráli na server obrázek
+                    else if(message.type == "uploaded"){
+                        console.log("%cFotografie z kamery je úspěšně nahraná na server. Nyní ji pošlu do GPT-4V k analýze", "color: green");
+                        status.innerHTML = "Fotografii teď zpracovává GPT-4 Vision";
+                    }
+                    // Pokud se jedná o zprávu, že obrázek zpracoval model GPT-4 Vision
+                    else if(message.type == "gpt-4-vision-preview"){
+                        status.innerHTML = "Fotografii teď zpracovává DALL-E 3";
+                        console.log("%cODPOVĚĎ GPT-4V", "color: green");
+                        // Pokud odpověď GPT-4 Vision obsahuje textovou odpověď
+                        // Vypiíšeme ji do konzole včetně statistiky spotřebovaných tokenů
+                        // Poté ji pošleme do hlasového syntetizátoru,
+                        // který musí podporovat prohlížeč, nebo operační systém
+                        // Funguje to v Chromu na Windows
+                        if(message.data.choices.length > 0){
+                            // Protože jsme na serveru stanovili, že odpověď GPT-4 Vision může mít nejvíce 200 tokenů,
+                            // může být uřízlá - bez dokončení celé věty. Proto ji zprava ořízneme k nejbližší tečce
+                            image_description = message.data.choices[0].message.content;
+                            image_description = image_description.lastIndexOf(".") !== -1 ? image_description.substring(0, image_description.lastIndexOf(".") + 1) : image_description;
+                            let input = message.data.usage.prompt_tokens
+                            let output = message.data.usage.completion_tokens
+                            console.log("%cTokeny za vstup: " + input, "color: red");
+                            console.log("%cTokeny za výstup: " + output, "color: red");
+                            console.log("Popis fotografie: " + image_description);
+                            let speech = new window.SpeechSynthesisUtterance(); // Vytvoříme objekt syntetizované řeči
+                            speech.lang = "cs-CZ"; // Chceme použít (jakýkoliv) syntetizátor v nabídce, který umí mluvit česky
+                            speech.text = image_description; // Chceme, aby přeříkal obsah vstupní proměnné text
+                            speech.pitch = 1; // Výška zabarvení hlasu (0-2)  
+                            speech.rate = 0.9; // Rychlost hlasu (0,1-10)
+                            speech.volume = 2; // Hlasitost (0-2)
+                            window.speechSynthesis.speak(speech); // Předej řeč hlasovému syntetizátoru ke zpracování
+                        }
+                    }
+                    // Pokud se jedná o zprávu s obrázkem, který vytvořil DALL-E 3
+                    else if(message.type == "dall-e-3"){
+                        console.log("%cODPOVĚĎ DALL-E 3", "color: green");
+                        if("error" in message){
+                            console.log("%cChyba při generování obrázku: " + message.error, "color: red");
+                        }
+                        else{
+                            let image = message.data.data; // Base64 textová data obrázku
+                            let dt = message.data.datetime; // Datum a čas obrázku
+                            let real_prompt = message.data.real_prompt; // Skutečný prompt v angličtině, který DALL-E 3 nakonec použil
+                            console.log("Skutečný image_description pro DALL-E 3: " + real_prompt);
+
+                            // Vytvoření HTML kódu s blokem, který obsahuje datum
+                            // dvojici obrázků z kamery a DALL-E a tetxovým popiskem
+
+                            // DIV bloku
+                            let container = document.createElement("div");
+                            container.classList.add("rows");
+
+                            // DIV s originálem a generovaným obrázkem vedle sebe
+                            let container_photos = document.createElement("div");
+                            container_photos.classList.add("columns");
+
+                            // IMG obrázku z kamery
+                            var img_camera = document.createElement("img");
+                            img_camera.src = canvas.toDataURL("image/png");
+                            img_camera.height = 240;
+                            container_photos.appendChild(img_camera);
+
+                            // IMG obrázku z DALL-E 3
+                            var img_dalle = document.createElement("img");
+                            img_dalle.src = image;
+                            img_dalle.height = 240;
+                            container_photos.appendChild(img_dalle);
+                            
+                            // DIV s popisem obrázku
+                            var caption = document.createElement("div");
+                            caption.innerHTML = image_description;
+                            caption.style.width = "640px";
+
+                            // HR jako oddělovací čára mezi bloky jendotlivých syntéz
+                            var hr = document.createElement("hr");
+
+                            // Nadpis bloku s datumem a časem vygenerování obrázku
+                            var datetime = document.createElement("h2");
+                            datetime.innerHTML =  "AI obrázek vytvořený " + dt;
+
+                            // Teď to celé složíme dohromady
+                            container.appendChild(hr);
+                            container.appendChild(datetime);
+                            container.appendChild(container_photos);
+                            container.appendChild(caption);
+                            
+                            // A připojíme na konec středového DIV
+                            document.getElementById("content").appendChild(container);
+
+                            // Posuneme kurzor na konec stránky, kde se právě zobrazil nový záznam
+                            window.scrollTo(0, document.body.scrollHeight);
+                        }
+
+                        // NAstavíme nadpis na výchozí text a znovu spustíme přehrávání z webkamery
+                        status.innerHTML = "Namiř kameru na něco zajímavého a klepni";
+                        video.play();
+
+                    }
+                    // Pokud se jedná o zprávu se statistiko uspotřebovaných tokenů/dolarů
+                    else if(message.type == "price-stats"){
+                        // Vypíšeme statistku do konzole
+                        console.log("%c----------------------------------", "color:green");
+                        console.log("%cNÁKLADY OD SPUŠTĚNÍ SERVERU:   ", "color:green");
+                        console.log("%cVstupní tokeny GPT-4V: " + message.data["gpt-4-vision-preview"].input, "color:green");
+                        console.log("%cVýstupní tokeny GPT-4V: " + message.data["gpt-4-vision-preview"].output, "color:green");
+                        console.log("%cTokeny GPT-4V: " + message.data["gpt-4-vision-preview"].tokens_usd + " USD", "color:green");
+                        console.log("%cObrázky GPT-4V: " + message.data["gpt-4-vision-preview"].images_usd + " USD", "color:green");
+                        console.log("%cObrázky DALL-E 3: " + message.data["dall-e-3"].usd + " USD", "color:green");
+                        console.log("%cCelková cena: " +  (message.data["dall-e-3"].usd + message.data["gpt-4-vision-preview"].images_usd + message.data["gpt-4-vision-preview"].tokens_usd) + " USD", "color:green");
+                        console.log("%c----------------------------------", "color:green");
+
+                        // A zároveň aktualizujeme statistik uv pravém horním rohu stránky
+                        document.querySelector("#gpt4v-tokens-input").innerHTML = message.data["gpt-4-vision-preview"].input;
+                        document.querySelector("#gpt4v-tokens-output").innerHTML = message.data["gpt-4-vision-preview"].output;
+                        document.querySelector("#gpt4v-tokens-price").innerHTML = message.data["gpt-4-vision-preview"].tokens_usd.toFixed(3) + " USD";
+                        document.querySelector("#gpt4v-images-price").innerHTML = message.data["gpt-4-vision-preview"].images_usd.toFixed(3) + " USD";
+                        document.querySelector("#dalle3-images-price").innerHTML = message.data["dall-e-3"].usd.toFixed(3) + " USD";
+                        let total_price = message.data["dall-e-3"].usd + message.data["gpt-4-vision-preview"].images_usd + message.data["gpt-4-vision-preview"].tokens_usd;
+                        document.querySelector("#total-price").innerHTML = total_price.toFixed(3) + " USD";
+                    }
+                };
+
+                // Tato funkce se zpracuje po klepnutí na objekt videa
+                video.addEventListener("click", () => {
+                    status.innerHTML = "Posílám fotku na server"; // Upravíme nadpis
+                    video.pause(); // Pozastavíme video
+                    context.drawImage(video, 0, 0, 640, 480); // Nakreslíme aktuální frame do skrytého plátna 
+                    // Vytvoříme z bitmapy v plátně Base64 text, zapuzdříme ho do JSON
+                    // a jako websocketovou zprávu odešleme na server 
+                    let data = canvas.toDataURL("image/jpeg");
+                    let message = {
+                        "type": "image",
+                        "data": data
+                    }
+                    socket.send(JSON.stringify(message));
+                });
+
+                // Po klepnutí na libovolný obrázek na stránce se otevře v novém okně
+                document.querySelector("img").addEventListener("click", function() {
+                    window.open(this.src, "_blank");
+                });
+            });
+
+        </script>
+    </head>
+    <body>
+        <div class="flex-container">  
+            <div><img src="/assets/logo.png" /></div>
+            <div id="content">
+                <div class="rows">
+                    <h1>Namiř kameru na něco zajímavého a klepni</h1>
+                    <video id="webkamera" width="640" height="480" autoplay></video>
+                    <canvas id="canvas" width="640" height="480" style="display:none;"></canvas>
+                </div>
+            </div>
+            <div style="margin-top:25px;">
+                <strong>GPT-4 Vision</strong>
+                <ul>
+                    <li>Vstupní tokeny: <span id="gpt4v-tokens-input">0</span></li>
+                    <li>Výstupní tokeny: <span id="gpt4v-tokens-output">0 USD</span></li>
+                    <li>Cena tokenů: <span id="gpt4v-tokens-price">0 USD</span></li>
+                    <li>Cena analýzy: <span id="gpt4v-images-price">0 USD</span></li>
+                </ul>
+                <strong>DALL-E 3</strong>
+                <ul>
+                    <li>Cena generování: <span id="dalle3-images-price">0 USD</span></li>
+                </ul>
+                <strong>Celková cena:</strong>
+                <ul>
+                    <li><span id="total-price">0 USD</span></li>
+                </ul>
+            </div>  
+        </div>
+    </body>
+</html>
