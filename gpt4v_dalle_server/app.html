@@ -117,13 +117,20 @@
                             console.log("%cTokeny za vstup: " + input, "color: red");
                             console.log("%cTokeny za výstup: " + output, "color: red");
                             console.log("Popis fotografie: " + image_description);
-                            let speech = new window.SpeechSynthesisUtterance(); // Vytvoříme objekt syntetizované řeči
-                            speech.lang = "cs-CZ"; // Chceme použít (jakýkoliv) syntetizátor v nabídce, který umí mluvit česky
-                            speech.text = image_description; // Chceme, aby přeříkal obsah vstupní proměnné text
-                            speech.pitch = 1; // Výška zabarvení hlasu (0-2)  
-                            speech.rate = 0.9; // Rychlost hlasu (0,1-10)
-                            speech.volume = 2; // Hlasitost (0-2)
-                            window.speechSynthesis.speak(speech); // Předej řeč hlasovému syntetizátoru ke zpracování
+                            // Pokud webový prohlížeč podporuje syntézu hlasu
+                            // Pozor, i když ji může podporovat, nemusí mít k dispoizici český hlas!
+                            if ("SpeechSynthesisUtterance" in window && "speechSynthesis" in window) {
+                                let speech = new window.SpeechSynthesisUtterance(); // Vytvoříme objekt syntetizované řeči
+                                speech.lang = "cs-CZ"; // Chceme použít (jakýkoliv) syntetizátor v nabídce, který umí mluvit česky
+                                speech.text = image_description; // Chceme, aby přeříkal obsah vstupní proměnné text
+                                speech.pitch = 1; // Výška zabarvení hlasu (0-2)  
+                                speech.rate = 0.9; // Rychlost hlasu (0,1-10)
+                                speech.volume = 2; // Hlasitost (0-2)
+                                window.speechSynthesis.speak(speech); // Předej řeč hlasovému syntetizátoru ke zpracování
+                            }
+                            else{
+                                console.error("Prohlížeč nepodporuje hlasovbou syntézu, takže nebudu text číst");
+                            }
                         }
                     }
                     // Pokud se jedná o zprávu s obrázkem, který vytvořil DALL-E 3
