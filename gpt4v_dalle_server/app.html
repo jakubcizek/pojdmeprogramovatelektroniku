@@ -61,11 +61,11 @@
                 // Při přístupu na http://localhost by mělo vše fungovat
                 if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                     navigator.mediaDevices.getUserMedia({ video: true })
-                    .then(function(stream) {
+                    .then((stream) => {
                         video.srcObject = stream;
                         video.play();
                     })
-                    .catch(function(error) {
+                    .catch((error) => {
                         console.log("Chyba při přístupu k webové kameře: " + error);
                         alert("Chyba při přístupu k webové kameře: " + error);
                     });
@@ -78,7 +78,7 @@
                 let socket = new WebSocket("ws://localhost/ws");
                 
                 // Pokud přijde webosocketová zpráva
-                socket.onmessage = function(event) {
+                socket.onmessage = (event) => {
                     // Náš server posílá zprávy jako struktury JSON,
                     // takže příchozí text převedeme na objekt JSON
                     let message = JSON.parse(event.data);
