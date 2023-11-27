@@ -236,11 +236,6 @@
                     }
                     socket.send(JSON.stringify(message));
                 });
-
-                // Po klepnutí na libovolný obrázek na stránce se otevře v novém okně
-                document.querySelector("img").addEventListener("click", function() {
-                    window.open(this.src, "_blank");
-                });
             });
 
         </script>
