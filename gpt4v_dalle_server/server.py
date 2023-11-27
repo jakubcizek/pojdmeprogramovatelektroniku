@@ -29,7 +29,7 @@ gpt4v_image_quality = "low"
 
 # Prompt, co má GPT-4 Vision s obrázkem vlastně dělat
 # GPT-4 Vision je specializovaná verze GPT-4, takže prompt může obsahovat cokoliv
-gpt4v_prompt = "Jsi asistent pro nevidomé. Popiš scénu na obrázku včetně barev a rozměrů. Popis začni slovy: 'Na obrázku je' i kdy6 bude rozmazaný apod."
+gpt4v_prompt = "Jsi asistent pro nevidomé. Popiš scénu na obrázku včetně barev a rozměrů. Popis začni slovy: 'Na obrázku je' i když bude rozmazaný apod."
 
 # Rozlišení obrázku, který bude generovat DALL-E 3 (1024x1024, 	1024×1792, 1792×1024)
 dalle3_image_size = "1024x1024" 
