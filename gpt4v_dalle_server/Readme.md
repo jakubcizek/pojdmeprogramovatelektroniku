@@ -11,4 +11,3 @@ V kódu serveru **server.py** je třeba před spuštěním nastavit **vlastní k
  - **[Dokumentace GPT-4 Vision API](https://platform.openai.com/docs/guides/vision)**
  - **[Dokumentace DALL-E API](https://platform.openai.com/docs/guides/images?context=node)**
  - **[Tvprba API klíče na OpenAI Platform](https://platform.openai.com/api-keys)**
- - 
