@@ -5,7 +5,7 @@ Po klepnutí na obraz kamery se uloží obrázek, který se pošle do serveru sk
 
 Původní i vygenerovaný obrázek se ukládá do složky images na straně serveru.
 
-V kódu serveru **server.py** je třeba před spuštěním nastavit **vlastní klíč API** pro spojení s OpenAI pod svým účtem. Klíč je uložený v proměnné **api_key**. TAké je třeba doinstalovat knuihovny por python **Tornado** a **Requests**. Webový frontend na podporovaných systémech spiouští **vestavěný český hlasový syntetizátor**. Testováno na Windows 11 a v prohlížečích Chrome/Edge, Firefox a Opera, kde se použije systémový český hlas Microsoft Jakub. 
+V kódu serveru **server.py** je třeba před spuštěním nastavit **vlastní klíč API** pro spojení s OpenAI pod svým účtem. Klíč je uložený v proměnné **api_key**. Také je třeba doinstalovat knuihovny por python **Tornado** a **Requests**. Webový frontend na podporovaných systémech spiouští **vestavěný český hlasový syntetizátor**. Testováno na Windows 11 a v prohlížečích Chrome/Edge, Firefox a Opera, kde se použije systémový český hlas Microsoft Jakub. 
 
 Při spouštění skriptu na WIndows se ujistěte, že **Python běží v režimu UTF-8**. Ten si lze na Windows 11 plošně vynutit v Ovládací panely/Hodiny a oblast/Oblast/Správa/Zmněit místní nastavení systému/Beta: Používat Unicode UTF-8 pro celosvětovou podporu jazyka. Další možností viz Google.
 
