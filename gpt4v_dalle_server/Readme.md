@@ -1,4 +1,4 @@
-## Napojení OpenAI GPT-4 Vision a DALL-E 3 na webkmaeru 
+## Napojení OpenAI GPT-4 Vision a DALL-E 3 na webkameru 
 Tentokrát napojíme modely GPT-4 Vision a DALL-E 3 od OpenAI na webkameru. Pomůže nám oficiální API. Po spuštění drobného lokálního serveru v Pythonu (python server.py) stačí v prohlížeči a na stejném počítači navštívit adresu **http://localhost**. Zobrazí se stránka s náhledem z připojené webkamery. Pozor, při pokusu o navštívění serveru z jiného počítače (jiné LAN IP) většina prohlížečů nenačte kameru, protože v takovém případě je pro práci s kamerou vyžadovnáno šifrované spojení HTTPS.
 
 Po klepnutí na obraz kamery se uloží obrázek, který se pošle do serveru skrze WebSocket. Server poté obrázek odešle ke zpracování nejprve do GPT-4 Vision, od kterého dostane textový popis scény. Tento popis použije jako prompt pro obrázkový generátor DALL-E 3. Vygenerovaný obrázek opět skrze WebSocket pošle klientovi. WebSocket používáme proto, že umožňuje obousměrnou komunikaci server-klient bez blokování. Celá operace totiž zabrere dlouhé sekundy.
