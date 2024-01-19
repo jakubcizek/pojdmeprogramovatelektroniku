@@ -16,38 +16,16 @@ function setup() {
         socket.send("P" + speed);
     });
 
-    // Zaregistrujeme udalosti stiksu a uvolneni klaves
+    // Zaregistrujeme udalosti stisku a uvolneni klaves
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("keyup", onKeyUp);
     
-    //Nastartovani WebSocketu
+    // Nastartovani WebSocketu
     socket = new WebSocket("ws://" + window.location.hostname + ":" + ws_tcp_port);
-    // Pri prichodu dat z WebScoketu
-    socket.addEventListener("message", (event) => {
-        const data = event.data.split(":");
-        if(data.length < 2) return;
-
-        const message = data[0];
-        const value = data[1];
-
-        // Pokud dorazil alarm
-        if(message == "ALARM"){
-            if(value == "OBSTACLE"){
-              console.log("Překážka! Aktivuji autopilota, couvám a zastavuji!");
-            }
-            else{
-              console.log("Neznámý alarm: " + value);
-            }
-        }
-        else if(message == "DISTANCE"){
-          console.log("Vzdálenost (cm): " + value)
-        }
-    });
 }
 
 // Funkce pro zpracovani stisknuti klavesy a jejiho drzeni
 function onKeyDown(event) {
-
     // Smerove sipky ridi tank
     // Pri stisknuti a drzeni se poslou skrze WebSocket povely FORWARD, BACKWARD, LEFT, RIGHT
     // Aby se pri stisku a drzeni neposilaly zpravy stale dokola, ale jen poprve,
