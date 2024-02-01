@@ -1,7 +1,7 @@
 ## 2D plotr z 3D tiskárny
 
 ### Přílohy pro článek v časopisu Computer 3/24
- -  **plotr.toml**: Profil pro konvertor vektorových dat na G-code vpype a vpype-gcode (upravit výšku kreslení podle aktuální situace)
+ -  **plotr.toml**: Profil pro konvertor vektorových dat na G-code [vpype](https://pypi.org/project/vpype/) a [vpype-gcode](https://pypi.org/project/vpype-gcode/) (upravit výšku kreslení podle aktuální situace)
  -  **ctverecek.gcode**: Komentovaný G-code pro kresbu čtverečku obtaženého kružnicí ve výšce 2.0 mm nad pvorchem a na tiskové ploše s rozměry Prusa MK3S+
 
 ### Příkaz pro konverzi souboru vlny.svg na vlny.gcode:
