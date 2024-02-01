@@ -8,4 +8,4 @@ Příkaz pro konverzi souboru vlny.svg na vlny.gcode:
 
 (Numerické hodnoty 86mm a 43mm opravit dle toho, kde se oproti trysce nachází tužka - posun)
 
-**vpype --config .\plotr.toml read .\vlny.svg scale --origin 0 86mm -- 1 -1 translate 43mm 43mm linemerge linesort gwrite --profile tvrdypapir vlny.gcode**
+`vpype --config .\plotr.toml read .\vlny.svg scale --origin 0 86mm -- 1 -1 translate 43mm 43mm linemerge linesort gwrite --profile tvrdypapir vlny.gcode`
