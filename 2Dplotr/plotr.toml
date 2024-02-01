@@ -1,0 +1,41 @@
+[gwrite.tvrdypapir]
+
+unit = "mm"
+
+invert_y = false
+invert_x = false
+
+document_start = '''
+; Zacatek programu
+G90 ; Pracujeme v milimetrech
+G21 ; Absolutni souradnicovy system
+G28 W ; Zajedu s hlavou na vychozi pozici
+G0 Z30 F1000 ; Zvednu hlavu do 30 mm
+
+'''
+
+layer_start = '''
+
+; Zacatek vrstvy
+'''
+
+segment_first = '''
+G0 X{x:.4f} Y{y:.4f} F10000 ; Pohyb
+G0 Z2.0 F750 ; Snizim hlavu na vysku kresleni (v mem pripade 2,0 mm)
+'''
+
+segment = '''
+G0 X{x:.4f} Y{y:.4f} F10000 ; Kresleni
+'''
+
+segment_last = '''
+G0 X{x:.4f} Y{y:.4f} F4500 ; Kresleni
+G0 Z30 F750 ; Zvednu hlavu/pero 30 mm nad povrch
+'''
+
+document_end = '''
+
+; Konec programu
+G0 Z30 F720 ; Zvednu hlavu do 30 mm
+G0 X0 Y0 F10000 ; Odejdu s hlavou na 0,0
+M84 ; Vypnu motory
