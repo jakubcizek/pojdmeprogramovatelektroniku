@@ -11,4 +11,4 @@ G0 Y148
 G2 I25 J25              ; Nakresli okolo ctverce kolecko
 G0 Z30                  ; Vyjed do bezpecne vysky 30 mm
 G0 X0 Y200 F50000       ; Zajed na 0;200 (tiskova deska vyjede pred nas)
-M84             	      ; Vypnout motory a nezapomenout na zalomeni radku
+M84                     ; Vypnout motory a nezapomenout na zalomeni radku
