@@ -1,7 +1,7 @@
-import cv2 # Knihovna OpenCV
+import cv2 # Knihovna OpenCV, https://pypi.org/project/opencv-python/
 import glob # Knihovna pro získání seznamu obrázků v adresáři
-from PIL import ImageFont, ImageDraw, Image # Knihovna PIL/Pillow pro práci s bitmapami
-import numpy as np # Knihovna Numpy pro práci s kompelxními poli
+from PIL import ImageFont, ImageDraw, Image # Knihovna PIL/Pillow pro práci s bitmapami, https://pypi.org/project/pillow/
+import numpy as np # Knihovna Numpy pro práci s kompelxními poli, https://numpy.org/
 
 # Adresář s fotkami
 adresar = "TL018"
