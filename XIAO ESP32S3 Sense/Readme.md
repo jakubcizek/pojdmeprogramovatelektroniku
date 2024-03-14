@@ -7,6 +7,6 @@
 
 ### Příkaz pro složení timelapse fotografií do videa časosběr.mp4 pomocí nástroje [FFMPEG](https://www.ffmpeg.org/download.html):
 
-(příkaz níže předpokládá, že vstupem je adresář TL018, ve kterém jsou obrázky ve formátu IMG0001.JPG - IMG9999.JPG a s poměrem stran 1600x1200px. Výsledné video změnšíme na 1200x900px)
+(příkaz níže předpokládá, že vstupem je adresář TL018, ve kterém jsou obrázky ve formátu IMG0000.JPG - IMG9999.JPG a s poměrem stran 1600x1200px. Výsledné video změnšíme na 1200x900px)
 
 `ffmpeg -framerate 10 -i TL018/IMG%04d.JPG -vf "scale=1200x900" časosběr.mp4 `
