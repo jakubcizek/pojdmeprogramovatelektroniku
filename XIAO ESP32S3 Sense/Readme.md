@@ -5,7 +5,7 @@
  -  **Arduino/XIAOESP32S3SENSE_timelapse**: Program, který po spuštění vytvoří v microSD číslovaný adresář TL001/ (čítač v persistentní flash) a každé 2 sekundy do něj bude ukládat 2MP fotografie jako číslovaný soubor IMG0001.JPG
  -  **Python/timelapse.py**: Program, který pomocí OpenCV zpracuje snímky z předchozího programu a vytvoří z nich video MP4, do kterého vypálí tři řádky libovolného textu (třeba GPS údaje atp.)
 
-### Příkaz pro složení timelapse fotografií do videa časosběr.mp4 pomocí nástorje [FFMPEG](https://www.ffmpeg.org/download.html):
+### Příkaz pro složení timelapse fotografií do videa časosběr.mp4 pomocí nástroje [FFMPEG](https://www.ffmpeg.org/download.html):
 
 (příkaz níže předpokládá, že vstupem je adresář TL18, ve kterém jsou obrázky ve formátu IMG0001.JPG - IMG9999.JPG a s poměrem stran 1600x1200px. Výsledné video změnšíme na 1200x900px)
 
