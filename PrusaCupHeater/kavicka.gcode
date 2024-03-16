@@ -1,10 +1,10 @@
 ; *** OHRIVAC KAFE S MICHANIM ***
-G21			              ; Milimetrovy system
-G90			              ; Absolutni souradnicovy system
-G28 W			            ; Home all az na bodove mereni; Pozor, klicovy parametr W podporuje Prusa, ale nemusi to byt samozrejmost u ostatnich. Tiskarna nemsi proves bodobvou kalibraci, protoze je na ni pripevnena lzicka
-G0 Z170 Y200 F50000 	; Vyjed hlavou do vysky 17 cm a plosinou vpred; bezpecna vyska pro pouzity hrnek
-M140 S60 		          ; Ohrej desku na 60 stupnu
-M190     		          ; Cekej na ohrati
+G21                   ; Milimetrovy system
+G90                   ; Absolutni souradnicovy system
+G28 W                 ; Home all az na bodove mereni; Pozor, klicovy parametr W podporuje Prusa, ale nemusi to byt samozrejmost u ostatnich. Tiskarna nemsi proves bodobvou kalibraci, protoze je na ni pripevnena lzicka
+G0 Z170 Y200 F50000   ; Vyjed hlavou do vysky 17 cm a plosinou vpred; bezpecna vyska pro pouzity hrnek
+M140 S60              ; Ohrej desku na 60 stupnu
+M190                  ; Cekej na ohrati
 ;
 ; *** TED POLOZ NA STRED HRNEK ***
 ;
