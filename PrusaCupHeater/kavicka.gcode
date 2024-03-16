@@ -8,11 +8,11 @@ M190     		          ; Cekej na ohrati
 ;
 ; *** TED POLOZ NA STRED HRNEK ***
 ;
-G4 S5			            ; Cekej 5 sekund pro polozeni hrnku
-G0 X155 Y142		      ; Zajed lzickou na stred na stred
-G0 Z80			          ; Sjed hlavou do vysky 8 cm, lzicka v kafe. POZOR, ZALEZI NA VASI LZICCE A UCHOPU. OPATRNE!!!
-G0 F2000		          ; Zpomalime rychlost pohybu
-G2 I12 J12 		        ; Proved tri krouzive pohyby s polomerem 1,2 cm
+G4 S5                 ; Cekej 5 sekund pro polozeni hrnku
+G0 X155 Y142          ; Zajed lzickou na stred na stred
+G0 Z80                ; Sjed hlavou do vysky 8 cm, lzicka v kafe. POZOR, ZALEZI NA VASI LZICCE A UCHOPU. OPATRNE!!!
+G0 F2000              ; Zpomalime rychlost pohybu
+G2 I12 J12            ; Proved tri krouzive pohyby s polomerem 1,2 cm
 G2 I12 J12 
 G2 I12 J12 
 G0 Z170               ; Vyjed do 15 cm
