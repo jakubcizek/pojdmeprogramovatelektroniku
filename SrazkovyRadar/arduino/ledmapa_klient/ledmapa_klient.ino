@@ -53,7 +53,7 @@ int jsonDecoder(String s, bool log) {
 // Stazeni radarovych dat z webu
 void stahniData() {
   HTTPClient http;
-  http.begin("http://oracle-ams.kloboukuv.cloud/radarmapa/?chcu=posledni.json");
+  http.begin("http://kloboukuv.cloud/radarmapa/?chcu=posledni.json");
   int httpCode = http.GET();
   if (httpCode == HTTP_CODE_OK) {
     int err = jsonDecoder(http.getString(), true);
