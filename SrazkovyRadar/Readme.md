@@ -11,8 +11,8 @@ Ve složce **arduino/ledmapa_klient** je verze firmwaru, který vedle HTTP serve
 **JSON API s aktuálním stavem:**
  
  K dispozici je JSON, který vrací pouze seznam měst, kde prší přesně na jejich bodové GPS pozici, a JSON, který pokrývá širší oblast okolo středu.
- - **[JSON API (přesná shoda polohy města)](https://oracle-ams.kloboukuv.cloud/radarmapa/?chcu=posledni.json)**
- - **[JSON API (shoda s širším čtvercem okolo města)](https://oracle-ams.kloboukuv.cloud/radarmapa/?chcu=posledni_v2.json)**
+ - **[JSON API (přesná shoda polohy města)](http://kloboukuv.cloud/radarmapa/?chcu=posledni.json)**
+ - **[JSON API (shoda s širším čtvercem okolo města)](http://kloboukuv.cloud/radarmapa/?chcu=posledni_v2.json)**
 
 **Bodové vs. areálové měření shody:**
 
