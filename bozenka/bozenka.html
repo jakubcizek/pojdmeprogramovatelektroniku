@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Boženka Offline</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://storage.googleapis.com/tfweb/api-test/dist/tf-tflite.js"></script>
+    <style>
+        .result-container {
+            display: flex;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .result-image {
+            height: 200px;
+            margin-right: 20px;
+        }
+    </style>
+    <script>
+        let tfliteModel = null;
+        let maxCPUCount = navigator.hardwareConcurrency / 2; // Pro neuronku se alokuje max polovina logickych jader tveho CPU
+
+        // Funkcička pro nahrání Boženky ze souboru
+        async function loadModel(file) {
+            console.log("Jadra: " + navigator.hardwareConcurrency);
+            const arrayBuffer = await file.arrayBuffer();
+            tfliteModel = await tflite.loadTFLiteModel(arrayBuffer, {
+                    numThreads: maxCPUCount,
+                    enableProfiling: true,
+                }
+            );
+            if(!tfliteModel){
+                console.log("Tož model není nahraný");
+                document.getElementById("status").innerHTML = `<span style="color:red">Boženka je smutná, protože je něco špatně. Koukni do logu 🥹</span>`;
+            }
+            else{
+                console.log("Tož model je nahraný");
+                document.getElementById("status").innerHTML = `<span style="color:green">Božena je v pořádku nahraná. K dispozici bude mít <b>až ${maxCPUCount} logických jader</b>, tedy 1/${navigator.hardwareConcurrency/maxCPUCount} tvého legračního procesoru 👍</span>`;
+            }
+        }
+
+        // Funkcička pro zpracování obrázku v Božence
+        async function handleImage(inputElement) {
+            if (!tfliteModel) {
+                alert("Tož jsi blbý už, či co?\nDyť píšu, že musíš nejprve nahrát model Boženky...\nTo je materiál tady zase.");
+                return;
+            }
+
+            const file = inputElement.files[0];
+            const image = await readImage(file);
+
+             // Připravíme vstup do modelu, který očekává obrázky v rozlišení 416x416px
+             // Zbytek neřeš
+             const inputTensor = tf.image
+            .resizeBilinear(tf.browser.fromPixels(image), [416, 416])
+            .expandDims()
+            .div(127.5)
+            .sub(1);
+
+            // Teď data pošleme do Kalkaty,
+            // kde 512 zaplacených brigádníků odhadne,
+            // jaké je na obrázku počasí
+            let startTime = performance.now();
+            const outputTensor = tfliteModel.predict(inputTensor);
+            const duration = performance.now() - startTime;
+            // Zobrazíme výsledky
+            // results obsahuje pole se třemi pravděpodobnostmi odpovídající pořadí jasno, polojasno, zataženo
+            const results = Array.from(outputTensor.dataSync()); 
+            displayResults(results, duration, image);
+        }
+
+        // Funkcička pro zobrazení výsledku
+        function displayResults(results, duration, image) {
+            const resultsElement = document.getElementById("results");
+            const resultContainer = document.createElement("div");
+            resultContainer.className = "result-container";
+
+            // Vytvoříme procentuální výsledky a seřadíme od největšího
+            const resultsArray = [
+                { name: "Jasno", value: (results[0] * 100.0).toFixed(2) },
+                { name: "Polojasno", value: (results[1] * 100.0).toFixed(2) },
+                { name: "Zataženo", value: (results[2] * 100.0).toFixed(2) }
+            ];
+            resultsArray.sort((a, b) => b.value - a.value);
+            let resultsHTML = resultsArray.map((result, index) => 
+                index === 0 ? `<strong>${result.name}: ${result.value} %</strong>` : `${result.name}: ${result.value} %`
+            ).join("<br>") + `<br><br><i>Boženka na tvém směšném hardwaru přemýšlela ${duration.toFixed(2)} ms</i>`;
+
+            resultContainer.innerHTML = `
+                <div><img src="${image.src}" class="result-image"></div>
+                <div><h2>Boženka si myslí, že vidí toto:</h2>${resultsHTML}</div>
+            `;
+            resultsElement.appendChild(resultContainer);
+        }
+
+        // Funkcička pro nahrání obrázku
+        async function readImage(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.onload = () => resolve(img);
+                    img.src = event.target.result;
+                };
+                reader.onerror = (error) => reject(error);
+                reader.readAsDataURL(file);
+            });
+        }
+    </script>
+</head>
+<body>
+    <h1>Boženka Offline: Lokální detektor počasí na fotografii</h1>
+    <p>
+        Toto je narychlo zbastlená demonstrace neuronky Boženka pro detekci počasí na fotografii, která díky Tensorflow.js poběží přímo na vašem CPU. <b>Boženku musíte nejprve do aplikace nahrát</b>. Nenačítá se kdesi z cloudu. Díky tomu by mělo vše fungovat v Chromu i lokálně. Prostě stačí načíst místní soubor bozenka.html. Dvě zjendodušené verze Boženky můžete stáhnout z GitHubu: <b><a href="https://github.com/jakubcizek/pojdmeprogramovatelektroniku/raw/master/bozenka/bozenka_f16.tflite">bozenka_f16.tflite</a> (2,8 MB)</b>, <b><a href="https://github.com/jakubcizek/pojdmeprogramovatelektroniku/raw/master/bozenka/bozenka_f32.tflite">bozenka_f32.tflite</a> (5,6 MB)</b>.
+    </p>
+    <p>
+        Toto je poměrně hloupá verze Boženky. Je to pouze proof-of-concept běhu v Tensorflow.js. Mnohem schopnější verze Boženky učená na stovkách tisíc fotografií oblohy si teprve od loňského podzimu průběžně stahuje snímky z webkamer ;-)
+    </p>
+    <p>
+        Ale pozor, neběží to celé offline, z cloudu se totiž musí stáhnout samotný runtime Tensorflow.js. Dělá to pár megabajtů!    
+    </p>
+    <input type="file" id="upload-model" accept=".tflite" style="display: none;" onchange="loadModel(this.files[0])">
+    <input type="file" id="upload-image" accept="image/jpeg,image/png" style="display: none;" onchange="handleImage(this)">
+    <h3>1) Nahraj z PC stažený model Boženky</h3>
+    <button onclick="document.getElementById('upload-model').click()">Nahraj Boženku</button>&nbsp;<span id="status"></span>
+    <h3>2) Jakmile je model nahraný, můžeš do Boženky ládovat obrázky</h3>
+    <button onclick="document.getElementById('upload-image').click()">Nahraj JPEG obrázek</button>
+    <div id="results"></div>
+    <p>
+        <b>Testováno na x86-64, Windows 11 a v prohlížečích Chrome a Firefox</b><br>
+    </p>
+</body>
+</html>
