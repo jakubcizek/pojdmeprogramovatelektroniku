@@ -1,4 +1,4 @@
-# Ukazka zdrojoveho kodu pro ovladani SSmarwi v Pythonu
+# Ukazka zdrojoveho kodu pro ovladani Smarwi v Pythonu
 # Pro potreby clank uv casopisu Computer, cerven 2024
 
 import requests # https://requests.readthedocs.io/en/latest/
