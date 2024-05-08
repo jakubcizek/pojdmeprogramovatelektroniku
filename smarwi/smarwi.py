@@ -1,5 +1,5 @@
 # Ukazka zdrojoveho kodu pro ovladani Smarwi v Pythonu
-# Pro potreby clank uv casopisu Computer, cerven 2024
+# Pro potreby clanku v casopisu Computer, cerven 2024
 
 import requests # https://requests.readthedocs.io/en/latest/
 import sys
