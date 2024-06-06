@@ -73,15 +73,15 @@ const unsigned char ico_zapnuto[] PROGMEM = {
 
 //, Hlavni funkce setup se zpracuje hned na zacatku
 void setup() {
-  pinMode(GPIO_TLACITKO, INPUT_PULLUP);          // Nastaveni pinu tlacitka na vstup a interni pull-up cipu (v klidu stav HIGH)
-  pinMode(GPIO_TOPNE_TELESO, OUTPUT);            // Nastaveni pinu spinace na vystup
-  digitalWrite(GPIO_TOPNE_TELESO, LOW);          // Vychozi stav spinace je LOW
-  displej.begin(SSD1306_SWITCHCAPVCC, 0x3C);     // Nastartovani OLED displeje na I2C adrese 0x3C
-  teplomery.begin();                             // Start teplomeru DS18B20
-  teplomery.setWaitForConversion(false);         // Relativne pomala komunikace s teplomerem nebude blokovat zbytek programu
-  teplomery.requestTemperatures();               // Povel ke zmereni teploty
-  enkoder.setPosition(termostat_cilova_teplota); // Vyvchozi stav rotacniho enkdoeru je roven vychozimu stavu cilove teploty (otacenim do stran ji zvysujeme/snizujeme)
-  openlog.begin(9600);                           // Nastartujeme seriove spojeni s deskou OpenLog rychlsoti 9600 b/s
+  pinMode(GPIO_TLACITKO, INPUT_PULLUP);                // Nastaveni pinu tlacitka na vstup a interni pull-up cipu (v klidu stav HIGH)
+  pinMode(GPIO_TOPNE_TELESO, OUTPUT);                  // Nastaveni pinu spinace na vystup
+  digitalWrite(GPIO_TOPNE_TELESO, LOW);                // Vychozi stav spinace je LOW
+  displej.begin(SSD1306_SWITCHCAPVCC, 0x3C);           // Nastartovani OLED displeje na I2C adrese 0x3C
+  teplomery.begin();                                   // Start teplomeru DS18B20
+  teplomery.setWaitForConversion(false);               // Relativne pomala komunikace s teplomerem nebude blokovat zbytek programu
+  teplomery.requestTemperatures();                     // Povel ke zmereni teploty
+  enkoder.setPosition(termostat_cilova_teplota);       // Vyvchozi stav rotacniho enkdoeru je roven vychozimu stavu cilove teploty (otacenim do stran ji zvysujeme/snizujeme)
+  openlog.begin(9600);                                 // Nastartujeme seriove spojeni s deskou OpenLog rychlsoti 9600 b/s
 }
 
 // Nekonecna smycka loop se opakuje stale dokola
