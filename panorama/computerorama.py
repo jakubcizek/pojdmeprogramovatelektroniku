@@ -5,6 +5,7 @@
 # pip install numpy
 
 import tkinter as tk
+from tkinter import ttk
 from tkinterdnd2 import DND_FILES, TkinterDnD
 from PIL import Image, ImageTk
 import numpy as np
@@ -12,7 +13,7 @@ import cv2
 import os
 
 # Třída GUI okna,kterou později spustíme
-# Je v ní kompletní logika naší aplikace
+# Je v ní kompeltní logika naší aplikace
 class GeneratorPanorama(TkinterDnD.Tk):
     # Funkce init se zparacuje při inicializaci třídy
     def __init__(self):
@@ -29,7 +30,7 @@ class GeneratorPanorama(TkinterDnD.Tk):
         # pokud se nevejdou do viditelné části okna
         self.platno = tk.Canvas(self, borderwidth=0)
         self.ram = tk.Frame(self.platno)
-        self.posuvnik = tk.ttk.Scrollbar(self, orient="horizontal", command=self.platno.xview)
+        self.posuvnik = ttk.Scrollbar(self, orient="horizontal", command=self.platno.xview)
         self.platno.configure(xscrollcommand=self.posuvnik.set)
 
         # Rozmístíme základní objekty v okně; posuvník bude při spodním okraji,
@@ -198,7 +199,7 @@ class GeneratorPanorama(TkinterDnD.Tk):
             if status == cv2.Stitcher_ERR_NEED_MORE_IMGS:
                 self.hlavni_popisek.config(text="Ke složení panoramatu chybí dost vhodných obrázků")
                 tk.messagebox.showwarning("Chyba", "Ke složení panoramatu chybí dost vhodných obrázků")
-            # Pokud se nepodařila homografie = identifikace spoelčných klíčovacích bodů   
+            # Pokud se nepodařila homografie = identifikace společných klíčovacích bodů   
             elif status == cv2.Stitcher_ERR_HOMOGRAPHY_EST_FAIL:
                 self.hlavni_popisek.config(text="Výpočet homografie selhal")
                 tk.messagebox.showwarning("Chyba", "Výpočet homografie selhal. Opravdu se jedná o dílky panoramatického snímku?")
@@ -210,14 +211,18 @@ class GeneratorPanorama(TkinterDnD.Tk):
     # Funkce pro uložení panoramatického snímku v plném rozlišení
     def save_panorama(self):
         if self.panorama is not None:
-            file_path = tk.filedialog.asksaveasfilename(defaultextension=".jpg", filetypes=[("JPEG files", "*.jpg"), ("PNG files", "*.png"), ("All files", "*.*")])
-            if file_path:
-                cv2.imwrite(file_path, self.panorama)
+            cesta = tk.filedialog.asksaveasfilename(defaultextension=".jpg", filetypes=[("JPEG files", "*.jpg"), ("PNG files", "*.png"), ("All files", "*.*")])
+            if cesta:
+                cv2.imwrite(
+                    cesta, 
+                    self.panorama,
+                    [cv2.IMWRITE_JPEG_QUALITY, 90]
+                )
         else:
             print("Nemohu uložit soubor. Panorama musíte njeprve vytvořit")
             tk.messagebox.showwarning("Chyba", "Nejprve složte panorama")
 
-# Faktický začátek běhu naqšehio programu
+# Faktický začátek běhu našeho programu
 if __name__ == "__main__":
     # Vytvoříme instanci naší třídy s GUI oknem a spustíme jeho hlavní interní smyčku
     aplikace = GeneratorPanorama()
