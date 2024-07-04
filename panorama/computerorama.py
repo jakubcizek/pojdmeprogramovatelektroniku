@@ -26,7 +26,7 @@ class GeneratorPanorama(TkinterDnD.Tk):
         self.resizable(False, False)
         self.velikost_miniatur = 250
 
-        # Vytvoříme zákaldní objekty okna a horizontální posuvník,
+        # Vytvoříme základní objekty okna a horizontální posuvník,
         # který bude sloužit pro posouvání pásu s miniaturami dílků pro panorama,
         # pokud se nevejdou do viditelné části okna
         self.platno = tk.Canvas(self, borderwidth=0)
@@ -35,7 +35,7 @@ class GeneratorPanorama(TkinterDnD.Tk):
         self.platno.configure(xscrollcommand=self.posuvnik.set)
 
         # Rozmístíme základní objekty v okně; posuvník bude při spodním okraji,
-        # platno pro miniatury pak bude nahoře
+        # pl8tno pro miniatury pak bude nahoře
         self.posuvnik.pack(side="bottom", fill="x")
         self.platno.pack(side="top", fill="both", expand=True)
         self.platno.create_window((4, 4), window=self.ram, anchor="nw", tags="self.frame")
@@ -187,7 +187,7 @@ class GeneratorPanorama(TkinterDnD.Tk):
             miniatura.thumbnail((sirka, (self.winfo_height() / 2) - 10), Image.Resampling.LANCZOS)
             miniatura = ImageTk.PhotoImage(miniatura)
 
-            # Vložíme miniaturu do okna do spodní části s malým odstupem
+            # Vložíme miniaturu do okna do spodní části
             self.panorama_ram = tk.Frame(self)
             self.panorama_ram.pack(side="bottom", fill="x", expand=True)
             panorama_gui = tk.Label(self.panorama_ram, image=miniatura)
