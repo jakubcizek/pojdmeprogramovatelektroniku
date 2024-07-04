@@ -6,6 +6,7 @@
 
 import tkinter as tk
 from tkinter import ttk
+from tkinter import filedialog
 from tkinterdnd2 import DND_FILES, TkinterDnD
 from PIL import Image, ImageTk
 import numpy as np
@@ -211,7 +212,7 @@ class GeneratorPanorama(TkinterDnD.Tk):
     # Funkce pro uložení panoramatického snímku v plném rozlišení
     def save_panorama(self):
         if self.panorama is not None:
-            cesta = tk.filedialog.asksaveasfilename(defaultextension=".jpg", filetypes=[("JPEG files", "*.jpg"), ("PNG files", "*.png"), ("All files", "*.*")])
+            cesta = filedialog.asksaveasfilename(defaultextension=".jpg", filetypes=[("JPEG files", "*.jpg"), ("PNG files", "*.png"), ("All files", "*.*")])
             if cesta:
                 cv2.imwrite(
                     cesta, 
