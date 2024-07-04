@@ -213,14 +213,22 @@ class GeneratorPanorama(TkinterDnD.Tk):
     def save_panorama(self):
         if self.panorama is not None:
             cesta = filedialog.asksaveasfilename(defaultextension=".jpg", filetypes=[("JPEG files", "*.jpg"), ("PNG files", "*.png"), ("All files", "*.*")])
+            print(cesta)
             if cesta:
-                cv2.imwrite(
+                ulozeno = cv2.imwrite(
                     cesta, 
                     self.panorama,
                     [cv2.IMWRITE_JPEG_QUALITY, 90]
                 )
+                if ulozeno == False:
+                    print(f"Nemohu uložit soubor {cesta}")
+                    tk.messagebox.showwarning("Chyba", "Nelze uložit soubor do tohoto adresáře") 
+
+            else:
+                print(f"Nemohu uložit soubor {cesta}")
+                tk.messagebox.showwarning("Chyba", "Nelze uložit soubor do tohoto adresáře") 
         else:
-            print("Nemohu uložit soubor. Panorama musíte njeprve vytvořit")
+            print("Nemohu uložit soubor. Panorama musíte nejprve vytvořit")
             tk.messagebox.showwarning("Chyba", "Nejprve složte panorama")
 
 # Faktický začátek běhu našeho programu
