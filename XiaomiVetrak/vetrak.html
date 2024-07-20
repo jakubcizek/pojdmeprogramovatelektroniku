@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xiaomi Smart Standing Fan 2 Pro</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .radek {
+            margin-bottom: 10px;
+        }
+        .radek label {
+            margin-right: 10px;
+        }
+        .radek label:first-of-type {
+            font-weight: bolder;
+        }
+    </style>
+    <script>
+        function nastavitVetrak(id, value) {
+            value = String(value); 
+            if(value == "true") value = "1";
+            else if(value == "false") value = "0";
+            console.log(`Nastavuji parametr ${id} na stav ${value}`);
+            fetch(`/?povel=zmena&id=${id}&hodnota=${value}`)
+                .then(response => response.json())
+                .then(data => {
+                    if(data.chyba){
+                        console.error(`Chyba pří komunikaci s větrákem\n${data.informace}`);
+                        alert(`Chyba při komunikaci s větrákem\n${data.informace}`);
+                        return;
+                    }
+                    console.log(`Server nastavil parametr větráku ${data.parametr.id} na hodnotu ${data.parametr.hodnota}`);
+                })
+                .catch(error => console.error(`Chyba při komunikaci se serverem: ${error}`));
+        }
+
+        function aktualizovatFormular(data) {
+            if(data.chyba){
+                console.error(`Chyba pří komunikaci s větrákem\n${data.informace}`);
+                alert(`Chyba při komunikaci s větrákem\n${data.informace}`);
+                return;
+            }
+            for (const id in data) {
+                const element = document.getElementById(id) || document.querySelector(`[name="${id}"]`);
+                if (element) {
+                    console.log(`Element ${id} má hodnotu ${data[id]}`);
+                    const value = data[id];
+                    if (element.type === "checkbox") {
+                        element.checked = value;
+                    } else if (element.type === "radio") {
+                        document.querySelector(`[name="${id}"][value="${value}"]`).checked = true;
+                    } else {
+                        element.value = value;
+                        if (element.type === "range") {
+                            aktualizovatHodnotu(`${id}_label`, value);
+                        }
+                    }
+                }
+            }
+        }
+
+        function aktualizovatHodnotu(labelId, value) {
+            document.getElementById(labelId).textContent = value;
+        }
+
+        document.querySelectorAll('input[type="checkbox"], input[type="range"], input[type="radio"]').forEach(element => {
+            element.addEventListener("change", (event) => {
+                const id = event.target.id || event.target.name;
+                const value = event.target.type === "checkbox" ? event.target.checked : event.target.value;
+                nastavitVetrak(id, value);
+            });
+        });
+
+        document.querySelectorAll("button").forEach(button => {
+            button.addEventListener("click", (event) => {
+                const id = event.target.id || event.target.innerText;
+                if(id == "set_move_left") nastavitVetrak("set_move", 2);
+                else if(id == "set_move_right") nastavitVetrak("set_move", 1);
+            });
+        });
+
+        window.addEventListener("load", () => {
+            fetch("/?povel=data")
+                .then(response => response.json())
+                .then(data => aktualizovatFormular(data))
+                .catch(error => console.error(`Nelze se spojit se serverem: ${error}`));
+        });
+    </script>
+</head>
+<body>
+    <form>
+        <h1>Xiaomi Smart Standing Fan 2 Pro</h1>
+        <div class="radek">
+            <label for="buzzer">Bzučák:</label>
+            <input type="checkbox" id="buzzer">
+        </div>
+        <div class="radek">
+            <label for="light">Podsvicení:</label>
+            <input type="checkbox" id="light">
+        </div>
+        <div class="radek">
+            <label>Natoč větrak o krok:</label>
+            <button type="button" id="set_move_left">Doleva</button>
+            <button type="button" id="set_move_right">Doprava</button>
+        </div>
+        <div class="radek">
+            <label for="fan_speed">Rychlost otáčení (%):</label>
+            <input type="range" id="fan_speed" min="1" max="100" oninput="updateLabel('fan_speed_label', this.value)">
+            <span id="fan_speed_label">0</span>
+        </div>
+        <div class="radek">
+            <label for="swing_mode">Automatické otáčení:</label>
+            <input type="checkbox" id="swing_mode">
+        </div>
+        <div class="radek">
+            <label>Úhel otáčení:</label>
+            <label><input type="radio" value="30" name="swing_mode_angle"> 30°</label>
+            <label><input type="radio" value="60" name="swing_mode_angle"> 60°</label>
+            <label><input type="radio" value="90" name="swing_mode_angle"> 90°</label>
+            <label><input type="radio" value="120" name="swing_mode_angle"> 120°</label>
+            <label><input type="radio" value="140" name="swing_mode_angle"> 140°</label>
+        </div>
+        <div class="radek">
+            <label>Režim:</label>
+            <label><input type="radio" name="mode" value="0"> Přímý</label>
+            <label><input type="radio" name="mode" value="1"> Přirozený vánek</label>
+        </div>
+        <div class="radek">
+            <label for="child_lock">Dětský zámek:</label>
+            <input type="checkbox" id="child_lock" name="child_lock">
+        </div>
+        <div class="radek">
+            <label for="power_off_time">Časovač vypnutí (minuty):</label>
+            <input type="range" id="power_off_time" name="power_off_time" min="1" max="480" oninput="aktualizovatHodnotu('power_off_time_label', this.value)">
+            <span id="power_off_time_label">0</span>
+        </div>
+        <div class="radek">
+            <label>Vypínač:</label>
+            <label><input type="radio" name="power" value="true"> Zapnout</label>
+            <label><input type="radio" name="power" value="false"> Vypnout</label>
+        </div>
+    </form>
+</body>
+</html>
