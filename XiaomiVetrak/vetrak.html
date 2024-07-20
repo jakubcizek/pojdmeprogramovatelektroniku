@@ -76,27 +76,27 @@
             document.getElementById(labelId).textContent = value;
         }
 
-        document.querySelectorAll('input[type="checkbox"], input[type="range"], input[type="radio"]').forEach(element => {
-            element.addEventListener("change", (event) => {
-                const id = event.target.id || event.target.name;
-                const value = event.target.type === "checkbox" ? event.target.checked : event.target.value;
-                nastavitVetrak(id, value);
-            });
-        });
-
-        document.querySelectorAll("button").forEach(button => {
-            button.addEventListener("click", (event) => {
-                const id = event.target.id || event.target.innerText;
-                if(id == "set_move_left") nastavitVetrak("set_move", 2);
-                else if(id == "set_move_right") nastavitVetrak("set_move", 1);
-            });
-        });
-
         window.addEventListener("load", () => {
             fetch("/?povel=data")
                 .then(response => response.json())
                 .then(data => aktualizovatFormular(data))
-                .catch(error => console.error(`Nelze se spojit se serverem: ${error}`));
+                .catch(error => console.error(`Nelze se spojit se serverem: ${error}`)
+            );
+            document.querySelectorAll('input[type="checkbox"], input[type="range"], input[type="radio"]').forEach(element => {
+                element.addEventListener("change", (event) => {
+                    const id = event.target.id || event.target.name;
+                    const value = event.target.type === "checkbox" ? event.target.checked : event.target.value;
+                    nastavitVetrak(id, value);
+                });
+            });
+
+            document.querySelectorAll("button").forEach(button => {
+                button.addEventListener("click", (event) => {
+                    const id = event.target.id || event.target.innerText;
+                    if(id == "set_move_left") nastavitVetrak("set_move", 2);
+                    else if(id == "set_move_right") nastavitVetrak("set_move", 1);
+                });
+            });
         });
     </script>
 </head>
