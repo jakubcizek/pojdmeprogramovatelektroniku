@@ -109,7 +109,7 @@ struct device devices[MAX_DEVICES];
 int devices_count = 0;
 #pragma pack(pop)
 
-// Deklarace funkci 
+// Funkce
 bool load_ouis(const char *ouis_filename, OUI **ouis, size_t *count); // Funkce pro nacteni OUI databaze oui.txt
 uint32_t extract_oui_from_mac(const uint8_t *mac); // Funkce pro extrakci prvnich 24 bitu z mAC adresy - OUI identifikator vyrobce
 const char* find_vendor_by_oui(uint32_t oui); // Funkce pro nalezeni vyrobce podle OUI
