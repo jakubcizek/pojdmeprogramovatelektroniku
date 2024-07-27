@@ -111,14 +111,14 @@ int devices_count = 0;
 
 // Funkce
 bool load_ouis(const char *ouis_filename, OUI **ouis, size_t *count); // Funkce pro nacteni OUI databaze oui.txt
-uint32_t extract_oui_from_mac(const uint8_t *mac); // Funkce pro extrakci prvnich 24 bitu z mAC adresy - OUI identifikator vyrobce
+uint32_t extract_oui_from_mac(const uint8_t *mac); // Funkce pro extrakci prvnich 24 bitu z MAC adresy - OUI identifikator vyrobce
 const char* find_vendor_by_oui(uint32_t oui); // Funkce pro nalezeni vyrobce podle OUI
 bool is_device_saved(const uint8_t *ip); // Funkce pro kontrolu, jestli tuto IP/zarizeni uz mame ulozenou
-void save_device(const uint8_t *ip, const char *mac); // Funcke pro ulzoeni zarizeni -- tedy jeho IP a MAC
+void save_device(const uint8_t *ip, const char *mac); // Funkce pro ulozeni zarizeni - tedy jeho IP a MAC
 void get_my_ip_and_mac(pcap_if_t *device, pcap_t *capture, uint8_t *my_ip, uint8_t *my_mac); // Funkce pro zjisteni moji IP a MAC podle vybraneho sitoveho adapteru
 void analyze_capture(uint8_t *request, const struct pcap_pkthdr *response_header, const uint8_t *response); // Funkce pro analyzu zachycenych paketu
-void print_devices(); // Funkce pro vypsani vysledku -- nalezenych zarizeni v siti
-int compare_devices(const void *a, const void *b); // Pomocna funkce pro razen9 zarizeni podle IP adresy
+void print_devices(); // Funkce pro vypsani vysledku - nalezenych zarizeni v siti
+int compare_devices(const void *a, const void *b); // Pomocna funkce pro razeni zarizeni podle IP adresy
 
 
 // Hlavni funkce -- zacatek programu
@@ -136,7 +136,7 @@ int main() {
     uint8_t my_ip[4], my_mac[6];
 
     // Nacteme databazi OUI ze souboru oui.txt
-    // OUI je prvnich 24 bitu z MAC adresy a identifiuje vyrobce sitoveho zarizeni
+    // OUI je prvnich 24 bitu z MAC adresy a identifikuje vyrobce sitoveho zarizeni
     // Soubor ma format XXXXXX VYROBCE
     printf("\n   *** Zive.cz skener site ***\n\nNacitam databazi OUI... ");
     if (load_ouis("oui.txt", &ouis, &ouis_count)) {
@@ -163,9 +163,9 @@ int main() {
     }
 
     // Pokud nedokazeme identifikovat zadny adapter, ukoncime program
-    // Mame enainstalovany nastroj Npcap (npcap.com)?
+    // Mame nainstalovany nastroj Npcap (npcap.com)? I kdyz pri statickem linkovani by program skoncil hned na zacatku
     if (i == 0) {
-        printf("Nebyla nalezena zadna zarizeni!\nUjisti se, ze je nainstalovany Npcap (npcap.com).\n");
+        printf("Nebyla nalezena zadna zarizeni!\nUjisti se, ze je korektne nainstalovany Npcap (npcap.com).\n");
         return 1;
     }
 
@@ -238,21 +238,21 @@ int main() {
                 fprintf(stderr, "Chyba pri odesilani framu: %s\n", pcap_geterr(capture));
                 return 1;
             }
-            Sleep(SLEEP_MS); // Drobna pauza
+            Sleep(SLEEP_MS); // Drobna pauza - neni to idealni, ale pomaha to
             // Precteme v timeoutu zachycene pakety a zpracujeme je ve funkci analyze_capture
             pcap_dispatch(capture, -1, analyze_capture, (uint8_t *)&frame);  
         }
     }
     printf("\033[2B\n"); // Ukonceni statickeho bloku s vypisem zive statistiky a odradkovani
 
-    Sleep(TIMEOUT_MS * 2); // Drobna pauza
+    Sleep(TIMEOUT_MS * 2); // Drobna pauza (asi uz mohu smazat)
 
     // Seradime nalezena zarizeni podle IP (odpovedi nemusely dojit ve spravnem poradi)
     // A vypiseme vysledky do terminalu
     qsort(devices, devices_count, sizeof(struct device), compare_devices);
     print_devices();
 
-    // uvolnime prostredky Npcapu
+    // Uvolnime prostredky Npcapu
     // Uvolnime dynamickou pamet s databazi OUI
     pcap_close(capture);
     pcap_freealldevs(adapters);
@@ -293,7 +293,6 @@ bool load_ouis(const char *ouis_filename, OUI **ouis, size_t *count) {
     return true;
 }
 
-// Funkce pro vytazeni prvnich 24 bitu z MAC
 uint32_t extract_oui_from_mac(const uint8_t *mac) {
     uint32_t oui = 0;
     oui |= ((uint32_t)mac[0] << 16);
@@ -302,7 +301,6 @@ uint32_t extract_oui_from_mac(const uint8_t *mac) {
     return oui;
 }
 
-// Funkce pro vyhledání textového řetězce podle 24-bitového identifikátoru
 const char* find_vendor_by_oui(uint32_t oui) {
     for (size_t i = 0; i < ouis_count; i++) {
         if (ouis[i].oui == oui) {
@@ -351,7 +349,6 @@ void get_my_ip_and_mac(pcap_if_t *device, pcap_t *capture, uint8_t *my_ip, uint8
     }
 }
 
-// Funkce pro analyzu paketu zachycenych Npcapem
 void analyze_capture(uint8_t *request, const struct pcap_pkthdr *response_header, const uint8_t *response) {
     // ARP frame, ktery jsme poslali do site
     struct arp_frame *arp_request = (struct arp_frame *)request;
@@ -373,8 +370,7 @@ void analyze_capture(uint8_t *request, const struct pcap_pkthdr *response_header
     }
 }
 
-// vypiseme tabulku zarizení, ktere odpovedely na protokolu ARP
-// Tabulka je serazena pdole IP a obsahuej take MAC a podle OUI identifikovaneho vyrobce
+// Tabulka je serazena posle IP a obsahuje take MAC a podle OUI identifikovaneho vyrobce
 void print_devices() {
     printf("%-*s%-*s%-*s\n", 17, "IP adresa", 19, "MAC adresa", 53, "Vyrobce");
     printf("------------------------------------------------------------------------------------------\n");
