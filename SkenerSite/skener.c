@@ -30,7 +30,7 @@ Samotny Npcap a ZIP balicek npcap-sdk s SDK adresari stahnete z https://npcap.co
 
 // Hodnoty pro nastaveni ethernetoveho framu s ARP dotazem
 // Viz https://en.wikipedia.org/wiki/Address_Resolution_Protocol#Packet_structure
-// A jeste> https://en.wikipedia.org/wiki/EtherType
+// A jeste: https://en.wikipedia.org/wiki/EtherType
 #define ETHERNET_TYPE_ARP 0x0806 // Ethernetovy frame typu ARP
 #define ARP_REQUEST 1 // ARP dotaz
 #define ARP_REPLY 2 // ARP odpoved
