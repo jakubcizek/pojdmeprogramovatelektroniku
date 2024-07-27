@@ -354,7 +354,7 @@ void analyze_capture(uint8_t *request, const struct pcap_pkthdr *response_header
     struct arp_frame *arp_request = (struct arp_frame *)request;
     // Ethernetova hlavicka odpovedi 
     struct ethernet_frame_header *eth = (struct ethernet_frame_header *)response;
-    // Zkontrolujeme, jestli se jedna o odpoved protokolu ARP 
+    // Zkontrolujeme, jestli se jedna o frame protokol ARP 
     if (ntohs(eth->type) == ETHERNET_TYPE_ARP) {
         // Pointer na ARP zpravu v odpovedi
         struct arp_message_header *arp = (struct arp_message_header *)(response + sizeof(struct ethernet_frame_header));
