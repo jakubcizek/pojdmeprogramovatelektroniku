@@ -396,11 +396,11 @@ void print_devices() {
     }
 }
 
-// Porovnavvaci funkce pro qsort, ktera porovna dve struktury typu device pdoe jejich ip adres (4 bajtu)
+// Porovnavaci funkce pro qsort, ktera porovna dve struktury typu device pdoe jejich ip adres (4 bajtu)
+// Je treba opravit, bugs
 int compare_devices(const void *a, const void *b) {
     struct device *deviceA = (struct device *)a;
     struct device *deviceB = (struct device *)b;
-    // Porovnání jednotlivých bajtů IP adres
     for (int i = 0; i < 4; i++) {
         if (deviceA->ip[i] < deviceB->ip[i]) {
             return -1;
