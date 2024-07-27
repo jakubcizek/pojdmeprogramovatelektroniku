@@ -5,7 +5,7 @@ SKEN NEMUSI ODHALIT NAPOPRVE VSE - DRUHA STRANA V TIMEOUTU NEODPOVI !!
 
 Sestaveni v x64 vývojářské konzoli pro Visual C++ (VS Build Tools)
 
-cl.exe /O1 /I Include skener.c /Fobuild/20240726_192650/ /Fe:build/20240726_192650/skener.exe /link /LIBPATH:Lib/x64 ws2_32.lib wpcap.lib
+cl.exe /O1 /I Include skener.c /link /LIBPATH:Lib/x64 ws2_32.lib wpcap.lib
 
 Anebo prilozeny powershellovy skript: make.ps1
 
