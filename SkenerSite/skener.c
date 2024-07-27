@@ -42,10 +42,10 @@ Samotny Npcap a ZIP balicek npcap-sdk s SDK adresari stahnete z https://npcap.co
 #define ARP_FRAME_LEN 42 // Velikost framu
 
 // Pomocna makra
-#define TIMEOUT_MS 15 // Timeout pro cekani na ARP odpoved; kratsi hodnota zrychli sken vsech IP, ale zase nemusi dorazirt odpoved
-#define RETRIES 2 // ARP frame muzeme odeslat vicekrat, a zvysit tak pravdepodobnost odpovedi,a le za cenu delsi doby
-#define SLEEP_MS 5 // Drobna prodleva, ktera v programu zvysuje pravdepodobnost, ze maji vsechny operace dostatek casu
-#define MAX_DEVICES 254 // Maximalni pocet skenovanych IP adres - predpokladame, ze subnet ma masku pro posledni blok IPv4 (255.255.255.0)
+#define TIMEOUT_MS 15 // Timeout pro cekani na ARP odpoved; kratsi hodnota zrychli sken vsech IP, ale zase nemusi dorazit odpoved
+#define RETRIES 2 // ARP frame muzeme odeslat vicekrat, a zvysit tak pravdepodobnost odpovedi, ale za cenu delsi doby
+#define SLEEP_MS 5 // Drobna prodleva, ktera v programu zvysuje pravdepodobnost, ze maji vsechny operace dostatek casu -- toto je totalni bastl, musim poresit cisteji
+#define MAX_DEVICES 254 // Maximalni pocet skenovanych IP adres - predpokladame, ze subnet ma masku pro posledni blok IPv4 (255.255.255.0) -- toto je potreba vyresit univerzalneji
 
 // Makra pro obarveni textu pomoci RGB
 // Makra predstavuji obalku textu, ktery se ma zbarvit
@@ -58,7 +58,7 @@ Samotny Npcap a ZIP balicek npcap-sdk s SDK adresari stahnete z https://npcap.co
 
 // Struktura ethernetove hlavicky
 struct ethernet_frame_header {
-    uint8_t dest[6]; // MAC prijemce (budeme v praxi posilat broadcastem = na vsechny)
+    uint8_t dest[6]; // MAC prijemce (budeme v praxi posilat broadcastem = na vsechny = ff:ff:ff:ff:ff:ff)
     uint8_t src[6]; // MAC odesilatele
     uint16_t type; // Typ framu
 };
@@ -67,7 +67,7 @@ struct ethernet_frame_header {
 // Viz https://en.wikipedia.org/wiki/Address_Resolution_Protocol#Packet_structure
 struct arp_message_header {
     uint16_t htype; // hardware type - linkovy protokol (ethernet = 1)
-    uint16_t ptype; // internet protocol type - verze IP (IPv4 = 0x800)
+    uint16_t ptype; // protocol type - verze IP (IPv4 = 0x800)
     uint8_t hlen; // Delka hardwarove adresy (MAC = 6 B)
     uint8_t plen; // Delka protokolove adresy (IPv4 = 4 B)
     uint16_t oper; // Typ operace (dotaz = 1, odpoved = 2 )
@@ -92,7 +92,7 @@ typedef struct {
 
 // Ukazatel na pamet s OUI identifikatory
 // Nacteme je ze souboru oui.txt, 
-// a protoze jich jsou desitky tisc,
+// a protoze jich jsou desitky tisic,
 // vytvorime je az za behu v dynamicke pameti
 OUI *ouis = NULL;
 size_t ouis_count = 0;
@@ -104,7 +104,7 @@ struct device{
 };
 
 // Pole s nalezenymi zarizenimi v siti
-// Pole ma pro jendoduchost pevnou velikost 254 * (4 + 6) bajtu
+// Pole ma pro jednoduchost pevnou velikost 254 * (4 + 6) bajtu
 struct device devices[MAX_DEVICES];
 int devices_count = 0;
 #pragma pack(pop)
