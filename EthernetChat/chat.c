@@ -99,7 +99,6 @@ int main(int argumenty_pocet, char *argumenty[]) {
     struct ethernet_ramec ramec; // Ramec na chatovou pzravu
     int pocitadlo = 0; // Obecne pocitadlo pro ruzne smycky
     uint8_t moje_mac[6]; // PAmet na MAC adresu adapteru
-
     // Pokud jsme spustili program s argumentem --prezdivka XXX,
     // XXX ulozime jako novou prezdivku v chatu
     for (pocitadlo = 1; pocitadlo < argumenty_pocet; pocitadlo++) {
@@ -108,13 +107,11 @@ int main(int argumenty_pocet, char *argumenty[]) {
             pocitadlo++;
         }
     }
-
     // Pomoci knihovny Npcap vyhledame vsechny sitove adaptery v PC
     if (pcap_findalldevs(&adaptery, chyba) == -1) {
         printf("Chyba pri hledani zarizeni: %s\n", chyba);
         return 1;
     }
-
     // Vypiseme nazvy adapteru
     printf("Dostupna sitova zarizeni:\n");
     pocitadlo = 0;
@@ -125,14 +122,12 @@ int main(int argumenty_pocet, char *argumenty[]) {
             printf("%d. "BARVA_ZACATEK(50,255,50)"%s"BARVA_KONEC"\n",++pocitadlo, adapter->name);
         }
     }
-
     // Pokud nedokazeme identifikovat zadny adapter, ukoncime program
     // Mame enainstalovany nastroj Npcap (npcap.com)?
     if (pocitadlo == 0) {
         printf("Nebyla nalezena zadna zarizeni!\nUjisti se, ze je nainstalovany Npcap (npcap.com).\n");
         return 1;
     }
-
     // Pozadame uzivatele o cislo adapteru ze seznamu
     printf("\nZadejte cislo zarizeni, ktere chcete pouzit: ");
     scanf("%d", &adapter_cislo);
@@ -140,19 +135,16 @@ int main(int argumenty_pocet, char *argumenty[]) {
         printf("%d je neplatne cislo zarizeni.\n", adapter_cislo);
         return 1;
     }
-
     // Vybereme adapter a otevreme jej v Npcapu pro zivy zachyt paketu
     for (adapter = adaptery, pocitadlo = 1; adapter != NULL && pocitadlo != adapter_cislo; adapter = adapter->next, pocitadlo++);
     if ((pcap = pcap_open_live(adapter->name, BUFSIZ, 1, TIMEOUT_MS, chyba)) == NULL) {
         printf("Nelze otevrit zarizeni %s: %s\n", adapter->name, chyba);
         return 1;
     }
-
     printf("Zjistuji MAC...");
     // Ziskame MAC adapteru, se kterym pracujeme
     ziskat_moji_mac(adapter, pcap, moje_mac);
     printf("OK\n");
-
     // Sestavime ethernetovy ramec pro chat, ale zatim nevyplnime text zpravy
     memset(&ramec, 0, sizeof(struct ethernet_ramec));
     memset(ramec.ethernet.mac_prijemce, 0xFF, 6); // Frame posleme na broadcastovaci MAC adresu FF:FF:FF:FF:FF:FF, takze by mel dorazit vsem v subnetu
@@ -160,14 +152,11 @@ int main(int argumenty_pocet, char *argumenty[]) {
     ramec.ethernet.ethertype = htons(ETHERTYPE_CHAT); // Nastavime typ ethernetoveho framu na nas chat
     strcpy(ramec.telo.odesilatel, prezdivka);
     strcpy(ramec.telo.prijemce, "vsichni"); // Nas chat zatim nema cilene adresovani treba zvyraznenim textu atp., a tak jako prijemce nastavime "vsichni"
-
     // Vytvorime textove UI chatu pomoci knihovny PDCurses
     inicializace_textoveho_okna(&vystup, &vstup);
-
     // K pameti se zpravami budeme pristupovat z vicero vlaken, a tak si pripravime zamek/semafor,
     // ktery vyhradi pristup vzdy jen pro jendoho hrace, aby nedoslo ke kolizi
     InitializeCriticalSection(&cs); 
-
     // Nastartujeme vlakno, ktere kontroluje, jestli nedorazily ethernetove ramce s chatovymi odpovedmi
     vlakno = CreateThread(NULL, 0, vlakno_zachytavani_ramcu, (LPVOID)&ramec, 0, &vlakno_id); 
     if (vlakno == NULL) {
@@ -175,7 +164,6 @@ int main(int argumenty_pocet, char *argumenty[]) {
         pcap_freealldevs(adaptery);
         return 1;
     }
-
     // Nekonecna smycka, ve ktere kontrolujeme textovy vstup
     // a posilame jej jako ethernetove ramce chatu do site
     while (1) {
@@ -193,7 +181,6 @@ int main(int argumenty_pocet, char *argumenty[]) {
         pcap_sendpacket(pcap, (const uint8_t *)&ramec, RAMEC_VELIKOST);
         LeaveCriticalSection(&cs); // Uvolneni vicevlaknoveho zmaku
     }
-
     // Ukoncime vlakna a uvolnime prostredky
     TerminateThread(vlakno, 0);
     CloseHandle(vlakno);
@@ -299,12 +286,12 @@ void analyzuj_ramec(uint8_t *dotaz, const struct pcap_pkthdr *odpoved_hlavicka, 
     if (ntohs(hlavicka->ethertype) == ETHERTYPE_CHAT) {
         // Ukazatel na telo ethernetoveho ramce s nasi chatovou zpravou
         struct ethernet_telo *telo = (struct ethernet_telo *)(odpoved + sizeof(struct ethernet_hlavicka));
-	EnterCriticalSection(&cs); // Pracujeme v paralelnim vlakne a budeme pracovat s globalnimi promennymi, takze je zamkneme pro sebe, aby nedoslo ke kolizi
-	// Ziskame akualni cas jako text
+        EnterCriticalSection(&cs); // Pracujeme v paralelnim vlakne a budeme pracovat s globalnimi promennymi, takze je zamkneme pro sebe, aby nedoslo ke kolizi
+        // Ziskame akualni cas jako text
         char cas[9];
         aktualni_cas(cas, sizeof(cas));
         // Vytvorime novou UI zpravu ve formatu [cas] odesilatel: zprava
-	snprintf(ui_zpravy[aktualni_index_zpravy].text, sizeof(ui_zpravy[aktualni_index_zpravy].text), "[%s] %s: %s", cas, telo->odesilatel, telo->zprava);
+        snprintf(ui_zpravy[aktualni_index_zpravy].text, sizeof(ui_zpravy[aktualni_index_zpravy].text), "[%s] %s: %s", cas, telo->odesilatel, telo->zprava);
         // Nastavime barvu zpravy na modrou (pozdeji kod muzeme vylepsit a zpravy barevne rozlisovat treba podle odesilatele, prijemce atp.)
         ui_zpravy[aktualni_index_zpravy].barva = 2;
         // Posuneme pamet na zpravy o jeden (nejstarsi zprava zmizi)
@@ -313,6 +300,6 @@ void analyzuj_ramec(uint8_t *dotaz, const struct pcap_pkthdr *odpoved_hlavicka, 
             zpravy_pocet++;
         }
         vypsat_zpravy(); // Vypiseme zpravy na obrazovku
-	LeaveCriticalSection(&cs); // Odemkneme zamek
+        LeaveCriticalSection(&cs); // Odemkneme zamek
     }
 }
