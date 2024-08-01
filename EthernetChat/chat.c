@@ -1,6 +1,6 @@
 
 // Prekladac:
-// Predpokladame uspesne nainstalovani Build Tools for Visual Studio 2022 a v nem SDK pro preklad C/C++ na Windows
+// Predpokladame uspesne nainstalovani Build Tools for Visual Studio 2022 (https://visualstudio.microsoft.com/cs/downloads/#build-tools-for-visual-studio-2019) a v nem SDK pro preklad C/C++ na Windows
 // Prekladac spoustime v 64bit vyvojarskem PoweShellu
 //
 // Povel k prekladu:
