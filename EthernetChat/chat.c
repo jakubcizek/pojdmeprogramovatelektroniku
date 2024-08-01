@@ -90,9 +90,9 @@ void ziskat_vstup(WINDOW *okno, char *txt, int delka); // Cteni textoveho vstupu
 // HLAVNI FUNKCE -- ZACATEK PROGRAMU
 int main(int argumenty_pocet, char *argumenty[]) {
     // Identifikatory vlakna, ktere bude cekat na ramce s chatovymi odpovedmi
-	HANDLE vlakno;
+    HANDLE vlakno;
     DWORD vlakno_id;
-	pcap_if_t *adaptery; // Sitove adaptery v PC
+    pcap_if_t *adaptery; // Sitove adaptery v PC
     pcap_if_t *adapter; // Vybrany sitovy adapter
     int adapter_cislo; // Cislo adapteru v poradi
     char chyba[PCAP_ERRBUF_SIZE]; // Pamet na chybu
@@ -149,17 +149,17 @@ int main(int argumenty_pocet, char *argumenty[]) {
     }
 
     printf("Zjistuji MAC...");
-	// Ziskame MAC adapteru, se kterym pracujeme
-	ziskat_moji_mac(adapter, pcap, moje_mac);
+    // Ziskame MAC adapteru, se kterym pracujeme
+    ziskat_moji_mac(adapter, pcap, moje_mac);
     printf("OK\n");
 
     // Sestavime ethernetovy ramec pro chat, ale zatim nevyplnime text zpravy
-	memset(&ramec, 0, sizeof(struct ethernet_ramec));
-	memset(ramec.ethernet.mac_prijemce, 0xFF, 6); // Frame posleme na broadcastovaci MAC adresu FF:FF:FF:FF:FF:FF, takze by mel dorazit vsem v subnetu
-	memcpy(ramec.ethernet.mac_odesilatel, moje_mac, 6); // Podepiseem se vlastni MAC adresou
-	ramec.ethernet.ethertype = htons(ETHERTYPE_CHAT); // Nastavime typ ethernetoveho framu na nas chat
-	strcpy(ramec.telo.odesilatel, prezdivka);
-	strcpy(ramec.telo.prijemce, "vsichni"); // Nas chat zatim nema cilene adresovani treba zvyraznenim textu atp., a tak jako prijemce nastavime "vsichni"
+    memset(&ramec, 0, sizeof(struct ethernet_ramec));
+    memset(ramec.ethernet.mac_prijemce, 0xFF, 6); // Frame posleme na broadcastovaci MAC adresu FF:FF:FF:FF:FF:FF, takze by mel dorazit vsem v subnetu
+    memcpy(ramec.ethernet.mac_odesilatel, moje_mac, 6); // Podepiseem se vlastni MAC adresou
+    ramec.ethernet.ethertype = htons(ETHERTYPE_CHAT); // Nastavime typ ethernetoveho framu na nas chat
+    strcpy(ramec.telo.odesilatel, prezdivka);
+    strcpy(ramec.telo.prijemce, "vsichni"); // Nas chat zatim nema cilene adresovani treba zvyraznenim textu atp., a tak jako prijemce nastavime "vsichni"
 
     // Vytvorime textove UI chatu pomoci knihovny PDCurses
     inicializace_textoveho_okna(&vystup, &vstup);
@@ -169,13 +169,7 @@ int main(int argumenty_pocet, char *argumenty[]) {
     InitializeCriticalSection(&cs); 
 
     // Nastartujeme vlakno, ktere kontroluje, jestli nedorazily ethernetove ramce s chatovymi odpovedmi
-	vlakno = CreateThread(
-        NULL,              
-        0,                 
-        vlakno_zachytavani_ramcu, 
-        (LPVOID)&ramec, 
-        0,                 
-        &vlakno_id); 
+    vlakno = CreateThread(NULL, 0, vlakno_zachytavani_ramcu, (LPVOID)&ramec, 0, &vlakno_id); 
     if (vlakno == NULL) {
         printf("Chyba pri vytvareni vlakna\n");
         pcap_freealldevs(adaptery);
@@ -188,30 +182,27 @@ int main(int argumenty_pocet, char *argumenty[]) {
         wrefresh(vstup);
         // Ziskat text z UI panelu u paticky
         ziskat_vstup(vstup, zprava, ZPRAVA_DELKA);
-
-		EnterCriticalSection(&cs); // Vicevlaknovy zamek
+	EnterCriticalSection(&cs); // Vicevlaknovy zamek
         // Pokud jsme napsali konec, program skonci
         if (strcmp(zprava, "konec") == 0) {
             break;
         }
         // Zkopirujeme text do predpripraveneho ramce
-		strcpy(ramec.telo.zprava, zprava);
+	strcpy(ramec.telo.zprava, zprava);
         // Odesleme ramec do site
         pcap_sendpacket(pcap, (const uint8_t *)&ramec, RAMEC_VELIKOST);
         LeaveCriticalSection(&cs); // Uvolneni vicevlaknoveho zmaku
     }
 
     // Ukoncime vlakna a uvolnime prostredky
-	TerminateThread(vlakno, 0);
-	CloseHandle(vlakno);
+    TerminateThread(vlakno, 0);
+    CloseHandle(vlakno);
     DeleteCriticalSection(&cs);
     // Smazeme textove UI
     smazat_okna(vystup, vstup);
     // Ukoncime program s normalnim navratovym kodem
     return 0;
 }
-
-
 
 DWORD WINAPI vlakno_zachytavani_ramcu(LPVOID argumenty) {
     pcap_loop(pcap, -1, analyzuj_ramec, (uint8_t *)argumenty);
@@ -224,7 +215,6 @@ void ziskat_moji_mac(pcap_if_t *adapter, pcap_t *pcap, uint8_t *moje_mac) {
     int odpoved;
     while ((odpoved = pcap_next_ex(pcap, &hlavicka, &ramec)) >= 0) {
         if (odpoved == 0) continue;
-
         struct ethernet_hlavicka *eth = (struct ethernet_hlavicka *)ramec;
         if (ntohs(eth->ethertype) == 0x0800) {  
             memcpy(moje_mac, eth->mac_odesilatel, 6);
@@ -309,12 +299,12 @@ void analyzuj_ramec(uint8_t *dotaz, const struct pcap_pkthdr *odpoved_hlavicka, 
     if (ntohs(hlavicka->ethertype) == ETHERTYPE_CHAT) {
         // Ukazatel na telo ethernetoveho ramce s nasi chatovou zpravou
         struct ethernet_telo *telo = (struct ethernet_telo *)(odpoved + sizeof(struct ethernet_hlavicka));
-		EnterCriticalSection(&cs); // Pracujeme v paralelnim vlakne a budeme pracovat s globalnimi promennymi, takze je zamkneme pro sebe, aby nedoslo ke kolizi
-		// Ziskame akualni cas jako text
+	EnterCriticalSection(&cs); // Pracujeme v paralelnim vlakne a budeme pracovat s globalnimi promennymi, takze je zamkneme pro sebe, aby nedoslo ke kolizi
+	// Ziskame akualni cas jako text
         char cas[9];
         aktualni_cas(cas, sizeof(cas));
         // Vytvorime novou UI zpravu ve formatu [cas] odesilatel: zprava
-		snprintf(ui_zpravy[aktualni_index_zpravy].text, sizeof(ui_zpravy[aktualni_index_zpravy].text), "[%s] %s: %s", cas, telo->odesilatel, telo->zprava);
+	snprintf(ui_zpravy[aktualni_index_zpravy].text, sizeof(ui_zpravy[aktualni_index_zpravy].text), "[%s] %s: %s", cas, telo->odesilatel, telo->zprava);
         // Nastavime barvu zpravy na modrou (pozdeji kod muzeme vylepsit a zpravy barevne rozlisovat treba podle odesilatele, prijemce atp.)
         ui_zpravy[aktualni_index_zpravy].barva = 2;
         // Posuneme pamet na zpravy o jeden (nejstarsi zprava zmizi)
@@ -323,6 +313,6 @@ void analyzuj_ramec(uint8_t *dotaz, const struct pcap_pkthdr *odpoved_hlavicka, 
             zpravy_pocet++;
         }
         vypsat_zpravy(); // Vypiseme zpravy na obrazovku
-		LeaveCriticalSection(&cs); // Odemkneme zamek
+	LeaveCriticalSection(&cs); // Odemkneme zamek
     }
 }
