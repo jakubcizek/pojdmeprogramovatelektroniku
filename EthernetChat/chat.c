@@ -1,12 +1,12 @@
 
 // Prekladac:
-// Predpokladame uspesne nainstalovani Build Tools for Visual Studsio 2022 a v nem SDK pro preklad C/C++ na Windows
+// Predpokladame uspesne nainstalovani Build Tools for Visual Studio 2022 a v nem SDK pro preklad C/C++ na Windows
 // Prekladac spoustime v 64bit vyvojarskem PoweShellu
 //
 // Povel k prekladu:
 // cl.exe chat.c /I Include /link /LIBPATH:Lib/x64 wpcap.lib pdcurses.lib user32.lib advapi32.lib ws2_32.lib
 
-#include <pcap.h> // Knihovna paketoveho zachytavace Npcap pro Windows (https://npcap.com/)
+#include <pcap.h> // Knihovna paketoveho zachytavace Npcap pro Windows (https://npcap.com/ -- je treba nainstalovat i samotny ovladac do Windows)
 #include <curses.h> // Textove UI, knihovna PDCurses (https://pdcurses.org/)
 #include <windows.h> // Hlavni hlavicka pri programovani pro Windows, zapouzdruje vetsinu obvyklych hlavicek
 #include <time.h> // Prace s casem
