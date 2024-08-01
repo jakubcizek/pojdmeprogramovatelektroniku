@@ -76,7 +76,7 @@ int aktualni_index_zpravy = 0; // Aktualni index/pozice zpravy
 CRITICAL_SECTION cs; // Zamek/semafor pro vicevlaknove operace
 
 // Uizvatelske funkce
-void ziskat_moji_mac(pcap_if_t *adapter, pcap_t *pcap, uint8_t *moje_mac); // Ziskej MAC adresu zvoleneho sitoveho adapteru
+void ziskat_moji_mac(pcap_t *pcap, uint8_t *moje_mac); // Ziskej MAC adresu zvoleneho sitoveho adapteru
 void analyzuj_ramec(uint8_t *dotaz, const struct pcap_pkthdr *odpoved_hlavicka, const uint8_t *odpoved); // Analyzuj ethernetovy ramec
 void aktualni_cas(char *txt, size_t delka); // Ziskej aktualni cas a uloz ho jako text ve formatu HH:MM:SS
 DWORD WINAPI vlakno_zachytavani_ramcu(LPVOID argumenty); // Paraleleni vlakno pro zachytavani sitove komunikace
@@ -143,7 +143,7 @@ int main(int argumenty_pocet, char *argumenty[]) {
     }
     printf("Zjistuji MAC...");
     // Ziskame MAC adapteru, se kterym pracujeme
-    ziskat_moji_mac(adapter, pcap, moje_mac);
+    ziskat_moji_mac(pcap, moje_mac);
     printf("OK\n");
     // Sestavime ethernetovy ramec pro chat, ale zatim nevyplnime text zpravy
     memset(&ramec, 0, sizeof(struct ethernet_ramec));
@@ -196,7 +196,7 @@ DWORD WINAPI vlakno_zachytavani_ramcu(LPVOID argumenty) {
     return 0;
 }
 
-void ziskat_moji_mac(pcap_if_t *adapter, pcap_t *pcap, uint8_t *moje_mac) {
+void ziskat_moji_mac(pcap_t *pcap, uint8_t *moje_mac) {
     struct pcap_pkthdr *hlavicka;
     const uint8_t *ramec;
     int odpoved;
