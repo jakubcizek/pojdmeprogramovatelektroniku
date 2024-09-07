@@ -65,7 +65,7 @@ if len(argumenty.evalscript) > 1:
         with open(argumenty.evalscript, "r") as f:
             EVALSCRIPT = f.read()
     except:
-        print(f"Nemohu přečíst evalscript {EVALSCRIPT}. Použiji výchozí")
+        print(f"Nemohu přečíst evalscript {argumenty.evalscript}. Použiji výchozí")
 
 
 # Vytvorime OAuth sezeni
