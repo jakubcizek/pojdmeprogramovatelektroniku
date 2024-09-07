@@ -113,8 +113,7 @@ datum_konec = datum_konec.isoformat()
 parametry_dotazu = {
     "input": {
         "bounds": {
-            "bbox": BOX,
-            "properties": {"crs": "http://www.opengis.net/def/crs/OGC/1.3/CRS84"}
+            "bbox": BOX
         },
         "data": [
             {
