@@ -93,7 +93,7 @@ pomer_stran = vzdalenost_delky / vzdalenost_sirky
 sirka = int(VYSKA * pomer_stran)
 vyska = VYSKA
 
-# API umi vtyvorit obrazek o sirce nejvyse 2500 pixelu
+# API umi vytvorit obrazek o sirce nejvyse 2500 pixelu
 # Takze pokud jsme vypocitali vetsi sirku, zmensime vysku
 if sirka > SIRKA_MAX:
     sirka = SIRKA_MAX
@@ -108,7 +108,7 @@ datum_konec = datum_konec.isoformat()
 
 # Priprava API dotazu ve forme JSON
 # Budeme chit snimek z druzice Sentinel-2 L2A
-# Ppro dany box, pixelovou velikost, format atp.
+# Pro dany box, pixelovou velikost, format atp.
 # Pro dalsi mozne parametry kouknete na https://shapps.dataspace.copernicus.eu/requests-builder/ 
 parametry_dotazu = {
     "input": {
