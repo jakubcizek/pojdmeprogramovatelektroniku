@@ -2,7 +2,7 @@
 // Pouzitiy hardware:
 // - Heatbed tile (https://www.prusa3d.com/cs/produkt/heatbed-tile/)
 // - Klon Arduino Nano
-// - 0.96" OLED, 128x64 px, monochormaticky, s radicem SSD1306 (https://www.laskakit.cz/laskakit-oled-displej-128x64-1-3--i2c/)
+// - 0.96" OLED, 128x64 px, monochromaticky, s radicem SSD1306 (https://www.laskakit.cz/laskakit-oled-displej-128x64-1-3--i2c/)
 // - Teplomer DS18B20
 // - Mosfetovy spinac LR7843 (https://www.laskakit.cz/pwm-mosfet-modul-lr7843--30vdc-161a/)
 // - Rotacni enkoder s tlacitkem (https://www.laskakit.cz/keyes-ky-040-rotacni-encoder-s-tlacitkem/)
