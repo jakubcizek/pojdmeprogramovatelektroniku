@@ -1,4 +1,4 @@
-#Instalace: pip install sskyfield
+#Instalace: pip install skyfield
 #Dokumentace: https://rhodesmill.org/skyfield/
 from skyfield.api import Topos, load
 from datetime import datetime
