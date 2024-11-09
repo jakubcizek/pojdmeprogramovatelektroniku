@@ -201,8 +201,9 @@
         updateContextStat();
     });
 
+    // Při změně posuvníku teploty přenastavíme teplotu
     document.getElementById("temperature").addEventListener("input", (event) => {
-        temperature =parseFloat(event.target.value);
+        temperature = parseFloat(event.target.value);
         document.getElementById("temperature-val").innerText = temperature;
     });
 
