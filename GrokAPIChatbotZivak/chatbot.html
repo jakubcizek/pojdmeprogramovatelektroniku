@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot Živák (Grok API Demo)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@500&family=Bungee&family=Roboto&display=swap" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: "Roboto", sans-serif;
+            font-weight: 400;
+            font-style: normal;
+            margin: 0;
+            background-color: #f5f5f5;
+        }
+        pre{
+            font-family: "Fira Code", monospace;
+            font-optical-sizing: auto;
+            font-weight: 500;
+            font-style: normal;
+        }
+        #chat-container {
+            width: 75%;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 80vh;
+        }
+        #chat-title {
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-bottom: 1px solid #ddd;
+        }
+        #chat-box {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .message {
+            max-width: 65%;
+            padding: 10px;
+            border-radius: 10px;
+            margin: 5px 0;
+        }
+        .message-header {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .user {
+            align-self: flex-end;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+        }
+        .assistant {
+            align-self: flex-start;
+            background-color: #fafdff;
+            border: 1px solid #7dcfff;
+            margin-left: 10px;
+        }
+        #input-container {
+            display: flex;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-top: 1px solid #ddd;
+        }
+        #message-input {
+            flex: 1;
+            padding: 10px;
+            font-size: 20px;
+            border: none;
+            border-bottom: 1px solid #ddd;;
+            outline: none;
+            background-color: #f5f5f5;
+            border-radius: 10px;
+            margin-right: 10px;
+        }
+        #footer-container {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            justify-content: flex-end;
+            gap: 20px;
+            color: #aaa;
+        }
+        .footer-container-column {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 5px;
+        }
+        button {
+            padding: 5px 10px;
+            font-size: 14px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #clear-context-btn:hover {
+            background-color: #c0392b;
+        }
+    </style>
+</head>
+<body>
+
+<div id="chat-container">
+    <div id="chat-title">Chatbot Živák (Grok API Demo)</div>
+    <div id="chat-box"></div>
+
+    <div id="input-container">
+        <input type="text" id="message-input" placeholder="Napiš mi zprávu..." autofocus />
+        <div id="footer-container">
+            <div class="footer-container-column">
+                <label for="temperature">Teplota: <span id="temperature-val"></span></label>
+                <input type="range" id="temperature" min="0" max="1.4" step="0.1" />
+            </div>
+            <div class="footer-container-column">
+                <div>
+                    <input type="checkbox" id="context-checkbox" checked />
+                    <label for="context-checkbox">Udržovat kontext</label>
+                </div>
+                <button id="clear-context-btn">Smazat kontext (0 zpráv)</button>
+            </div>
+            <div class="footer-container-column" id="token-usage"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Viz aktuální ceník tokenů na webu xAI
+    const promptTokenPrice = 5 / 1e6; // Milion vstupních tokenů za 5 USD
+    const completionTokenPrice = 15 / 1e6; // Milion výstupních tokenů za 15 USD
+
+    // Váš API klíč
+    const apiKey = "xxxxxxxxxxxxxx"; // Viz https://console.x.ai/
+    // Velký jazykový model z nabídky (zatím jen tento)
+    const modelName = "grok-beta";
+    // Systémový prompt, který nastavuje chování chatbota
+    const systemPrompt = "You are a helpful chatbot who is also cynical and likes to make awkward remarks on the edge of good manners. Go nerd and geek loving dark humor. You write in Czech and your answers are to the point and sometimes peppered with a comment";
+    // Kreativita chatbota z rozsahu 0-2 (0 = determinsitické odpovědi, 2 = maximální náhoda/šum)
+    // Podle mých zkušeností bude u >=1,4 už extrémní šum a generování bude trvat strašně dlouho
+    // GUI posuvník proto pracuje jen s rozsahem  0-1,4
+    let temperature = 0.2;
+
+    // Statistika spotřebovaných tokenů behěm aktuálního chatu
+    let totalPromptTokens = 0;
+    let totalCompletionTokens = 0;
+
+    // Historie zprav pro volitlené udržování kontextu
+    // Držíme pole vlastních zpráv a odpovědí a celé ho pokaždé odesíláme do API
+    // Aktivní kontext tedy může zvyšovat spotřebu
+    // Bez aktivního kontextu jsou všechny dotazy a odpovědí izolované a nesouvisející 
+    // Kontext můžeme zapínat a vypínat během chatu, takže některé zprávy nemusejí být jeho součástí 
+    let messages = [{ role: "system", content: systemPrompt }];
+
+    // Zákaldní nastavení GUI po načtení okna
+    window.addEventListener("load", function() {
+        document.getElementById("temperature-val").innerText = temperature;
+        document.getElementById("temperature").value = temperature;
+        updateTokensStats();
+    });
+
+    // Po klepnutí na ENTER v textovém poli zobrazíme zprávu v chatu a odešleme ji do API
+    // Pokud je aktivní kontext, přidáme prompt zároveň do historie 
+    document.getElementById("message-input").addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            let message = event.target.value;
+            if (message.trim()) {
+                displayMessage("user", "", message);
+                if(document.getElementById("context-checkbox").checked){
+                    addUserMessageToHistory(message);
+                } 
+                sendMessageToAPI(message);
+                event.target.value = "";
+            }
+        }
+    });
+
+    // Po klepnbutí na tlačítko pro smazání kontextu smažeme historii
+    document.getElementById("clear-context-btn").addEventListener("click", function() {
+        messages = [{ role: "system", content: systemPrompt }];
+        updateContextStat();
+    });
+
+    document.getElementById("temperature").addEventListener("input", (event) => {
+        temperature =parseFloat(event.target.value);
+        document.getElementById("temperature-val").innerText = temperature;
+    });
+
+    // Funkce pro zobrazení zprávy v chatu
+    // Role: user × assistant (nastavuje CSS styl bubliny se zprávou)
+    // Sender: Autor zprávy
+    // Content: Obsah
+    // generationTime: Doba generování zprávy 
+    function displayMessage(role, sender, content, generationTime = null) {
+        const chatBox = document.getElementById("chat-box");
+        const messageDiv = document.createElement("div");
+        messageDiv.className = `message ${role}`;
+
+        // Hlavičku se jménem a dobou generování vytváříme jen pro chatbota,
+        // protože předpokládáme single-user UI
+        if (role === "assistant") {
+            const messageHeader = document.createElement("div");
+            messageHeader.className = "message-header";
+            messageHeader.textContent = sender;
+
+            if (generationTime) {
+                messageHeader.textContent += ` (${generationTime.toFixed(2)} sekund)`;
+            }
+            messageDiv.appendChild(messageHeader);
+        }
+        
+        // Odpovědi chatbota mohou obsahovat různé formátovací značky
+        // Chceme udržet kód jednoduchý, a tak pomocí regulárních výrazů
+        // přeložíme jen:
+        // **text** na <b>text</b>
+        // ```text``` na <pre>text</pre>
+        content = content.replace(/\*\*(.*?)\*\*/g, "<b>$1</b>");
+        content = content.replace(/```(.*?)\s*```/gs, "<pre>$1</pre>");
+
+        const messageContent = document.createElement("div");
+        messageContent.innerHTML = content;
+        messageDiv.appendChild(messageContent);
+
+        chatBox.appendChild(messageDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // Pomocná funcke pro přidání promptu do historie
+    function addUserMessageToHistory(message) {
+        messages.push({ role: "user", content: message });
+    }
+
+    // Pomocná funkce pro přidání odpovědi do historie
+    function addAssistantMessageToHistory(content) {
+        messages.push({ role: "assistant", content: content });
+    }
+
+    // Funkce pro výpis statistiky ohledně spotřebovaných tokenů
+    // Tokeny pro vstup (prompt) a výstup (odpověď API) má různou cenu
+    function updateTokensStats() {
+        const promptCost = totalPromptTokens * promptTokenPrice;
+        const completionCost = totalCompletionTokens * completionTokenPrice;
+        const totalCost = promptCost + completionCost;
+        document.getElementById("token-usage").innerHTML = 
+            `Vstup: ${totalPromptTokens} tk ($${promptCost.toFixed(3)})<br>` +
+            `Výstup: ${totalCompletionTokens} tk ($${completionCost.toFixed(3)})<br>` +
+            `Celkem: $${totalCost.toFixed(3)}`;
+    }
+
+    // Funkce pro odeslání zprávy do API pomocí HTTP POST a vestavěné funcke fetch v JS 
+    function sendMessageToAPI(userMessage) {
+        const apiUrl = "https://api.x.ai/v1/chat/completions";
+        const contextCheckbox = document.getElementById("context-checkbox").checked;
+        
+        // Tělo HTTP POST tvří JSON, který obsahuje:
+        // Prompt (případně celou historii kvůli udržení kontextu) jako pole messages
+        // Název modelu
+        // Teplotu - kreativnost/náhodnost odpovědi v rozsahu 0-2
+        const payload = {
+            messages: contextCheckbox ? messages : [{ role: "system", content: systemPrompt }, { role: "user", content: userMessage }],
+            model: modelName,
+            stream: false,
+            temperature: temperature
+        };
+
+        // Začneme měřit čas, protože chceme vědět, jak dlouho to bude trvat
+        const startTime = Date.now();
+
+        // Otevíráme HTTP POST spojení se serveru xAI API
+        fetch(apiUrl, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${apiKey}`
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(response => response.json())
+        // Zpracujeme odpověď ve formátu JSON
+        .then(data => {
+            // Spočítáme dobu generování včetně HTTP komunikace
+            // Vytáhneme z JSON zprávu a navýšíme statistiku spotřebovaných tokenů
+            console.log("Odpověď API:");
+            console.log(data); 
+            const endTime = Date.now();
+            const generationTime = (endTime - startTime) / 1000;
+            if(data.hasOwnProperty("choices")){
+                const message = data.choices[0].message;
+                displayMessage("assistant", "Grok-beta API", message.content, generationTime);
+                if (contextCheckbox) {
+                    addAssistantMessageToHistory(message.content);
+                    document.getElementById("clear-context-btn").textContent = `Smazat kontext (${messages.length - 1} zpráv)`;
+                }
+            }else{
+                displayMessage("assistant", "Grok-beta API", "Pozor, něco je špatně. Koukni do konzole prohlížeče", null);
+            }
+            if(data.hasOwnProperty("usage")){
+                const promptTokens = data.usage.prompt_tokens;
+                const completionTokens = data.usage.completion_tokens;
+                totalPromptTokens += promptTokens;
+                totalCompletionTokens += completionTokens;
+                updateTokensStats();
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+        });
+    }
+</script>
+
+</body>
+</html>
