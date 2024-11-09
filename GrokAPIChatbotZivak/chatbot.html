@@ -194,9 +194,10 @@
         }
     });
 
-    // Po klepnbutí na tlačítko pro smazání kontextu smažeme historii
+    // Po klepnutí na tlačítko pro smazání kontextu smažeme historii
     document.getElementById("clear-context-btn").addEventListener("click", function() {
         messages = [{ role: "system", content: systemPrompt }];
+        document.getElementById("clear-context-btn").textContent = `Smazat kontext (${messages.length - 1} zpráv)`;
         updateContextStat();
     });
 
@@ -271,7 +272,7 @@
         const apiUrl = "https://api.x.ai/v1/chat/completions";
         const contextCheckbox = document.getElementById("context-checkbox").checked;
         
-        // Tělo HTTP POST tvří JSON, který obsahuje:
+        // Tělo HTTP POST tvoří JSON, který obsahuje:
         // Prompt (případně celou historii kvůli udržení kontextu) jako pole messages
         // Název modelu
         // Teplotu - kreativnost/náhodnost odpovědi v rozsahu 0-2
