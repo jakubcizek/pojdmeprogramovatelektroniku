@@ -1,0 +1,16 @@
+[Unit]
+Description=Kiosek
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+WorkingDirectory=/home/pi/kiosek
+ExecStart=/usr/bin/chromium-browser kiosek.html --disable-application-cache --incognito --window-size=1280,720 --kiosk --window-position=0,0 --disable-features=Translate
+Restart=always
+RestartSec=10
+Environment=DISPLAY=:0
+User=pi
+Group=pi
+
+[Install]
+WantedBy=multi-user.target
