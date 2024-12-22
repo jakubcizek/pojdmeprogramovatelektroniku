@@ -122,11 +122,11 @@ unsigned long dSPIN_Param(unsigned long value, byte bit_len)
 byte dSPIN_Xfer(byte data)
 {
   byte data_out;
-  digitalWrite(SLAVE_SELECT_PIN,LOW);
+  digitalWrite(CS,LOW);
   // SPI.transfer() both shifts a byte out on the MOSI pin AND receives a
   //  byte in on the MISO pin.
   data_out = SPI.transfer(data);
-  digitalWrite(SLAVE_SELECT_PIN,HIGH);
+  digitalWrite(CS,HIGH);
   return data_out;
 }
 
@@ -139,8 +139,8 @@ void dSPIN_init()
                         //  pin 10- to be an output. This is in here just
                         //  in case some future user makes something other
                         //  than pin 10 the SS pin.
-  pinMode(SLAVE_SELECT_PIN, OUTPUT);
-  digitalWrite(SLAVE_SELECT_PIN, HIGH);
+  pinMode(CS, OUTPUT);
+  digitalWrite(CS, HIGH);
   pinMode(MOSI, OUTPUT);
   pinMode(MISO, INPUT);
   pinMode(SCK, OUTPUT);
