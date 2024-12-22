@@ -10,7 +10,7 @@
 #include "web.h"
 #include "eeprom_mgmt.h"
 
-https://github.com/EinarArnason/ArduinoQueue
+// https://github.com/EinarArnason/ArduinoQueue
 #include <ArduinoQueue.h>
 
 // GPIO na ESP8266
