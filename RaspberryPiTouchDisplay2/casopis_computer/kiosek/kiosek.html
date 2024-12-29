@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kioskový displej</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden; 
+            font-family: "Roboto", serif;
+            font-weight: 300;
+            font-style: light;
+        }
+
+        #background {
+            height: 67%; 
+            position: relative;
+            z-index: 1; 
+        }
+
+        #background iframe {
+            width: 100%;
+            height: 100%;
+            border: none; 
+        }
+
+        #ribbon {
+            height: 33%; 
+            background-color: #333;
+            display: flex;
+            position: relative; 
+            z-index: 2;
+        }
+
+        .block {
+            border-top: 1px solid #fff; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+            flex-direction: column;
+        }
+
+        .block.center {
+            flex: 3; 
+            border-top: 1px solid #fff;
+            border-left: 1px solid #fff;
+            border-right: 1px solid #fff;
+            position: relative;
+            z-index: 3;
+            background-color: #555; 
+            height: 100%; 
+            top: -0%;
+            text-align: center;
+            line-height: 1.1;
+            text-shadow: 5px 5px 5px rgba(0, 0, 0, 0.5); 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background-size: cover; 
+            background-position: center; 
+            background-repeat: no-repeat;
+        }
+
+        .block.sides {
+            flex: 1; 
+        }
+
+        .time {
+            font-size: 8vw; 
+            font-weight: bold;
+        }
+
+        .temperature {
+            font-size: 4vw; 
+        }
+
+        .cell-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between; 
+            align-items: center;
+            height: 100%;
+            text-align: center; 
+            padding: 10px;
+        }
+
+        .cell-content div {
+            font-size: 2.5vw;
+            flex: 0 0 auto; 
+        }
+
+        .cell-content img {
+            width: 100%;
+            height: 50%;
+            max-width: 100%; 
+            max-height: 100%; 
+            object-fit: contain; 
+            margin: auto; 
+        }
+
+        .cell-content div:first-child {
+            margin-top: 20px; 
+        }
+
+        .cell-content div:last-child {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="background">
+        <iframe id="map" src="" title="Mapa"></iframe>
+    </div>
+    <div id="ribbon">
+        <div class="block sides" id="cell-0">
+            <div class="cell-content">
+                <div></div>
+                <img src="" alt="">
+                <div></div>
+            </div>
+        </div>
+        <div class="block sides" id="cell-1">
+            <div class="cell-content">
+                <div></div>
+                <img src="" alt="">
+                <div></div>
+            </div>
+        </div>
+        <div class="block sides" id="cell-2">
+            <div class="cell-content">
+                <div></div>
+                <img src="" alt="">
+                <div></div>
+            </div>
+        </div>
+        <div class="block center" id="main-cell">
+            <div class="time" id="time"></div>
+            <div class="temperature" id="temperature"></div>
+        </div>
+        <div class="block sides" id="cell-3">
+            <div class="cell-content">
+                <div></div>
+                <img src="" alt="">
+                <div></div>
+            </div>
+        </div>
+        <div class="block sides" id="cell-4">
+            <div class="cell-content">
+                <div></div>
+                <img src="" alt="">
+                <div></div>
+            </div>
+        </div>
+        <div class="block sides" id="cell-5">
+            <div class="cell-content">
+                <div></div>
+                <img src="" alt="">
+                <div></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+         // Moje poloha a časová zóna pro zjištění počasí ze služby api.open-meteo.com
+        // B R N O
+        const latitude = 49.2002211;
+        const longitude = 16.6078411;
+        const layer = "radar"; // Mapová vrstva
+        const zoom = 6; // Přiblížení
+        const mapProvider = "windy"; // Zdroj mapy
+        const owkey = "**********"; // API klíč pro službu OpenWeather
+
+        // Plánovač podsvícení displeje
+        // Můžete nastavit čas zapnutí a vypnutí a dny (0 = neděle)
+        const scheduler = {
+            start: "09:00",
+            end: "21:00",
+            days: [0,1,2,3,4,5,6],
+            inProgress: false,
+            enabled: true
+        };
+        let schedulerHandle = null;
+        const scheduler_ms = 1000;
+
+        // Časovače pro aktualizaci hodin, předpovědi počasí a mapy v milisekundách
+        // Hodiny: každou sekundu
+        // Předpověď počasí: každých 15 minut
+        // Mapa: Každých 15 minut 
+        let Timers = [
+            {
+                name: "Hodiny",
+                handle: null,
+                period: 1000,
+                callback: updateTime,
+                enabled: true
+            },
+            {
+                name: "Počasí",
+                handle: null,
+                period: 900000,
+                callback: updateWeather,
+                enabled: true
+            },
+            {
+                name: "Mapa",
+                handle: null,
+                period: 900000,
+                callback: updateMap,
+                enabled: true
+            }
+        ];
+
+        // Adresy poskytovatelů mapy
+        const mapProviders = {
+            windy: {
+                url: `https://embed.windy.com/embed.html?type=map&location=coordinates&zoom=${zoom}&overlay=${layer}&lat=${latitude}&lon=${longitude}`
+            },
+            ventusky: {
+                url: `https://www.ventusky.com/?p=${latitude};${longitude};${zoom}&l=${layer}`
+            }
+        };
+
+        // Funkce pro aktualizaci času 
+        function updateTime(){
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, "0");
+            const minutes = String(now.getMinutes()).padStart(2, "0");
+            document.getElementById("time").textContent = `${hours}:${minutes}`;
+        }
+
+        // Funkce pro zobrazení/refresh mapy v iframe na pozadí
+        function updateMap(){
+            console.log("Aktualizuji mapu");
+            const iframe = document.getElementById("map");
+            iframe.src = mapProviders[mapProvider].url;
+        }
+
+        // Funkce pro převod unixtimestamp na jméno dne
+        // Čas v unixtimestamp vrací služba api.open-meteo.com
+        function getDayNameFromUnixTimestamp(ts){
+            const date = new Date(ts * 1000);
+            const days = ["Neděle", "Pondělí", "Úterý", "Středa", "Čtvrtek", "Pátek", "Sobota"];
+            return days[date.getDay()];
+        }
+
+        // Funkce pro změnu pozadí centrální buňky
+        function setMainCellBackground(src) {
+            const mainCell = document.getElementById("main-cell");
+            mainCell.style.backgroundImage = `url('${src}')`;
+        }
+
+        // Funkce pro převod kódu počasí na obrázek
+        // Nemáme obrázky pro všechny kódy, takže shlukujeme podobné
+        function getWeatherFromCode(code){
+            if(code == 800 || code == 801) return "clear";
+            else if(code == 802 || code == 803) return "cloudy-partly";
+            else if(code == 804) return "cloudy";
+            else if(code >=701 && code < 781) return "fog"; // Mlha, kour, ...
+            else if(code >= 500 && code <= 531) return "rainy";  // Dest
+            else if(code >= 300 && code <= 321) return "rainy"; // Mrholeni
+            else if(code >= 600 && code <= 622) return "snowy";
+            else if(code >= 200 && code <= 232)  return "thunderstorms";
+            else if(code == 781) return "thunderstorms"; // Tornado
+        }
+
+        // Funkce pro nastavení buňky s denní předpovědí (máme šest buněk s idx 0-6)
+        function setCell(idx, dayname, imgname, temperature) {
+            const cell = document.getElementById(`cell-${idx}`);
+            if (!cell) return;
+            const content = cell.querySelector(".cell-content");
+            content.children[0].textContent = dayname;
+            const img = content.querySelector("img");
+            img.src = imgname; 
+            img.alt = dayname; 
+            content.children[2].textContent = temperature;
+        }
+
+        function getHHMMFromUnixTimestamp(unixtimestamp) {
+            const date = new Date(unixtimestamp * 1000); // Převod z sekund na milisekundy
+            const hours = date.getHours().toString().padStart(2, '0'); // Naformátování hodin na dvoumístný formát
+            const minutes = date.getMinutes().toString().padStart(2, '0'); // Naformátování minut na dvoumístný formát
+            return `${hours}:${minutes}`;
+        }
+
+        // Funkce pro stažení předpovědi počasí ze služby open-meteo.com
+        // Zdarma pro nekomerční provoz, nejvýše 10k volání API denně
+        // Viz https://open-meteo.com/en/docs
+        function updateWeather(lat, lng){
+            fetch(`https://api.openweathermap.org/data/3.0/onecall?lat=${latitude}&lon=${longitude}&exclude=minutely,alerts&units=metric&appid=${owkey}`)
+                .then(response => {
+                    if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log(data);
+                    // Aktuální stav počasí
+                    const temperature = parseInt(data.current.temp);
+                    const code = data.current.weather[0].id;
+                    const weather = getWeatherFromCode(code);
+                    console.log(`Aktuální počasí: ${weather} (${code}), teplota: ${temperature}`);
+                    document.getElementById("temperature").textContent = `${temperature} °C`;
+                    setMainCellBackground(`icons/${weather}.webp`);
+
+                    // Předpověď na tři hodiny
+                    // Předpověď na sedm dnů; používáme jen prvních šest
+                    // API nabízí hromadu proměnných, ale my se dotazujeme jen na kód počasí a teplotu
+                    let cellCounter = 0;
+                    for (let idx = 0; idx < data.hourly.length; idx++) {
+                        if(idx == 3) break;
+                        const hhmm = getHHMMFromUnixTimestamp(data.hourly[idx].dt);
+                        const code = data.hourly[idx].weather[0].id
+                        const weather = getWeatherFromCode(code);
+                        const temperature = data.hourly[idx].temp.toFixed(1).replace(".",",");
+                        console.log(`Předpověď počasí pro ${hhmm}: ${weather} (${code}), teplota: ${temperature}`);
+                        setCell(cellCounter, hhmm, `icons/${weather}.svg`, `${temperature} °C`);
+                        cellCounter++;
+                    };
+
+
+                    // Předpověď na sedm dnů; používáme jen prvních šest
+                    // API nabízí hromadu proměnných, ale my se dotazujeme jen na kód počasí a teplotu
+                    for (let idx = 1; idx < data.daily.length; idx++) {
+                        if(idx == 4) break;
+                        const day = getDayNameFromUnixTimestamp(data.daily[idx].dt);
+                        const code = data.daily[idx].weather[0].id
+                        const weather = getWeatherFromCode(code);
+                        const temperature = parseInt(data.daily[idx].temp.day);
+                        console.log(`Předpověď počasí pro ${day}: ${weather} (${code}), denní teplota: ${temperature}`);
+                        setCell(cellCounter, day, `icons/${weather}.svg`, `${temperature} °C`);
+                        cellCounter++;
+                    };
+                    
+                })
+                .catch(error => {
+                    console.error("Error fetching the data:", error);
+                });
+        }
+
+        function stopTimers(timers){
+            for(timer of timers){
+                if(timer.enabled){
+                    console.log("Zastavuji timer " + timer.name);
+                    clearInterval(timer.handle);
+                }
+            }
+        }
+
+        function startTimers(timers){
+            for(timer of timers){
+                if(timer.enabled){
+                    console.log("Spouštím timer " + timer.name + " s periodou " + timer.period + " ms");
+                    timer.handle = setInterval(timer.callback, timer.period); 
+                    timer.callback();
+                }
+            }
+        }
+
+        function updateScheduler() {
+            const now = new Date();
+            const dayOfWeek = now.getDay(); // 0 = neděle, 1 = pondělí, ..., 6 = sobota
+            const currentTime = now.toTimeString().slice(0, 5); // HH:MM formát
+
+            const isDayEnabled = scheduler.days.includes(dayOfWeek);
+            const start = scheduler.start;
+            const end = scheduler.end;
+
+            if (isDayEnabled && currentTime >= start && currentTime < end) {
+                // Zapnout timery
+                if (!scheduler.inProgress) {
+                    startTimers(Timers);
+                    scheduler.inProgress = true;
+                    fetch("http://localhost/?cmd=lcd-on").catch(() => {
+                        console.error("Failed to fetch /?cmd=lcd-on");
+                    });
+
+                }
+            } else {
+                // Vypnout timery
+                if (scheduler.inProgress) {
+                    stopTimers(Timers);
+                    scheduler.inProgress = false;
+                    fetch("http://localhost/?cmd=lcd-off").catch(() => {
+                        console.error("Failed to fetch /?cmd=lcd-off");
+                    });
+                }
+            }
+            }
+
+        // Po načtení stránky spustíme všechny potřebné časovače, nastavíme mapu a aktualizujeme údaje
+        window.addEventListener("load", () => {
+
+            updateScheduler();
+
+            schedulerHandle = setInterval(updateScheduler, scheduler_ms);  
+        });
+    </script>
+</body>
+</html>
