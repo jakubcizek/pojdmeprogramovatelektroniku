@@ -1,0 +1,15 @@
+[Unit]
+Description=Kiosek Browser
+After=kiosek-server.service
+Requires=kiosek-server.service
+
+[Service]
+ExecStart=/usr/bin/chromium-browser --window-size=1280,720 --kiosk --window-position=0,0 --app http://localhost
+Restart=always
+RestartSec=5
+Environment=DISPLAY=:0
+User=pi
+Group=pi
+
+[Install]
+WantedBy=multi-user.target
