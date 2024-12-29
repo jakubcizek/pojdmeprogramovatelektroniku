@@ -1,0 +1,13 @@
+[Unit]
+Description=Kiosek Server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+WorkingDirectory=/home/pi/kiosek
+ExecStart=/usr/bin/python -u server.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
