@@ -2,7 +2,7 @@ from datetime import datetime # Práce s datem a časem
 import json, os # Práce se soubory a JSON
 import tornado.web # Webovy server, https://www.tornadoweb.org
 import tornado.ioloop 
-import requests # HTTP  klient, hhttps://requests.readthedocs.io/
+import requests # HTTP  klient, https://requests.readthedocs.io
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
 # NASTAVENI:
