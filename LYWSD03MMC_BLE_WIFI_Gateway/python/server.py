@@ -11,7 +11,7 @@ import requests # HTTP  klient, https://requests.readthedocs.io
 csv = True # Pokud True, ukládá se do CSV souborů
 
 # Nastavení parametrů pro odesílání vlastních hodnot na službu Zivyobraz.eu
-zivyobraz = True # Pokud True, posílání je povoleno
+zivyobraz = False # Pokud True, posílání je povoleno
 zivyobraz_params_template = {"import_key": "tvujklic"} # Klíč pro import dat, viz https://wiki.zivyobraz.eu/doku.php?id=portal:hodnoty
 
 # --------------------------------------------------------------------------------------------------------------------------------------------
