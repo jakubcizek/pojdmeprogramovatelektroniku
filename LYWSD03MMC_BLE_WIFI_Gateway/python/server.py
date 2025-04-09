@@ -9,7 +9,7 @@ thermometers = {}
 
 # Nastavení parametrů pro odesílání vlastních hodnot na službu Zivyobraz.eu
 zivyobraz = True # Pokud True, posílání je povoleno
-zivyobraz_params_template = {"import_key": "S5312VgiGWuTNwnd"} # Klíč pro import dat, viz https://wiki.zivyobraz.eu/doku.php?id=portal:hodnoty
+zivyobraz_params_template = {"import_key": "tvujklic"} # Klíč pro import dat, viz https://wiki.zivyobraz.eu/doku.php?id=portal:hodnoty
 
 # Při HTTP GET dotazu /unixtime vrátí aktuální čas jako unixový čas v JSON formátu
 # ESP32 zavolá po svém spuštění a nastaví si čas
@@ -81,7 +81,7 @@ class HttpTeplomery(tornado.web.RequestHandler):
             # Uložení do CSV souboru
             os.makedirs("data", exist_ok=True)
             with open(f"data/{name}.csv", "a") as f:
-                f.write(";".join(str(thermometer[k]) for k in ["datetime", "temperature", "humidity", "battery_percent", "battery_mv", "counter"]) + "\n")
+                f.write(";".join(str(thermometer[k]) for k in ["strdatetime", "temperature", "humidity", "battery_percent", "battery_mv", "counter"]) + "\n")
 
             if zivyobraz:
                 zivyobraz_params[name] = thermometer["temperature"]
