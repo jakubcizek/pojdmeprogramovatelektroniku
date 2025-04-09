@@ -2,7 +2,7 @@
 #include <BLEDevice.h> // Knihovna pro práci s BLE, součást ESP32 SDK pro Arduino
 #include <WiFi.h> // Knihovna pro práci s Wi-Fi, součást ESP32 SDK pro Arduino
 #include <HTTPClient.h> // Knihovna HTTP klientu, součást ESP32 SDK pro Arduino
-#include <ArduinoJson.h> // Knihovna pro práci s JSON, http://arduinojson.org
+#include <ArduinoJson.h> // Knihovna pro práci s JSON, https://arduinojson.org
 #include <TimeLib.h> // Knihovna pro práci s časem, https://github.com/PaulStoffregen/Time
 
 #define MAX_THERMOMETERS 20 // Rezervace paměti pro maximální počet teploměrů
@@ -19,6 +19,7 @@ BLEScan* blescan; // Ukazatel na BLE skener
 struct ThermometerData {
   String name;
   String mac;
+  int16_t rssi;
   float temperature;
   uint8_t humidity;
   uint8_t battery_percent;
@@ -77,6 +78,7 @@ class AdvertisedDeviceCallbacks : public BLEAdvertisedDeviceCallbacks {
         ThermometerData newData;
         newData.name = name;
         newData.mac = mac;
+        newData.rssi = advertisedDevice.getRSSI();
         newData.temperature = temperature;
         newData.humidity = humidity;
         newData.battery_percent = battery_percent;
@@ -175,6 +177,7 @@ void loop() {
       JsonObject obj = array.add<JsonObject>();
       obj["name"] = dataCache[i].name;
       obj["mac"] = dataCache[i].mac;
+      obj["rssi"] = dataCache[i].rssi;
       obj["temperature"] = dataCache[i].temperature;
       obj["humidity"] = dataCache[i].humidity;
       obj["battery_percent"] = dataCache[i].battery_percent;
