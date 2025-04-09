@@ -8,8 +8,8 @@ import requests # HTTP  klient, hhttps://requests.readthedocs.io/
 thermometers = {}
 
 # Nastavení parametrů pro odesílání vlastních hodnot na službu Zivyobraz.eu
-zivyobraz = False # Pokud True, posílání je povoleno
-zivyobraz_params_template = {"import_key": "klic-k-nahravani-hodnot"} # Klíč pro import dat, viz https://wiki.zivyobraz.eu/doku.php?id=portal:hodnoty
+zivyobraz = True # Pokud True, posílání je povoleno
+zivyobraz_params_template = {"import_key": "S5312VgiGWuTNwnd"} # Klíč pro import dat, viz https://wiki.zivyobraz.eu/doku.php?id=portal:hodnoty
 
 # Při HTTP GET dotazu /unixtime vrátí aktuální čas jako unixový čas v JSON formátu
 # ESP32 zavolá po svém spuštění a nastaví si čas
@@ -18,7 +18,7 @@ zivyobraz_params_template = {"import_key": "klic-k-nahravani-hodnot"} # Klíč p
 class HttpUnixtime(tornado.web.RequestHandler):
     def get(self):
         self.set_header("Content-Type", "application/json; charset=UTF-8")
-        self.write({"unixtime": int(datetime.now().timestamp())})
+        self.write({"return": True, "unixtime": int(datetime.now().timestamp())})
 
 # Obsluha HTTP GET a POST dotazu /teplomery
 class HttpTeplomery(tornado.web.RequestHandler):
@@ -50,16 +50,17 @@ class HttpTeplomery(tornado.web.RequestHandler):
     # Odpovědí je opět JSON objket s unixovým časem, takže si ESP32 může seřídit čas
     # Numerický unixtime používáme pro jednoduché zpracování na čipu ESP32
     def post(self):
+        self.set_header("Content-Type", "application/json; charset=UTF-8")
         try:
             data = json.loads(self.request.body.decode("utf-8"))
         except json.JSONDecodeError as e:
             self.set_status(400)
-            self.write({"error": "Invalid JSON"})
+            self.write({"return": False, "error": "Invalid JSON"})
             return
 
         if not isinstance(data, list):
             self.set_status(400)
-            self.write({"error": "Expected JSON array"})
+            self.write({"return": False, "error": "Expected JSON array"})
             return
         
         if zivyobraz:
@@ -70,7 +71,7 @@ class HttpTeplomery(tornado.web.RequestHandler):
             required_keys = {"name", "mac", "temperature", "humidity", "battery_percent", "battery_mv", "counter", "unixtime"}
             if not required_keys.issubset(thermometer):
                 self.set_status(400)
-                self.write({"error": f"Missing keys in: {thermometer}"})
+                self.write({"return": False, "error": f"Missing keys in: {thermometer}"})
                 return
             
             name = thermometer["name"]
@@ -85,8 +86,7 @@ class HttpTeplomery(tornado.web.RequestHandler):
             if zivyobraz:
                 zivyobraz_params[name] = thermometer["temperature"]
 
-        self.set_header("Content-Type", "application/json; charset=UTF-8")
-        self.write({"unixtime": int(datetime.now().timestamp())})
+        self.write({"return": True, "unixtime": int(datetime.now().timestamp())})
 
         if zivyobraz:
             requests.get("https://in.zivyobraz.eu/", params=zivyobraz_params)
