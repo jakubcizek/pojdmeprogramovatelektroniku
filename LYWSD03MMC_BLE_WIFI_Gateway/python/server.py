@@ -2,19 +2,19 @@ from datetime import datetime # Práce s datem a časem
 import json, os # Práce se soubory a JSON
 import tornado.web # Webovy server, https://www.tornadoweb.org
 import tornado.ioloop 
-import requests # HTTP  klient, https://requests.readthedocs.io
+import requests # HTTP  klient, hhttps://requests.readthedocs.io/
 
-# --------------------------------------------------------------------------------------------------------------------------------------------
-# NASTAVENI:
+# -------------------------------------------------------------------------------------------
+# KONFIGURACE
 
 # Povolení logování do CSV:
-csv = True # Pokud True, ukládá se do CSV souborů
+csv = False # Pokud True, ukládá se do CSV souborů
 
 # Nastavení parametrů pro odesílání vlastních hodnot na službu Zivyobraz.eu
 zivyobraz = False # Pokud True, posílání je povoleno
-zivyobraz_params_template = {"import_key": "tvujklic"} # Klíč pro import dat, viz https://wiki.zivyobraz.eu/doku.php?id=portal:hodnoty
+zivyobraz_params_template = {"import_key": "tvuj klic"} # Klíč pro import dat, viz https://wiki.zivyobraz.eu/doku.php?id=portal:hodnoty
 
-# --------------------------------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------
 
 # Globální slovník pro uložení posledních údajů z teploměrů
 thermometers = {}
@@ -35,12 +35,13 @@ class HttpTeplomery(tornado.web.RequestHandler):
         html = "<html><head><meta charset='UTF-8'><title>Teplomery</title></head><body>"
         html += "<h1>Poslední údaje teploměrů</h1>"
         html += "<table border='1' cellspacing='0' cellpadding='5'>"
-        html += "<tr><th>Jméno</th><th>MAC</th><th>Teplota (°C)</th><th>Vlhkost (%)</th><th>Baterie (%)</th><th>Napětí (mV)</th><th>Počítadlo</th><th>Čas</th></tr>"
+        html += "<tr><th>Jméno</th><th>MAC</th><th>RSSI (dBm)</th><th>Teplota (°C)</th><th>Vlhkost (%)</th><th>Baterie (%)</th><th>Napětí (mV)</th><th>Počítadlo</th><th>Čas</th></tr>"
         for key, data in thermometers.items():
             html += (
                 f"<tr>"
                 f"<td>{data.get('name','')}</td>"
                 f"<td>{data.get('mac','')}</td>"
+                f"<td>{data.get('rssi','')}</td>"
                 f"<td>{data.get('temperature','')}</td>"
                 f"<td>{data.get('humidity','')}</td>"
                 f"<td>{data.get('battery_percent','')}</td>"
@@ -76,7 +77,7 @@ class HttpTeplomery(tornado.web.RequestHandler):
 
         # Zpracování každého teploměru v seznamu
         for thermometer in data:
-            required_keys = {"name", "mac", "temperature", "humidity", "battery_percent", "battery_mv", "counter", "unixtime"}
+            required_keys = {"name", "mac", "rssi", "temperature", "humidity", "battery_percent", "battery_mv", "counter", "unixtime"}
             if not required_keys.issubset(thermometer):
                 self.set_status(400)
                 self.write({"return": False, "error": f"Missing keys in: {thermometer}"})
@@ -84,13 +85,13 @@ class HttpTeplomery(tornado.web.RequestHandler):
             
             name = thermometer["name"]
             thermometer["strdatetime"] = datetime.fromtimestamp(thermometer["unixtime"]).strftime("%H:%M:%S %d.%m. %Y")
-            thermometers[name] = {k: thermometer[k] for k in ["name", "mac", "temperature", "humidity", "battery_percent", "battery_mv", "counter", "strdatetime"]}
+            thermometers[name] = {k: thermometer[k] for k in ["name", "mac", "rssi", "temperature", "humidity", "battery_percent", "battery_mv", "counter", "strdatetime"]}
             
             # Uložení do CSV souboru
             if csv:
                 os.makedirs("data", exist_ok=True)
                 with open(f"data/{name}.csv", "a") as f:
-                    f.write(";".join(str(thermometer[k]) for k in ["strdatetime", "temperature", "humidity", "battery_percent", "battery_mv", "counter"]) + "\n")
+                    f.write(";".join(str(thermometer[k]) for k in ["strdatetime", "rssi", "temperature", "humidity", "battery_percent", "battery_mv", "counter"]) + "\n")
 
             if zivyobraz:
                 zivyobraz_params[name] = thermometer["temperature"]
