@@ -4,12 +4,20 @@ import tornado.web # Webovy server, https://www.tornadoweb.org
 import tornado.ioloop 
 import requests # HTTP  klient, hhttps://requests.readthedocs.io/
 
-# Globální slovník pro uložení posledních údajů z teploměrů
-thermometers = {}
+# --------------------------------------------------------------------------------------------------------------------------------------------
+# NASTAVENI:
+
+# Povolení logování do CSV:
+csv = True # Pokud True, ukládá se do CSV souborů
 
 # Nastavení parametrů pro odesílání vlastních hodnot na službu Zivyobraz.eu
-zivyobraz = False # Pokud True, posílání je povoleno
+zivyobraz = True # Pokud True, posílání je povoleno
 zivyobraz_params_template = {"import_key": "tvujklic"} # Klíč pro import dat, viz https://wiki.zivyobraz.eu/doku.php?id=portal:hodnoty
+
+# --------------------------------------------------------------------------------------------------------------------------------------------
+
+# Globální slovník pro uložení posledních údajů z teploměrů
+thermometers = {}
 
 # Při HTTP GET dotazu /unixtime vrátí aktuální čas jako unixový čas v JSON formátu
 # ESP32 zavolá po svém spuštění a nastaví si čas
@@ -79,9 +87,10 @@ class HttpTeplomery(tornado.web.RequestHandler):
             thermometers[name] = {k: thermometer[k] for k in ["name", "mac", "temperature", "humidity", "battery_percent", "battery_mv", "counter", "strdatetime"]}
             
             # Uložení do CSV souboru
-            os.makedirs("data", exist_ok=True)
-            with open(f"data/{name}.csv", "a") as f:
-                f.write(";".join(str(thermometer[k]) for k in ["strdatetime", "temperature", "humidity", "battery_percent", "battery_mv", "counter"]) + "\n")
+            if csv:
+                os.makedirs("data", exist_ok=True)
+                with open(f"data/{name}.csv", "a") as f:
+                    f.write(";".join(str(thermometer[k]) for k in ["strdatetime", "temperature", "humidity", "battery_percent", "battery_mv", "counter"]) + "\n")
 
             if zivyobraz:
                 zivyobraz_params[name] = thermometer["temperature"]
