@@ -8,7 +8,7 @@ import requests # HTTP  klient, hhttps://requests.readthedocs.io/
 thermometers = {}
 
 # Nastavení parametrů pro odesílání vlastních hodnot na službu Zivyobraz.eu
-zivyobraz = True # Pokud True, posílání je povoleno
+zivyobraz = False # Pokud True, posílání je povoleno
 zivyobraz_params_template = {"import_key": "klic-k-nahravani-hodnot"} # Klíč pro import dat, viz https://wiki.zivyobraz.eu/doku.php?id=portal:hodnoty
 
 # Při HTTP GET dotazu /unixtime vrátí aktuální čas jako unixový čas v JSON formátu
