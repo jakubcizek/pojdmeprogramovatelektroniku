@@ -102,3 +102,5 @@ Po startu zařízení navíc čeká, dokud uživatel neuvolní tlačítko. To je
 
 V adrssáři `HTML` najdete jendoduchý prototyp webové stránbky manager.html, která pomocí technologie WebSerial API pomocí povelů výše dokáže zobrazit a stáhnout soubory na SD kartě po připojení zařízení k počítači. Manager.html musí běžet na HTTPS serveru, jinak webový prohlížeč odmítne připojení k USB. Technologii WebSerial podporují jen některé webové prohlížeče a ne nba všech operačních systémech. Testováno v Chrtomu na Windows. Manager je dostupný i online na adrese [kloboukuv.cloud/gpstracker/manager.html](https://kloboukuv.cloud/gpstracker/manager.html).
 
+![HTML manager](prilohy/manager.png)
+
