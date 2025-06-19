@@ -8,13 +8,17 @@
 
 ---
 
-## BoM (Bill of Materials)
+## BoM (Bill of Materials / seznam použitých součástek)
 - Prototypovací deska [LaskaKit ESPInk-Shelf-2.13](https://www.laskakit.cz/laskakit-espink-shelf-213-esp32-e-paper/)
 - Akumulátor [GeB LiPol Battery 104050 2500mAh 3.7V JST-PH 2.0](https://www.laskakit.cz/baterie-li-po-3-7v-2000mah-lipo/)
 - Redukce napájecího kabelu s malým konektorem pro desky ESPInk-Shelf [JST-PH-2 2mm to JST-SH-2 1mm battery adapter, 5cm](https://www.laskakit.cz/jst-ph-2-2mm-do-jst-sh-2-1mm-adapter-pro-baterie/)
 - GPS přijímač [Quescan G10A-F30](https://www.aliexpress.com/item/1005005621100756.html)
 - [Tlačítko 6×6×8 mm](https://www.laskakit.cz/tlacitko-6x6x8mm/)
 - [100uF kondenzátor](https://www.laskakit.cz/aishi-ers1vm101e12ot-100uf-20--35v-kondenzator-elektrolyticky/)
+- [10kOhm rezisotr pro tlačítko](https://www.laskakit.cz/futaba-1-4w-odpor-10k-5/)
+- propojovací drátky
+
+Tlačítko a kondenzátor vyžadují pájení! Všechny ostatní komponenty jsou zacvakávací. Tlačítko ale není pro základní funkci nutné (jen pro ruční ukládání poloh a kopírování dat z SD skrze USB). Aktuální verze firmwaru zároveň snižuje výkon procesoru na 40 MHz, čímž se snižuje proud a kondenzátor by možná nebyl potřeba. Netestováno!
 
 ## Zdrojové kódy
 
