@@ -1,0 +1,8 @@
+{
+  "filename": "/zaznam.txt",
+  "minimum_change_to_log_meters": 200,
+  "gps_fix_timeout_ms": 60000,
+  "wake_period_minutes": 10,
+  "serial_nema_baudrate": 38400,
+  "required_fixes": 4
+}
