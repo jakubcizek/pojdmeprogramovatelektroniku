@@ -29,7 +29,7 @@ Při překladu v Arduino IDE si musíte ručně stáhnout tyto knihovny:
 
 V adresáří `3D tisk` najdete soubory krabičky ve formátu `STEP` (na rozdíl od STL zachovává oblé tvary s vysokou přesností; podporuje jej PrusaSLicer a další). Krabičku libovolně modifikujte dle chuti. Skládá se z krytu dsipleje, oddělovací střední přepážky a boxu pro [2500mAh baterii GeB](https://www.laskakit.cz/en/baterie-li-po-3-7v-2000mah-lipo/). Při volbě jiného akumulátoru tak stačí vytisknout jiný bateriový kryt a není třeba předělávat celý design krabičky. Krabičku drží pohromadě čtyři dlouhé šroubky M2 (délka alespoň 15 mm). Podívejte se na další obrázky montáže v adresáři `prilohy`.
 
-![3D tisk](prilohy/krabicka.png)]
+![3D tisk](prilohy/krabicka.png)
 
 ---
 
