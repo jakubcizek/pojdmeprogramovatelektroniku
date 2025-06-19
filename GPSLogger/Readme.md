@@ -9,11 +9,11 @@
 ---
 
 ## BoM (Bill of Materials)
-- Prototypovací deska [LaskaKit ESPInk-Shelf-2.13](https://www.laskakit.cz/en/laskakit-espink-shelf-213-esp32-e-paper/)
-- Akumulátor [GeB LiPol Battery 104050 2500mAh 3.7V JST-PH 2.0](https://www.laskakit.cz/en/baterie-li-po-3-7v-2000mah-lipo/)
-- Redukce napájecího kabelu s malým konektorem pro desky ESPInk-Shelf [JST-PH-2 2mm to JST-SH-2 1mm battery adapter, 5cm](https://www.laskakit.cz/en/jst-ph-2-2mm-do-jst-sh-2-1mm-adapter-pro-baterie/)
+- Prototypovací deska [LaskaKit ESPInk-Shelf-2.13](https://www.laskakit.cz/laskakit-espink-shelf-213-esp32-e-paper/)
+- Akumulátor [GeB LiPol Battery 104050 2500mAh 3.7V JST-PH 2.0](https://www.laskakit.cz/baterie-li-po-3-7v-2000mah-lipo/)
+- Redukce napájecího kabelu s malým konektorem pro desky ESPInk-Shelf [JST-PH-2 2mm to JST-SH-2 1mm battery adapter, 5cm](https://www.laskakit.cz/jst-ph-2-2mm-do-jst-sh-2-1mm-adapter-pro-baterie/)
 - GPS přijímač [Quescan G10A-F30](https://www.aliexpress.com/item/1005005621100756.html)
-- [Tlačítko 6×6×8 mm](https://www.laskakit.cz/en/tlacitko-6x6x8mm/)
+- [Tlačítko 6×6×8 mm](https://www.laskakit.cz/tlacitko-6x6x8mm/)
 - [100uF kondenzátor](https://www.laskakit.cz/aishi-ers1vm101e12ot-100uf-20--35v-kondenzator-elektrolyticky/)
 
 ## Zdrojové kódy
