@@ -4,6 +4,8 @@
 
 **Pozor, tato stručná dokumentace na GitHubu není náhradou článku, ale pouze jeho doplněním!** Podpořte kutilskou žurnalistiku a kupte si časopis Computer, který je k dispozici i v elektronické podobě :-).
 
+![GPS tracker](prilohy/krabicka.jpg)]
+
 ---
 
 ## Zdrojové kódy
@@ -42,7 +44,7 @@ Ve výchozím stavu deska měří polohu každých 10 minut (viz konfigurace con
 
 Pokud bude vše fungovat, až několikatýdenný GPS tracker může zaznamenat trasu třeba jako na obrázku níže. Vlevo GPS tracker, vpravo běžný záznam aktivity ve sportovní aplikaci Strava.
 
-![Schéma zapojení](prilohy/srovnani1.png)]
+![Srovnání záznamu](prilohy/srovnani1.png)]
 
 ---
 
