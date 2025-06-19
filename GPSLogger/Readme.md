@@ -95,3 +95,10 @@ response;cmd:PRIKAZ;DATA
 - nebo automaticky po určité době neaktivity (kdy nepřichází žádná sériová data).
 
 Po startu zařízení navíc čeká, dokud uživatel neuvolní tlačítko. To je důležité, aby se detekoval skutečný nový stisk – jinak by zařízení mohlo chybně interpretovat trvající stisk jako pokyn k ukončení UART režimu.
+
+---
+
+### HTML GUI
+
+V adrssáři `HTML` najdete jendoduchý prototyp webové stránbky manager.html, která pomocí technologie WebSerial API pomocí povelů výše dokáže zobrazit a stáhnout soubory na SD kartě po připojení zařízení k počítači. Manager.html musí běžet na HTTPS serveru, jinak webový prohlížeč odmítne připojení k USB. Technologii WebSerial podporují jen některé webové prohlížeče a ne nba všech operačních systémech. Testováno v Chrtomu na Windows. Manager je dostupný i online na adrese [kloboukuv.cloud/gpstracker/manager.html](https://kloboukuv.cloud/gpstracker/manager.html).
+
