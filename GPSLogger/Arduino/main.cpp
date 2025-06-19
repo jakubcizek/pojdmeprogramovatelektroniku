@@ -306,7 +306,6 @@ void setup() {                                                                 /
     fullRefresh = true;
   }
   refreshDisplay();                                                            // Překreslíme displej údaji o aktuální poloze
-  fullRefresh = false;                                                         // Resetujeme proměnnou s typem obnovení obrazovky na výchozí hodnotu 
   display.powerOff();                                                          // Vypneme displej
   digitalWrite(GPIO_POWER, LOW);                                               // Odpojíme napájení periferií (GPS přijímač a displej)
   Serial.printf("Prepinam do deep-sleep na %d minut...\n",  wake_period_minutes);
