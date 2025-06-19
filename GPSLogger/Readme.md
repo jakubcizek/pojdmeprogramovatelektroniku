@@ -45,6 +45,10 @@ V adresáři `3D tisk` najdete soubory krabičky ve formátu `STEP` (na rozdíl 
 
 ![3D tisk](prilohy/krabicka.png)
 
+Namísto krytu s baterií lze použít i kryt bez baterie, pokud budeme GPS tracker napájet externím akumulátorem mimo box, anebo z USB-C. V takovém případě je ale třeba použít USB-C zdroj, který se při nízkém odběru nevypíná. Pozor, většina powerbank se vypíná! V době nečinnosti obvod spaluje jen jednotky až nízké desítky uA elektrického proudu a powerbanka odpojí napájení. V takovém případě se ale procesor už nikdy neprobudí ze spánku! Při napájení skrze USB-C je proto třeba použít zdroj, který je za všech okolností stále aktivní. V případě USB v automobilu si to raději dopředu ověřte (zvláště u elektroautomobilů, které mohou šetřit energii). 
+
+![3D tisk](prilohy/krabicka2.png)
+
 ---
 
 ## Zapojení
