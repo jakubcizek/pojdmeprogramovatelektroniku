@@ -31,6 +31,8 @@ K desce ESPInk-Shelf stačí skrze konektor **uŠup** připojit libovolný GPS p
 
 [![Schéma zapojení](prilohy/schema_male.png)](prilohy/schema.png)
 
+Vedle základní desky ESPInk-Shelf jsem použil čínský GPS modul [Quescan G10A-F30](https://www.aliexpress.com/item/1005005621100756.html) s integrovanou anténou. Vedle GPS podporuje i další systémy, polohu přijímá i v naší střešní kanceláři a první fix v průměru získal v řádu jednotek sekund. Můžete ale použít jakýkoliv modul, který komunikuje skrze UART a textové zprávy NMEA 0183, kterým rozumí kniohnva TinyGPS++. Součástí obvodu je ještě tlačítko a kondenzátor. Viz níže.
+
 ---
 
 ## Stabilita napájení
