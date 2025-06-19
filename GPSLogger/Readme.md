@@ -22,9 +22,12 @@ Při překladu v Arduino IDE si musíte ručně stáhnout tyto knihovny:
 - [ArduinoJson](https://arduinojson.org/)
 - [GxEPD2](https://github.com/ZinggJM/GxEPD2)
 - [AdafruitGFX](https://github.com/adafruit/Adafruit-GFX-Library)
-
 ---
 
+## Krabička
+
+V adresáři V adresáří `SD karta`
+---
 ## Zapojení
 
 K desce ESPInk-Shelf stačí skrze konektor **uŠup** připojit libovolný GPS přijímač s rozhraním **UART** a napájením **3,3V**. Viz schéma zapojení níže:
