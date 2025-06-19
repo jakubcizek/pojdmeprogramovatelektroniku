@@ -20,6 +20,8 @@
 
 Tlačítko a kondenzátor vyžadují pájení! Všechny ostatní komponenty jsou zacvakávací. Tlačítko ale není pro základní funkci nutné (jen pro ruční ukládání poloh a kopírování dat z SD skrze USB). Aktuální verze firmwaru zároveň snižuje výkon procesoru na 40 MHz, čímž se snižuje proud a kondenzátor by možná nebyl potřeba. Netestováno!
 
+---
+
 ## Zdrojové kódy
 
 Zdrojový kód pro prototypovací desku [ESPInk-Shelf](https://www.laskakit.cz/en/laskakit-espink-shelf-213-esp32-e-paper/) najdete v adresáři `Arduino`. Kód je připraven pro [Platformio IDE](https://platformio.org/platformio-ide). Adresář obsahuje i konfigurační soubor `platformio.ini`.
