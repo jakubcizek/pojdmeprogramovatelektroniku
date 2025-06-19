@@ -301,10 +301,6 @@ void setup() {                                                                 /
   logToFile(logFile);                                                          // Uložíme hodnoty do textového souboru a soubor zavřeme                                                  
   logFile.close();
 
-
-  if(refreshCounter == 100) {                                                  // Pokud počítadlo obnovení obrazovky dosáhlo 100, další překreslení bude plné/čistící (trvá několik sekund, ale opraví případné artefakty)
-    fullRefresh = true;
-  }
   refreshDisplay();                                                            // Překreslíme displej údaji o aktuální poloze
   display.powerOff();                                                          // Vypneme displej
   digitalWrite(GPIO_POWER, LOW);                                               // Odpojíme napájení periferií (GPS přijímač a displej)
@@ -635,6 +631,11 @@ void refresh(bool full) {                                                      /
   int16_t w = display.width();
   int16_t h = display.height();
   const int margin = 5;
+
+
+  if(refreshCounter >= 100){
+    full = true;
+  }
 
   struct CellPos { int x, y; };
   CellPos positions[6] = {
