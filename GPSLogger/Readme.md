@@ -22,12 +22,17 @@ Při překladu v Arduino IDE si musíte ručně stáhnout tyto knihovny:
 - [ArduinoJson](https://arduinojson.org/)
 - [GxEPD2](https://github.com/ZinggJM/GxEPD2)
 - [AdafruitGFX](https://github.com/adafruit/Adafruit-GFX-Library)
+
 ---
 
 ## Krabička
 
-V adresáři V adresáří `SD karta`
+V adresáří `3D tisk` najdete soubory krabičky ve formátu STEP (na rozdíl od STL zachovává oblé tvary s vysokou přesností). Skládá se z krytu dsipleje, oddělovací střední přepážky a boxu pro [2500mAh baterii GeB](https://www.laskakit.cz/en/baterie-li-po-3-7v-2000mah-lipo/). Při volbě jiného akumulátoru tak stačí vytisknout jiný bateriový kryt a není třeba předělávat celý design krabičky. 
+
+![3D tisk](prilohy/krabicka.png)]
+
 ---
+
 ## Zapojení
 
 K desce ESPInk-Shelf stačí skrze konektor **uŠup** připojit libovolný GPS přijímač s rozhraním **UART** a napájením **3,3V**. Viz schéma zapojení níže:
