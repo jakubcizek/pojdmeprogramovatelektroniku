@@ -46,8 +46,7 @@ Ve výchozím stavu deska měří polohu každých 10 minut (viz konfigurace con
 
 Pokud bude vše fungovat, až několikatýdenný GPS tracker může zaznamenat trasu třeba jako na obrázku níže. Vlevo GPS tracker, vpravo běžný záznam aktivity ve sportovní aplikaci Strava.
 
-![Srovnání záznamu](prilohy/srovnani1.png)]
-
+![Srovnání záznamu](prilohy/srovnani1.png)
 ---
 
 ## Tlačítko a režim UART
