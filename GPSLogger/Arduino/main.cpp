@@ -1,6 +1,6 @@
 /*
 
-GPS Tracker 0.1 Beta - kód je živý a stále ve vývoji!
+GPS Tracker 0.3 Beta 250621 - kód je živý a stále ve vývoji!
 
 Hardware:
  - LaskaKit ESPink-Shelf-2.13: https://www.laskakit.cz/en/laskakit-espink-shelf-213-esp32-e-paper/
@@ -24,6 +24,10 @@ SDK:
  AdafruitGFX: https://github.com/adafruit/Adafruit-GFX-Library
 
  Konfigurace chování přijímače: /config.json na SD kartě. Konfigurace se načte při prvním studeném startu (zapnutí/vypnutí desky ESPInk, přeprogramování atp. Během spánku se udržuje v RTC RAM)
+
+
+TODO:
+ - Logika tlačítka (přechod do režimu USB) funguje zatím jen při spuštění z hlubého spánku. Stisk tlačítka neregistrujeme v živém stavu (třeba ve smyčce čekání na GPS).
 
 */
 
@@ -124,7 +128,7 @@ void logToFile(File &f);                                                       /
 bool loadLastFixAndStats();                                                    // Funkce pro načtení poslední známé polohy z SD. Používáme tehdy, když není poslendí poloha v RTC RAM (Vypnutí krabičky, přeprogramování atp.)
 
                                                                                // Ostatní funkce:
-char getResetReason(esp_reset_reason_t reason);                                // Funkce pro převod numerického kódu důvodu resetu na zástupné písmeno, které zobrazujeme na displeji (B = brownout/máme problém, W = wake/probuzení atp.)
+char getResetReason();                                                         // Funkce pro převod numerického kódu důvodu resetu na zástupné písmeno, které zobrazujeme na displeji (B = brownout/máme problém, W = wake/probuzení atp.)
 void goodNight();                                                              // Funkce pro nastavení probuzní procesoru časovačem, stiskem tlačítka a následné přepnutí procesoru do úsporného hlubokého spánku 
 bool wasButtonPressed();                                                       // Funkce pro detekci stisku tlačítka 
 void waitForSerialDataOrTimeoutOrButton();                                     // Funkce pro čekání na sériová data v UART režimu. čekání lze přerušit stiskem tlačítka, anebo vypršením timeoutu. Blokující funkce  
@@ -409,12 +413,12 @@ bool loadLastFixAndStats() {                                                   /
 }
 
 void updateTopRightStats(){                                                    // Do buňky 1 napíšeme počet satelitů při posledním fixu, důvod resetu/probuzení a napětí (V) a nabití (%) baterie
-  float vbat = analogReadMilliVolts(GPIO_VBAT) * DEVIDER_RATIO / 1000;
+  float vbat = analogReadMilliVolts(GPIO_VBAT) * DEVIDER_RATIO / 1000.0f;
   addToCell(
     1, 
     &FreeSansBold9pt7b, 
     "%dS %c %.2fV (%d%%)", fix.sats,
-    getResetReason(reset_reason), 
+    getResetReason(), 
     vbat, vbatToPercent(vbat)
   ); 
 }
@@ -458,10 +462,12 @@ bool wasButtonPressed() {                                                      /
   return false;
 }
                                                                                // Smyčka UART režimu:
-                                                                               // V UART režimu posloucháme na primární/USB sériové lince (115200 b/s), pokud nedoraxí tyto povely:
-                                                                               //   ls/n         – vrátíme seznam soubprů na SD kartě
-                                                                               //   cat SOUBOR\n – vypíšeme obsah souboru (předpokládáme, že se jedná o text)
-                                                                               //   rm SOUBOR\n  - smažeme soubor
+                                                                               // V UART režimu posloucháme na primární/USB sériové lince (115200 b/s), pokud nedorazí tyto povely:
+                                                                               //   ls/n                           – vrátíme seznam soubprů na SD kartě
+                                                                               //   cat SOUBOR\n                   – vypíšeme obsah souboru (předpokládáme, že se jedná o text)
+                                                                               //   rm SOUBOR\n                    - smažeme soubor
+                                                                               //   store SOUBOR POCETBAJTU\nBAJTY - uložíme soubor na SD kartu po 64B blocích. Další blok posíláme až poté, co obdržíme ACK status: response;cmd:store;filename:%s;status:block_ack\r\n. Tímto se vyvarujeme toho, že zaplníme buffery kvůli rozdílené rychlosti UART a SD I/O
+                                                                               //   status\n                       - vypíšeme hodnoty konfiguračních proměnných a stav akumulátoru
                                                                                // Odpověď vždy ve formátu: response;cmd:PRIKAZ;DATA
                                                                                // Příklad pro ls\n:
                                                                                //   response;cmd:ls;data:soubor1,soubor2,soubor3...
@@ -469,7 +475,15 @@ bool wasButtonPressed() {                                                      /
                                                                                //   response;cmd:cat;filename:soubor1.txt;size:5;data:
                                                                                //   ahoj
                                                                                //
-                                                                               // Čekání na data lze eukončit krátkým stiskem tlačítka, anebo při neaktivitě (žádná sériová data po stanovený čas) 
+                                                                               // Příklad pro store:
+                                                                               // store soubor.txt 1000\n
+                                                                               // (prvních 64 B)
+                                                                               // dorazí odpověď: response;cmd:store;filename:soubor.txt;status:block_ack\r\n
+                                                                               // (posíláme dalších 64 B)
+                                                                               // dorazí odpověď: response;cmd:store;filename:soubor.txt;status:block_ack\r\n
+                                                                               // atd...
+                                                                               //
+                                                                               // Čekání na data lze ukončit krátkým stiskem tlačítka, anebo při neaktivitě (žádná sériová data po stanovený čas) 
                                                                                // Na začátku ještě počkáme, dokud uživatel neuvolní tlačítko, pokud ho stále drží, jinak bychom trvající stisk rovnou interpretovali jako ukončení režimu UART
 void waitForSerialDataOrTimeoutOrButton() {
   while (digitalRead(GPIO_BUTTON) == HIGH) {
@@ -496,82 +510,109 @@ void waitForSerialDataOrTimeoutOrButton() {
         else if (cmd.startsWith("cat ")) {
           String filename = cmd.substring(4);
           filename.trim();
-
           File f = SD.open("/" + filename);
           if (f && !f.isDirectory()) {
-            String response = "response;cmd:cat;filename:" + filename + ";size:" + String(f.size()) + ";data:\n";
-            Serial.print(response);
-
+            Serial.printf("response;cmd:cat;filename:%s;size:%zu;data:\r\n", filename.c_str(), f.size());
             while (f.available()) {
               Serial.write(f.read());
+              lastActivity = millis();
             }
             Serial.println();
             f.close();
           } else {
-            Serial.printf("response;cmd:cat;filename:%s;size:0;data:\n", filename.c_str());
+            Serial.printf("response;cmd:cat;filename:%s;size:0;data:\r\n", filename.c_str());
           }
         }
         else if (cmd.startsWith("rm ")) {
           String filename = cmd.substring(3);
           filename.trim();
-
           if (SD.exists("/" + filename)) {
             if (SD.remove("/" + filename)) {
-              Serial.printf("response;cmd:rm;filename:%s;status:ok\n", filename.c_str());
+              Serial.printf("response;cmd:rm;filename:%s;status:ok\r\n", filename.c_str());
             } else {
-              Serial.printf("response;cmd:rm;filename:%s;status:error\n", filename.c_str());
+              Serial.printf("response;cmd:rm;filename:%s;status:error\r\n", filename.c_str());
             }
           } else {
-            Serial.printf("response;cmd:rm;filename:%s;status:not_found\n", filename.c_str());
+            Serial.printf("response;cmd:rm;filename:%s;status:not_found\r\n", filename.c_str());
           }
         }
         else if (cmd.startsWith("store ")) {
-          int8_t firstSpace = cmd.indexOf(' ');
-          int8_t secondSpace = cmd.indexOf(' ', firstSpace + 1);
-
-          if (firstSpace == -1 || secondSpace == -1) {
-            Serial.println("response;cmd:store;status:error\n");
-            return;
+          int firstSpace  = cmd.indexOf(' ');
+          int secondSpace = cmd.indexOf(' ', firstSpace + 1);
+          if (firstSpace < 0 || secondSpace < 0) {
+            Serial.println("response;cmd:store;status:error\r\n");
+            break;
           }
-
-          String filename = cmd.substring(firstSpace + 1, secondSpace);
+          String filename  = cmd.substring(firstSpace + 1, secondSpace);
           String lengthStr = cmd.substring(secondSpace + 1);
-          filename.trim();
-          lengthStr.trim();
-
+          filename.trim(); lengthStr.trim();
           int expectedSize = lengthStr.toInt();
           if (expectedSize <= 0) {
-            Serial.printf("response;cmd:store;filename:%s;status:error\n", filename.c_str());
-            return;
+            Serial.printf("response;cmd:store;filename:%s;status:error\r\n", filename.c_str());
+            break;
           }
-
           File f = SD.open("/" + filename, FILE_WRITE);
           if (!f) {
-            Serial.printf("response;cmd:store;filename:%s;status:error\n", filename.c_str());
-            return;
+            Serial.printf("response;cmd:store;filename:%s;status:error\r\n", filename.c_str());
+            break;
           }
-
-          int bytesReceived = 0;
-          uint32_t start = millis();
+          const size_t BLOCK_SIZE = 64;
+          uint8_t  buf[BLOCK_SIZE];
+          uint32_t bytesReceived     = 0;            
+          uint32_t lastStoreActivity = millis();         
+          lastActivity      = millis();            
           while (bytesReceived < expectedSize) {
-            if (Serial.available()) {
-              int b = Serial.read();
-              f.write((uint8_t)b);
-              bytesReceived++;
-            } else {
-              if (millis() - start > UART_STORE_TIMEOUT_MS) {
-                f.close();
-                SD.remove("/" + filename);
-                Serial.printf("response;cmd:store;filename:%s;status:timeout\n", filename.c_str());
-                return;
-              }
+            size_t avail  = Serial.available();
+            size_t toRead = min(avail, min((size_t)BLOCK_SIZE, (size_t)(expectedSize - bytesReceived)));
+            if (toRead > 0) {
+              size_t got = Serial.readBytes(buf, toRead);
+              f.write(buf, got);
+              bytesReceived += got;
+              lastStoreActivity = millis();
+              lastActivity      = millis();
+              Serial.printf(
+                "response;cmd:store;filename:%s;status:block_ack\r\n",
+                filename.c_str()
+              );
+            }
+            else if (millis() - lastStoreActivity > UART_STORE_TIMEOUT_MS) {
+              f.close();
+              Serial.printf(
+                "response;cmd:store;filename:%s;status:timeout\r\n",
+                filename.c_str()
+              );
+              break;
             }
           }
 
+          // 5) Dokončení
           f.close();
-          Serial.printf("response;cmd:store;filename:%s;status:ok\n", filename.c_str());
+          if (bytesReceived == expectedSize) {
+            Serial.printf(
+              "response;cmd:store;filename:%s;status:ok\r\n",
+              filename.c_str()
+            );
+          }
         }
 
+        else if (cmd.startsWith("status")) {
+          float vbat = analogReadMilliVolts(GPIO_VBAT) * DEVIDER_RATIO / 1000.0f;
+          Serial.printf("response;cmd:status;data:%s,%d,%d,%d,%d,%d,%.2f,%f,%f,%.3f,%d,%c\r\n",
+            filename,
+            serial_nmea_baudrate,
+            required_fixes,
+            gps_fix_timeout_ms,
+            wake_period_minutes,
+            logCounter,
+            totalDistanceMeters,
+            lastLat,
+            lastLng,
+            vbat,
+            vbatToPercent(vbat),
+            getResetReason()
+          );
+
+        }
       }
       lastActivity = millis();
     }
@@ -602,8 +643,8 @@ void waitForSerialDataOrTimeoutOrButton() {
   goodNight();
 }
 
-char getResetReason(esp_reset_reason_t reason) {                               // Převod důvodu resetu/probuzení z numerického kódu na snáze zapamatovatelný znak, který se zobrazuje na displeji v pravé horní části
-  switch (reason) {                                    
+char getResetReason() {                                                        // Převod důvodu resetu/probuzení z numerického kódu na snáze zapamatovatelný znak, který se zobrazuje na displeji v pravé horní části
+  switch (reset_reason) {                                    
     case ESP_RST_POWERON:     return 'P';                                      // Power-on reset
     case ESP_RST_SW:          return 'S';                                      // Software reset (esp_restart())
     case ESP_RST_PANIC:       return 'C';                                      // Kernel panic / crash
@@ -725,7 +766,7 @@ double distanceBetween(double lat0, double lng0, double lat1, double lng1) {   /
   return delta * 6372795;                                                      // Střední poloměr Země: Přesnější ve středních změmepisných šířkách, méně na rovníku a v polárních oblastech
 }
 
-void logToFile(File &f) {                                                      // Uložíme fixu do CSV souboru na SD
+void logToFile(File &f) {                                                      // Uložíme fix do CSV souboru na SD
   double d = 0;
   if (hasLastPosition) {
     d = distanceBetween(fix.lat, fix.lng, lastLat, lastLng);
