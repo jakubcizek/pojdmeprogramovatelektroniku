@@ -2,122 +2,50 @@
 <html lang="cs">
 <head>
   <meta charset="UTF-8">
-  <title>GPS Tracker Manager 1.0</title>
+  <title>GPS Tracker File Manager 1.5</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-      font-family: "Roboto Condensed", sans-serif;
-      background: #f7f9fc;
-    }
-    #main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 2rem;
-      overflow: auto;
-    }
-    h1 {
-      font-size: 2.5rem;
-      margin: 1rem 0;
-      color: #333;
-    }
-    #connectButton {
-      font-size: 1.25rem;
-      margin-bottom: 1.5rem;
-    }
-    button {
-      font-size: 1rem;
-      margin: 0.3rem;
-      padding: 0.6rem 1.2rem;
-      cursor: pointer;
-      border: none;
-      border-radius: 8px;
-      background-color: #007bff;
-      color: #fff;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-      transition: background-color 0.2s, transform 0.1s;
-    }
+    body { margin: 0; height: 100vh; display: flex; flex-direction: column; font-family: "Roboto Condensed", sans-serif; background: #f7f9fc; position: relative; }
+    #main { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 2rem; overflow: auto; }
+    h1 { font-size: 2.5rem; margin: 1rem 0; color: #333; }
+    #connectButton { font-size: 1.25rem; margin-bottom: 1.5rem; }
+    button { font-size: 1rem; margin: 0.3rem; padding: 0.6rem 1.2rem; cursor: pointer; border: none; border-radius: 8px; background-color: #007bff; color: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.2); transition: background-color 0.2s, transform 0.1s; }
     button:hover { background-color: #0056b3; }
     button:active { transform: scale(0.98); }
-
-    #fileGrid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 2rem;
-      width: 100%;
-      max-width: 1600px;
-    }
-    .fileItem {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 1.5rem;
-      background: #fff;
-      border: 2px solid transparent;
-      border-radius: 12px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-      cursor: pointer;
-      transition: background-color 0.2s, border-color 0.2s;
-    }
+    #helpButton { position: absolute; top: 1rem; right: 1rem; color: #666; cursor: pointer; font-size: 1rem; }
+    #fileGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 2rem; width: 100%; max-width: 1600px; }
+    .fileItem { position: relative; display: flex; flex-direction: column; align-items: center; padding: 1.5rem; background: #fff; border: 2px solid transparent; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); cursor: pointer; transition: background-color 0.2s, border-color 0.2s; }
     .fileItem:hover { background-color: #f0f8ff; }
-    .fileItem.selected {
-      border-color: #007bff;
-      background-color: #eef5ff;
-    }
-    .fileItem .icon {
-      font-size: 2rem;
-      margin-bottom: 0.5rem;
-    }
-    .item-controls {
-      display: none;
-      margin-top: 1rem;
-      width: 100%;
-      justify-content: center;
-      gap: 0.5rem;
-    }
-    .fileItem.selected .item-controls {
-      display: flex;
-    }
-
-    #progressBar {
-      width: 100%;
-      max-width: none;
-      height: 1.5rem;
-      margin: 1rem 0;
-      display: none;
-      box-sizing: border-box;
-    }
-    #terminal {
-      width: 100%;
-      max-width: none;
-      height: 30vh;
-      overflow-y: auto;
-      background: #111;
-      color: #0f0;
-      font-family: monospace;
-      padding: 1rem;
-      white-space: pre-wrap;
-      border-top: 4px solid #333;
-      box-sizing: border-box;
-    }
-    @media (max-width: 480px) {
-      button { font-size: 0.9rem; padding: 0.4rem 0.8rem; }
-      h1 { font-size: 2rem; }
-    }
+    .fileItem.selected { border-color: #007bff; background-color: #eef5ff; }
+    .fileItem .icon { font-size: 2rem; margin-bottom: 0.5rem; }
+    .item-controls { display: none; margin-top: 1rem; width: 100%; justify-content: center; gap: 0.5rem; }
+    .fileItem.selected .item-controls { display: flex; }
+    #progressBar { width: 100%; max-width: none; height: 1.5rem; margin: 1rem 0; display: none; box-sizing: border-box; }
+    #terminal { width: 100%; max-width: none; height: 30vh; overflow-y: auto; background: #111; color: #0f0; font-family: monospace; padding: 1rem; white-space: pre-wrap; border-top: 4px solid #333; box-sizing: border-box; }
+    /* overlay nápovědy */
+    #helpOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 9998;}
+    #helpBox { background: #222; color: #fff; padding: 2rem; border-radius: 8px; max-width: 800px; text-align: left;  z-index: 9999;}
+    @media (max-width: 480px) { button { font-size: 0.9rem; padding: 0.4rem 0.8rem; } h1 { font-size: 2rem; } }
   </style>
 </head>
 <body>
+  <div id="helpButton">Nápověda</div>
+  <div id="helpOverlay"><div id="helpBox">
+    <p>1. Připoj GPS Tracker skze USB k počítači</p>
+    <p>2. Na GPS Trackeru stiskni a drž tlačítko, dokud se na obrazovce neukáže zpráva „Režim USB“</p>
+    <p>3. Klepni na tlačítko „Připojit“ a vyber správné zařízení v dialogu</p>
+    <p>4. Pokud spojení proběhne korektně, zobrazí se seznam souborů na SD</p>
+    <p>5. Pokud během minuty neprovedeš žádnou akci, GPS Tracker ukončí USB režim a přepne se do standardního</p>
+    <p>6. Klepnutím na soubor jej můžeš smazat, nebo stáhnout do PC</p>
+    <p>7. Pokud chceš soubor nahrát na SD (třeba novou konfiguraci config.json), přetáhni jej z počítače do okna správce souborů</p>
+    <p>8. Po nahrání nové konfigurace GPS Tracker vypni a zapni hlavním vypínačem. Potřebujeme kompletní restart systému!</p>
+    <p>Správce souborů používá ke komunikaci technologii WebSerial API, kterou podporují jen prohlížeče na bázi Chromium/Chrome. V tuto chvíli tedy desktopové verze Chrome/Edge 89 a vyšší a Opera 75 a vyšší. Testováno na Windows 11.</p>
+  </div></div>
   <div id="main">
-    <h1>GPS Tracker Manager 1.0</h1>
+    <h1>GPS Tracker File Manager 1.5</h1>
     <button id="connectButton">Připojit</button>
     <div id="fileGrid"></div>
   </div>
@@ -129,6 +57,15 @@
     const terminal     = document.getElementById('terminal');
     const fileGrid     = document.getElementById('fileGrid');
     const progressBar  = document.getElementById('progressBar');
+    const helpButton   = document.getElementById('helpButton');
+    const helpOverlay  = document.getElementById('helpOverlay');
+
+    helpButton.addEventListener('click', () => {
+      helpOverlay.style.display = 'flex';
+    });
+    helpOverlay.addEventListener('click', () => {
+      helpOverlay.style.display = 'none';
+    });
 
     let port, writer, reader;
     let lineBuffer = '', rawBuffer = '';
@@ -175,21 +112,16 @@
         // raw buffer for LS/CAT
         rawBuffer += chunk;
         if (!readingCat) {
-          // LS header
           const lsIdx = rawBuffer.indexOf('response;cmd:ls;data:');
           if (lsIdx >= 0) {
             const rest = rawBuffer.slice(lsIdx);
             const endIdx = rest.indexOf('\n');
             const header = endIdx >= 0 ? rest.slice(0, endIdx) : rest;
-            // **tady je oprava**: ořez a filtrování prázdných stringů
             const files = (header.split('data:')[1] || '')
-              .split(',')
-              .map(f => f.trim())
-              .filter(f => f.length > 0);
+              .split(',').map(f => f.trim()).filter(f => f);
             showFiles(files);
             rawBuffer = rest.slice(endIdx + 1);
           }
-          // CAT header
           const m = rawBuffer.match(/response;cmd:cat;filename:(.*?);size:(\d+);data:/);
           if (m) {
             readingCat = true;
@@ -199,7 +131,6 @@
           }
         }
 
-        // čtení CAT dat
         if (readingCat && catMetadata) {
           const need = catMetadata.size - catBuffer.length;
           catBuffer += rawBuffer.slice(0, need);
@@ -214,10 +145,7 @@
             catBuffer = '';
             progressBar.style.display = 'none';
             progressBar.value = 0;
-            if (selectedDiv) {
-              selectedDiv.classList.remove('selected');
-              selectedDiv = null;
-            }
+            if (selectedDiv) { selectedDiv.classList.remove('selected'); selectedDiv = null; }
           }
         }
       }
@@ -238,13 +166,7 @@
 
     async function connectSerial() {
       port = await navigator.serial.requestPort();
-      await port.open({
-        baudRate: 115200,
-        dataBits: 8,
-        stopBits: 1,
-        parity: 'none',
-        flowControl: 'none'
-      });
+      await port.open({ baudRate: 115200, dataBits: 8, stopBits: 1, parity: 'none', flowControl: 'none' });
       writer = port.writable.getWriter();
       const decoder = new TextDecoderStream();
       port.readable.pipeTo(decoder.writable);
@@ -272,20 +194,28 @@
           div.classList.add('selected');
           selectedDiv = div;
         });
-        div.querySelector('.download-btn').addEventListener('click', e => {
-          e.stopPropagation();
-          send(`cat /${name}\n`);
-        });
+        div.querySelector('.download-btn').addEventListener('click', e => { e.stopPropagation(); send(`cat /${name}\n`); });
         div.querySelector('.delete-btn').addEventListener('click', e => {
           e.stopPropagation();
-          if (confirm(`Opravdu smazat ${name}?`)) {
-            send(`rm /${name}\n`);
-            setTimeout(() => send('ls\n'), 300);
-          }
+          if (confirm(`Opravdu smazat ${name}?`)) { send(`rm /${name}\n`); setTimeout(() => send('ls\n'), 300); }
         });
         fileGrid.appendChild(div);
       });
     }
+
+    // drag&drop dovnitř (upload)
+    document.body.addEventListener('dragover', e => e.preventDefault());
+    document.body.addEventListener('drop', async e => {
+      e.preventDefault();
+      if (!writer) return alert('Nejprve se připojte.');
+      const files = Array.from(e.dataTransfer.files);
+      for (const file of files) {
+        const data = new Uint8Array(await file.arrayBuffer());
+        send(`store ${file.name} ${data.length}\n`);
+        await writer.write(data);
+        setTimeout(() => send('ls\n'), 300);
+      }
+    });
 
     connectButton.addEventListener('click', async () => {
       if (!('serial' in navigator)) {
