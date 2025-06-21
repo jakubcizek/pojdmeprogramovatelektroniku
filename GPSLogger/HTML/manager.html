@@ -25,25 +25,45 @@
     .fileItem.selected .item-controls { display: flex; }
     #progressBar { width: 100%; max-width: none; height: 1.5rem; margin: 1rem 0; display: none; box-sizing: border-box; }
     #terminal { width: 100%; max-width: none; height: 30vh; overflow-y: auto; background: #111; color: #0f0; font-family: monospace; padding: 1rem; white-space: pre-wrap; border-top: 4px solid #333; box-sizing: border-box; }
-    /* overlay nápovědy */
-    #helpOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 9998;}
-    #helpBox { background: #222; color: #fff; padding: 2rem; border-radius: 8px; max-width: 800px; text-align: left;  z-index: 9999;}
+    #helpOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 9998; }
+    #helpBox { background: #222; color: #fff; padding: 2rem; border-radius: 8px; max-width: 800px; text-align: left; z-index: 9999; }
+    #statusBar {
+      width: 100%;
+      background: #000;
+      color: #fff;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      padding: 0.5rem;
+      font-size: 0.9rem;
+    }
+    .status-cell {
+      padding: 0.3rem 0.6rem;
+      border-right: 1px solid #444;
+      white-space: nowrap;
+      flex: 1;
+    }
+    .status-cell:last-child {
+      border-right: none;
+    }
     @media (max-width: 480px) { button { font-size: 0.9rem; padding: 0.4rem 0.8rem; } h1 { font-size: 2rem; } }
   </style>
 </head>
 <body>
   <div id="helpButton">Nápověda</div>
-  <div id="helpOverlay"><div id="helpBox">
-    <p>1. Připoj GPS Tracker skze USB k počítači</p>
-    <p>2. Na GPS Trackeru stiskni a drž tlačítko, dokud se na obrazovce neukáže zpráva „Režim USB“</p>
-    <p>3. Klepni na tlačítko „Připojit“ a vyber správné zařízení v dialogu</p>
-    <p>4. Pokud spojení proběhne korektně, zobrazí se seznam souborů na SD</p>
-    <p>5. Pokud během minuty neprovedeš žádnou akci, GPS Tracker ukončí USB režim a přepne se do standardního</p>
-    <p>6. Klepnutím na soubor jej můžeš smazat, nebo stáhnout do PC</p>
-    <p>7. Pokud chceš soubor nahrát na SD (třeba novou konfiguraci config.json), přetáhni jej z počítače do okna správce souborů</p>
-    <p>8. Po nahrání nové konfigurace GPS Tracker vypni a zapni hlavním vypínačem. Potřebujeme kompletní restart systému!</p>
-    <p>Správce souborů používá ke komunikaci technologii WebSerial API, kterou podporují jen prohlížeče na bázi Chromium/Chrome. V tuto chvíli tedy desktopové verze Chrome/Edge 89 a vyšší a Opera 75 a vyšší. Testováno na Windows 11.</p>
-  </div></div>
+  <div id="helpOverlay">
+    <div id="helpBox">
+      <p>1. Připoj GPS Tracker skze USB k počítači</p>
+      <p>2. Na GPS Trackeru stiskni a drž tlačítko, dokud se na obrazovce neukáže zpráva „Režim USB“</p>
+      <p>3. Klepni na tlačítko „Připojit“ a vyber správné zařízení v dialogu</p>
+      <p>4. Pokud spojení proběhne korektně, zobrazí se seznam souborů na SD</p>
+      <p>5. Pokud během minuty neprovedeš žádnou akci, GPS Tracker ukončí USB režim a přepne se do standardního</p>
+      <p>6. Klepnutím na soubor jej můžeš smazat, nebo stáhnout do PC</p>
+      <p>7. Pokud chceš soubor nahrát na SD (třeba novou konfiguraci config.json), přetáhni jej z počítače do okna správce souborů</p>
+      <p>8. Po nahrání nové konfigurace GPS Tracker vypni a zapni hlavním vypínačem. Potřebujeme kompletní restart systému!</p>
+      <p>Správce souborů používá ke komunikaci technologii WebSerial API, kterou podporují jen prohlížeče na bázi Chromium/Chrome. V tuto chvíli tedy desktopové verze Chrome/Edge 89 a vyšší a Opera 75 a vyšší. Testováno na Windows 11.</p>
+    </div>
+  </div>
   <div id="main">
     <h1>GPS Tracker File Manager 1.5</h1>
     <button id="connectButton">Připojit</button>
@@ -51,34 +71,55 @@
   </div>
   <progress id="progressBar" value="0" max="100"></progress>
   <div id="terminal"></div>
+  <div id="statusBar"></div>
 
   <script>
-    const connectButton = document.getElementById('connectButton');
-    const terminal     = document.getElementById('terminal');
-    const fileGrid     = document.getElementById('fileGrid');
-    const progressBar  = document.getElementById('progressBar');
-    const helpButton   = document.getElementById('helpButton');
-    const helpOverlay  = document.getElementById('helpOverlay');
+    const BLOCK_SIZE = 64;
+    let currentStoreFile = null;
+    let ackResolver = null;
 
-    helpButton.addEventListener('click', () => {
-      helpOverlay.style.display = 'flex';
-    });
-    helpOverlay.addEventListener('click', () => {
-      helpOverlay.style.display = 'none';
-    });
+    const connectButton = document.getElementById('connectButton');
+    const terminal      = document.getElementById('terminal');
+    const fileGrid      = document.getElementById('fileGrid');
+    const progressBar   = document.getElementById('progressBar');
+    const statusBar     = document.getElementById("statusBar");
+    const helpButton    = document.getElementById('helpButton');
+    const helpOverlay   = document.getElementById('helpOverlay');
+
+    helpButton.addEventListener('click', () => helpOverlay.style.display = 'flex');
+    helpOverlay.addEventListener('click', () => helpOverlay.style.display = 'none');
 
     let port, writer, reader;
     let lineBuffer = '', rawBuffer = '';
     let readingCat = false, catMetadata = null, catBuffer = '';
     let selectedDiv = null;
+    let statusReceived = false;
+    const statusLabels = ["Záznam", "GPS baudrate", "Nutné polohy", "GPS timeout (ms)", "Perioda (minuty)", "Uložené body", "Vzdálenost (m)", "Poslední Z.Š.", "Poslední Z.D.", "Napětí (V)", "Nabití (%)", "Boot"];
 
     function log(line, direction='rx') {
       terminal.textContent += `[${direction.toUpperCase()}] ${line}\n`;
       terminal.scrollTop = terminal.scrollHeight;
     }
+
     function send(cmd) {
       log(cmd, 'tx');
       writer.write(new TextEncoder().encode(cmd));
+    }
+
+    function showStatus(values) {
+      statusBar.innerHTML = '';
+      statusLabels.forEach((label, i) => {
+        const cell = document.createElement('div');
+        cell.className = 'status-cell';
+        cell.innerHTML = `<strong>${label}:</strong><br>${values[i]}`;
+        statusBar.appendChild(cell);
+      });
+      statusBar.style.display = "flex";
+      send("ls\n"); // Ls posíláme až po zpracování status, ať se to tam nebije
+    }
+
+    function waitForBlockAck() {
+      return new Promise(resolve => { ackResolver = resolve; });
     }
 
     async function readSerial() {
@@ -100,16 +141,42 @@
         if (result.done) break;
         const chunk = result.value;
 
-        // line-based logging
+        // textové řádky + handshake ACK
         lineBuffer += chunk;
         let idx;
         while ((idx = lineBuffer.indexOf('\n')) >= 0) {
           const line = lineBuffer.slice(0, idx).trim();
           log(line, 'rx');
+
+          // Status
+          const statusMatch = line.match(/^response;cmd:status;data:(.*)/);
+          if (statusMatch) {
+            const parts = statusMatch[1].split(',');
+            showStatus(parts);
+          }
+
+          // block_ack pro store
+          const ackMatch = line.match(/^response;cmd:store;filename:(.*?);status:block_ack/);
+          if (ackMatch && ackMatch[1] === currentStoreFile && ackResolver) {
+            ackResolver();
+            ackResolver = null;
+          }
+
+          // konečné status pro store
+          const doneMatch = line.match(/^response;cmd:store;filename:(.*?);status:(ok|timeout|error)/);
+          if (doneMatch && doneMatch[1] === currentStoreFile) {
+            if (doneMatch[2] === 'ok') {
+              send('ls\n');
+            } else {
+              log(`Ukládání ${currentStoreFile} selhalo: ${doneMatch[2]}`, 'err');
+            }
+            currentStoreFile = null;
+          }
+
           lineBuffer = lineBuffer.slice(idx + 1);
         }
 
-        // raw buffer for LS/CAT
+        // rawBuffer pro LS/CAT
         rawBuffer += chunk;
         if (!readingCat) {
           const lsIdx = rawBuffer.indexOf('response;cmd:ls;data:');
@@ -122,15 +189,14 @@
             showFiles(files);
             rawBuffer = rest.slice(endIdx + 1);
           }
-          const m = rawBuffer.match(/response;cmd:cat;filename:(.*?);size:(\d+);data:/);
-          if (m) {
+          const cm = rawBuffer.match(/response;cmd:cat;filename:(.*?);size:(\d+);data:/);
+          if (cm) {
             readingCat = true;
-            catMetadata = { filename: m[1], size: +m[2] };
+            catMetadata = { filename: cm[1], size: +cm[2] };
             rawBuffer = rawBuffer.slice(rawBuffer.indexOf('data:') + 5);
             catBuffer = '';
           }
         }
-
         if (readingCat && catMetadata) {
           const need = catMetadata.size - catBuffer.length;
           catBuffer += rawBuffer.slice(0, need);
@@ -145,7 +211,10 @@
             catBuffer = '';
             progressBar.style.display = 'none';
             progressBar.value = 0;
-            if (selectedDiv) { selectedDiv.classList.remove('selected'); selectedDiv = null; }
+            if (selectedDiv) {
+              selectedDiv.classList.remove('selected');
+              selectedDiv = null;
+            }
           }
         }
       }
@@ -156,7 +225,8 @@
       const blob = new Blob([text], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url; a.download = clean;
+      a.href = url;
+      a.download = clean;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -172,7 +242,7 @@
       port.readable.pipeTo(decoder.writable);
       reader = decoder.readable.getReader();
       connectButton.remove();
-      send('ls\n');
+      send('status\n');
       readSerial();
     }
 
@@ -194,16 +264,22 @@
           div.classList.add('selected');
           selectedDiv = div;
         });
-        div.querySelector('.download-btn').addEventListener('click', e => { e.stopPropagation(); send(`cat /${name}\n`); });
+        div.querySelector('.download-btn').addEventListener('click', e => {
+          e.stopPropagation();
+          send(`cat /${name}\n`);
+        });
         div.querySelector('.delete-btn').addEventListener('click', e => {
           e.stopPropagation();
-          if (confirm(`Opravdu smazat ${name}?`)) { send(`rm /${name}\n`); setTimeout(() => send('ls\n'), 300); }
+          if (confirm(`Opravdu smazat ${name}?`)) {
+            send(`rm /${name}\n`);
+            setTimeout(() => send('ls\n'), 300);
+          }
         });
         fileGrid.appendChild(div);
       });
     }
 
-    // drag&drop dovnitř (upload)
+    // drag&drop dovnitř (upload) s block‐handshake
     document.body.addEventListener('dragover', e => e.preventDefault());
     document.body.addEventListener('drop', async e => {
       e.preventDefault();
@@ -211,9 +287,22 @@
       const files = Array.from(e.dataTransfer.files);
       for (const file of files) {
         const data = new Uint8Array(await file.arrayBuffer());
+        const totalBytes = data.length;
+        currentStoreFile = file.name;
+        progressBar.style.display = 'block';
+        progressBar.value = 0;
+        progressBar.max = 100;
         send(`store ${file.name} ${data.length}\n`);
-        await writer.write(data);
-        setTimeout(() => send('ls\n'), 300);
+        for (let offset = 0; offset < data.length; offset += BLOCK_SIZE) {
+          const chunk = data.subarray(offset, offset + BLOCK_SIZE);
+          await writer.write(chunk);
+          await waitForBlockAck();
+          const sent = Math.min(offset + chunk.length, totalBytes);
+          const pct = Math.floor(sent / totalBytes * 100);
+          progressBar.value = pct;
+        }
+        progressBar.style.display = 'none';
+        progressBar.value = 0;
       }
     });
 
