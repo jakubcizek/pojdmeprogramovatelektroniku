@@ -56,6 +56,7 @@ SDK:
 #define UART_INACTIVITY_TIMEOUT_MS         60000                               // Timeout v milisekundách, po kterém při neaktivitě opustíme UART režim a přepneme čip do spánku
 #define UART_MODE_BUTTON_DOWN_THRESHOLD_MS 3000                                // Doba v ms, po kteoru musíme držet tlačítko, abychom se přepli di UART režimu (logika zatím počítá jen s tím, že tlačítko stiskneme v době spánku a nikoliv v bdělém stavu)
 #define DEVIDER_RATIO                      1.769                               // Koeficient pro dělič napětí přo čtení napětí baterie skrze ADC
+#define UART_STORE_TIMEOUT_MS              10000                               // Timeout pro ukládání dat na SD kartu skrze UART. Pokud během ukládání dat neodrazí žádné bajty, ukončíme kopírování 
 
 #ifdef USE_SHELF_213                                                           // Pokud používáme Laskakit ESPink-Shelf s 2,13" displejem
 GxEPD2_BW<GxEPD2_213_B74, GxEPD2_213_B74::HEIGHT>                              
@@ -94,8 +95,6 @@ RTC_DATA_ATTR double      lastLng                      = 0.0;                  /
 RTC_DATA_ATTR bool        hasLastPosition              = false;                // Kontrola, jestli máme poslední známou polohu
 RTC_DATA_ATTR double      totalDistanceMeters          = 0.0;                  // Celková vzdálenost expedice v metrech. Pouze orientační; přčesnost limituje nízká frekvence ukládání dat a výpočet na kouli
 RTC_DATA_ATTR uint32_t    logCounter                   = 0;                    // Počítadlo uložených poloh na SD
-RTC_DATA_ATTR uint8_t     refreshCounter               = 0;                    // Počítadlo překreslení obrazovky. Překreslujeme rychle a po určitém počtu provedeme pomalejší plné/čistější překreslení. Šetříme tak energii
-
                                                                                // Konfigurační část RTC RAM s hodnotami, které načteme z /config.json na SD, anebo použijeme výchozí hodnoty
 RTC_DATA_ATTR char        filename[80];                                        // Název souboru, do kterého ukládáme data
 RTC_DATA_ATTR uint32_t    minimum_change_to_log_meters = 0;                    // Minimální vzdálenost dvou po sobě jdoucích fixů, abychom uložili polohu
@@ -107,7 +106,6 @@ RTC_DATA_ATTR uint32_t    serial_nmea_baudrate         = 0;                    /
 
 esp_reset_reason_t reset_reason;                                               // Důvod resetu čipu ESP32. Ukládáme na SD pro ladění
 esp_sleep_wakeup_cause_t wakeup_reason;                                        // Důvod probuzeni čipu ESP32. Ukládáme na SD pro ladění
-bool fullRefresh = false;                                                      // Rychlý, nebo plný refresh displeje? Provádíme rychlé (energetické méně náročné) překreslední a jednou za čas plné/čistící překreslené
 
 struct CellData { String text; const GFXfont* font; };                         // Struktura pro snadné psaní do několika logických buněk na displeji
 CellData cells[6];                                                             // Displej jsme rozdělili na šest buněk: Vlevo nahoře (čas), vpravo nahoře (batere, statistika), dva řádky uprostřed a opět dva spodní rohy (počítadlo, soubor)
@@ -118,7 +116,7 @@ CellData cells[6];                                                             /
 void addToCell(uint8_t cellID, const GFXfont* font, const char* fmt, ...);     // Funkce pro přidání texu do buňky na displeji (zatím jen v bufferu). Podpora formátování jako u printf a volba fontu
 void refreshDisplay();                                                         // Funkce pro naplnění buněk a překreslení displeje aktuální polohou. Používáme po úspěšném zjisštění pozice
 void updateTopRightStats();                                                    // Funkce pro naplnění buňky se statistikou vpravo nahoře (počet staelitů, důvod resetu/probuzení, napětí a nabití baterie...)
-void refresh(bool full);                                                       // Funkce pro ruční rychlé/plné překreslení displeje. Použijí se aktuální data v bufferu (buňkách)
+void refresh();                                                                // Funkce pro ruční překreslení displeje. Použijí se aktuální data v bufferu (buňkách)
 
                                                                                // Funkce pro práci s SD:             
 bool loadConfig();                                                             // Funkce pro načtení konfigurace v JSON ze souboru /config.json
@@ -142,13 +140,13 @@ void setup() {                                                                 /
   Serial.printf("Reset: %d\nWakeup: %d\n", reset_reason, wakeup_reason);       // Vypíšeme numerické kódy důvodu resetu a probuzení. Viz https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-reference/system/misc_system_api.html 
   pinMode(GPIO_BUTTON, INPUT);                                                 // Nastavíme GPIO pin tlačítka na čtení 
   pinMode(GPIO_POWER, OUTPUT); digitalWrite(GPIO_POWER, HIGH);                 // Nastavíme GPIO pin napájení displeje a GPS na zápis a nastavíme vysoký stav = připojíme periferie k 3,3V napájení. V jeden okamžik se spíná GPS i displej, hrozí proudová špička a podpětí/brownout. Mezi 3,3V a GND jsem proto připájel 100uF kondenzátor
-  display.init(115200, true, 2, false);                                        // Inicializujeme displej
+  display.init(115200, false, 2, false);                                        // Inicializujeme displej
 
   if (!SD.begin(GPIO_SD_SS)) {                                                 // Inicializujeme SD kartu. Při chybě vypíšeme na displej chybové hlášení a přepneme se do hlubokého spánku
     updateTopRightStats();
     addToCell(2, &FreeSansBold9pt7b, "Chyba SD!");
     addToCell(3, &FreeSansBold9pt7b, "Opakuji za %d minut", wake_period_minutes);
-    refresh(fullRefresh);
+    refresh();
     display.powerOff();
     digitalWrite(GPIO_POWER, LOW);
     Serial.printf("Prepinam do deep-sleep na %d minut...\n", wake_period_minutes);
@@ -191,13 +189,13 @@ void setup() {                                                                 /
   }
 
   if (wakeup_reason == ESP_SLEEP_WAKEUP_EXT0) {                                // Pokud je důvodem probuzení přerušení typu EXT0 (změna stavu na GPIO, tedy stisk našeho tlačítka)
-    unsigned long t0 = millis();
+    uint32_t t0 = millis();
     while (digitalRead(GPIO_BUTTON) == HIGH) {                                 // Pokud tlačítko stále držíve (čteme na pinu vysoký stav), měříme čas    
       if (millis() - t0 >= UART_MODE_BUTTON_DOWN_THRESHOLD_MS) {               // Pokud tlačítko držíme dostatečně dlouho, překreslíme displej a přepneme se do UART režimu = spustíme blokovací funkci pro poslech sériové linky 
         updateTopRightStats();
         addToCell(2, &FreeSansBold9pt7b, "Rezim USB");
         addToCell(3, &FreeSansBold9pt7b, "115200 b/s UART");
-        refresh(fullRefresh);
+        refresh();
         display.powerOff();
         digitalWrite(GPIO_POWER, LOW);
         waitForSerialDataOrTimeoutOrButton();
@@ -211,12 +209,12 @@ void setup() {                                                                 /
   if(!rtcRamOk || wakeup_reason == ESP_SLEEP_WAKEUP_EXT0){                     // Pokud se jedná o nový start (RTC RAM je prázdná), nebo o start způsobený tlačítkem, překreslíme displej hláškou "Hledam GPS". Při dalších probuzeních to už dělat nebudeme, protože je to nadbytečná spotřeba energie
     updateTopRightStats();
     addToCell(2, &FreeSansBold9pt7b, "Hledam GPS...");
-    refresh(fullRefresh);
+    refresh();
   }
 
 
   Serial.printf("Cekam na GPS fix nejvyse %d ms... ", gps_fix_timeout_ms);
-  unsigned long t0 = millis();
+  uint32_t t0 = millis();
   bool timeout = true;
   bool firstFix = true;
   uint8_t fixes = 0;                                                           // Čekáme ve smyčce na GPS data. Ze smyčky vyskočíme po přijetí stanovewného počtu poloh, nebo po vypršení timeoutu
@@ -275,7 +273,7 @@ void setup() {                                                                 /
     updateTopRightStats();
     addToCell(2, &FreeSansBold9pt7b, "Nemohu najit GPS!");
     addToCell(3, &FreeSansBold9pt7b, "Opakuji za %d minut", wake_period_minutes);
-    refresh(fullRefresh);
+    refresh();
     display.powerOff();
     digitalWrite(GPIO_POWER, LOW);
     Serial.printf("Prepinam do deep-sleep na %d minut...\n", wake_period_minutes);
@@ -290,7 +288,7 @@ void setup() {                                                                 /
     updateTopRightStats();
     addToCell(2, &FreeSansBold9pt7b, "Nelze otevrit soubor!");
     addToCell(3, &FreeSansBold9pt7b, "Opakuji za %d minut",  wake_period_minutes);
-    refresh(fullRefresh);
+    refresh();
     display.powerOff();
     digitalWrite(GPIO_POWER, LOW);
     Serial.printf("Prepinam do deep-sleep na %d minut...\n",  wake_period_minutes);
@@ -477,7 +475,7 @@ void waitForSerialDataOrTimeoutOrButton() {
   while (digitalRead(GPIO_BUTTON) == HIGH) {
     delay(10);
   }
-  unsigned long lastActivity = millis();
+  uint32_t lastActivity = millis();
   while (millis() - lastActivity < UART_INACTIVITY_TIMEOUT_MS) {
     if (Serial.available()) {
       while (Serial.available()) {
@@ -527,6 +525,53 @@ void waitForSerialDataOrTimeoutOrButton() {
             Serial.printf("response;cmd:rm;filename:%s;status:not_found\n", filename.c_str());
           }
         }
+        else if (cmd.startsWith("store ")) {
+          int8_t firstSpace = cmd.indexOf(' ');
+          int8_t secondSpace = cmd.indexOf(' ', firstSpace + 1);
+
+          if (firstSpace == -1 || secondSpace == -1) {
+            Serial.println("response;cmd:store;status:error\n");
+            return;
+          }
+
+          String filename = cmd.substring(firstSpace + 1, secondSpace);
+          String lengthStr = cmd.substring(secondSpace + 1);
+          filename.trim();
+          lengthStr.trim();
+
+          int expectedSize = lengthStr.toInt();
+          if (expectedSize <= 0) {
+            Serial.printf("response;cmd:store;filename:%s;status:error\n", filename.c_str());
+            return;
+          }
+
+          File f = SD.open("/" + filename, FILE_WRITE);
+          if (!f) {
+            Serial.printf("response;cmd:store;filename:%s;status:error\n", filename.c_str());
+            return;
+          }
+
+          int bytesReceived = 0;
+          uint32_t start = millis();
+          while (bytesReceived < expectedSize) {
+            if (Serial.available()) {
+              int b = Serial.read();
+              f.write((uint8_t)b);
+              bytesReceived++;
+            } else {
+              if (millis() - start > UART_STORE_TIMEOUT_MS) {
+                f.close();
+                SD.remove("/" + filename);
+                Serial.printf("response;cmd:store;filename:%s;status:timeout\n", filename.c_str());
+                return;
+              }
+            }
+          }
+
+          f.close();
+          Serial.printf("response;cmd:store;filename:%s;status:ok\n", filename.c_str());
+        }
+
       }
       lastActivity = millis();
     }
@@ -539,7 +584,7 @@ void waitForSerialDataOrTimeoutOrButton() {
       updateTopRightStats();
       addToCell(2,&FreeSansBold9pt7b,"Ukoncuji USB");
       addToCell(3,&FreeSansBold9pt7b,"Mereni za %d minut",  wake_period_minutes);
-      refresh(fullRefresh);
+      refresh();
       display.powerOff();
       digitalWrite(GPIO_POWER, LOW);
       goodNight();
@@ -551,7 +596,7 @@ void waitForSerialDataOrTimeoutOrButton() {
   updateTopRightStats();
   addToCell(2,&FreeSansBold9pt7b,"Ukoncuji USB");
   addToCell(3,&FreeSansBold9pt7b,"Mereni za %d minut",  wake_period_minutes);
-  refresh(fullRefresh);
+  refresh();
   display.powerOff();
   digitalWrite(GPIO_POWER, LOW);
   goodNight();
@@ -621,22 +666,15 @@ void refreshDisplay(){                                                         /
     "%s", FILENAME
   );
   
-  refresh(fullRefresh);
+  refresh();
 }
 
-void refresh(bool full) {                                                      // Vykreslíme buňky na displej rychle/parciální refresh celého obdélníku displeje, anebo plně, ale pomaleji. Parciální refresh může postupně zanechávat chyby, proto občas voláme refresh(true) pro plné/hluboké překreslení
+void refresh() {                                                               // Vykreslíme buňky na displej
   display.setTextColor(GxEPD_BLACK);
   display.setRotation(3);
-
   int16_t w = display.width();
   int16_t h = display.height();
   const int margin = 5;
-
-
-  if(refreshCounter >= 100){
-    full = true;
-  }
-
   struct CellPos { int x, y; };
   CellPos positions[6] = {
     {margin, margin},
@@ -646,53 +684,26 @@ void refresh(bool full) {                                                      /
     {margin, h - margin},
     {w - margin, h - margin}
   };
-
-  if (full) {
-    display.firstPage();
-    do {
-      display.fillScreen(GxEPD_WHITE);
-      for (int i = 0; i < 6; ++i) {
-        if (cells[i].text.length() == 0 || cells[i].font == nullptr) continue;
-        display.setFont(cells[i].font);
-        int16_t x1, y1;
-        uint16_t tw, th;
-        display.getTextBounds(cells[i].text, 0, 0, &x1, &y1, &tw, &th);
-        int x = positions[i].x;
-        int y = positions[i].y;
-        if (i == 2 || i == 3) x -= tw / 2;
-        else if (i == 1 || i == 5) x -= tw;
-        if (i == 0 || i == 1) y -= y1;
-        else if (i == 4 || i == 5) y -= (y1 + th);
-        else y -= y1 / 2;
-        display.setCursor(x, y);
-        display.print(cells[i].text);
-      }
-    } while (display.nextPage());
-    refreshCounter = 0;
-  } else {
-    display.setPartialWindow(0, 0, w, h);
-    display.firstPage();
-    do {
-      display.fillScreen(GxEPD_WHITE);
-      for (int i = 0; i < 6; ++i) {
-        if (cells[i].text.length() == 0 || cells[i].font == nullptr) continue;
-        display.setFont(cells[i].font);
-        int16_t x1, y1;
-        uint16_t tw, th;
-        display.getTextBounds(cells[i].text, 0, 0, &x1, &y1, &tw, &th);
-        int x = positions[i].x;
-        int y = positions[i].y;
-        if (i == 2 || i == 3) x -= tw / 2;
-        else if (i == 1 || i == 5) x -= tw;
-        if (i == 0 || i == 1) y -= y1;
-        else if (i == 4 || i == 5) y -= (y1 + th);
-        else y -= y1 / 2;
-        display.setCursor(x, y);
-        display.print(cells[i].text);
-      }
-    } while (display.nextPage());
-    refreshCounter++;
-  }
+  display.firstPage();
+  do {
+    display.fillScreen(GxEPD_WHITE);
+    for (int i = 0; i < 6; ++i) {
+      if (cells[i].text.length() == 0 || cells[i].font == nullptr) continue;
+      display.setFont(cells[i].font);
+      int16_t x1, y1;
+      uint16_t tw, th;
+      display.getTextBounds(cells[i].text, 0, 0, &x1, &y1, &tw, &th);
+      int x = positions[i].x;
+      int y = positions[i].y;
+      if (i == 2 || i == 3) x -= tw / 2;
+      else if (i == 1 || i == 5) x -= tw;
+      if (i == 0 || i == 1) y -= y1;
+      else if (i == 4 || i == 5) y -= (y1 + th);
+      else y -= y1 / 2;
+      display.setCursor(x, y);
+      display.print(cells[i].text);
+    }
+  } while (display.nextPage());
 }
 
 double distanceBetween(double lat0, double lng0, double lat1, double lng1) {   // Výpočet vzdálenosti mezi dvěma body. Nepřesné! Pouze orientační a s chybou
