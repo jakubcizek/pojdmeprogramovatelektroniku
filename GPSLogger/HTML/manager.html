@@ -2,7 +2,7 @@
 <html lang="cs">
 <head>
   <meta charset="UTF-8">
-  <title>GPS Tracker File Manager 1.5</title>
+  <title>GPS Tracker File Manager 1.6</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
@@ -25,6 +25,8 @@
     .fileItem.selected .item-controls { display: flex; }
     #progressBar { width: 100%; max-width: none; height: 1.5rem; margin: 1rem 0; display: none; box-sizing: border-box; }
     #terminal { width: 100%; max-width: none; height: 30vh; overflow-y: auto; background: #111; color: #0f0; font-family: monospace; padding: 1rem; white-space: pre-wrap; border-top: 4px solid #333; box-sizing: border-box; }
+    #terminal .rx {color: #6dd59c;}
+    #terminal .tx {color: #68a7bc;}
     #helpOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 9998; }
     #helpBox { background: #222; color: #fff; padding: 2rem; border-radius: 8px; max-width: 800px; text-align: left; z-index: 9999; }
     #statusBar {
@@ -65,7 +67,7 @@
     </div>
   </div>
   <div id="main">
-    <h1>GPS Tracker File Manager 1.5</h1>
+    <h1>GPS Tracker File Manager 1.6</h1>
     <button id="connectButton">Připojit</button>
     <div id="fileGrid"></div>
   </div>
@@ -96,13 +98,16 @@
     let statusReceived = false;
     const statusLabels = ["Záznam", "GPS baudrate", "Nutné polohy", "GPS timeout (ms)", "Perioda (minuty)", "Uložené body", "Vzdálenost (m)", "Poslední Z.Š.", "Poslední Z.D.", "Napětí (V)", "Nabití (%)", "Boot"];
 
-    function log(line, direction='rx') {
-      terminal.textContent += `[${direction.toUpperCase()}] ${line}\n`;
+    function log(line, direction = 'rx') {
+      const span = document.createElement('span');
+      span.classList.add(direction);                  
+      span.textContent = `[${direction.toUpperCase()}] ${line}\n`;
+      terminal.appendChild(span);
       terminal.scrollTop = terminal.scrollHeight;
     }
 
     function send(cmd) {
-      log(cmd, 'tx');
+      log(cmd.trim(), 'tx');
       writer.write(new TextEncoder().encode(cmd));
     }
 
@@ -146,7 +151,27 @@
         let idx;
         while ((idx = lineBuffer.indexOf('\n')) >= 0) {
           const line = lineBuffer.slice(0, idx).trim();
-          log(line, 'rx');
+          if(line.startsWith("response") || line.startsWith("system")){
+            log(line, "rx");
+          }
+
+          if (line.startsWith("system;poweroff;reason:")) {
+            const reason = line.split(':')[1];  // "timeout" nebo "device"
+            const msg = reason === "timeout"
+              ? "Spojení ukončeno z důvodu delší nečinnosti"
+              : "Spojení ukončeno tlačítkem";
+            alert(msg);
+            await cleanupSerial();
+            return;
+          }
+
+          // store ready
+          if (line === "SR" && ackResolver) {
+            ackResolver();
+            ackResolver = null;
+            lineBuffer = lineBuffer.slice(idx + 1);
+            continue;
+          }
 
           // Status
           const statusMatch = line.match(/^response;cmd:status;data:(.*)/);
@@ -155,14 +180,7 @@
             showStatus(parts);
           }
 
-          // block_ack pro store
-          const ackMatch = line.match(/^response;cmd:store;filename:(.*?);status:block_ack/);
-          if (ackMatch && ackMatch[1] === currentStoreFile && ackResolver) {
-            ackResolver();
-            ackResolver = null;
-          }
-
-          // konečné status pro store
+          // Status pro store
           const doneMatch = line.match(/^response;cmd:store;filename:(.*?);status:(ok|timeout|error)/);
           if (doneMatch && doneMatch[1] === currentStoreFile) {
             if (doneMatch[2] === 'ok') {
@@ -189,11 +207,12 @@
             showFiles(files);
             rawBuffer = rest.slice(endIdx + 1);
           }
-          const cm = rawBuffer.match(/response;cmd:cat;filename:(.*?);size:(\d+);data:/);
+          const catRe = /response;cmd:cat;filename:(.*?);size:(\d+);data:(\r\n?|\n)/;
+          const cm = catRe.exec(rawBuffer);
           if (cm) {
             readingCat = true;
             catMetadata = { filename: cm[1], size: +cm[2] };
-            rawBuffer = rawBuffer.slice(rawBuffer.indexOf('data:') + 5);
+            rawBuffer = rawBuffer.slice(cm.index + cm[0].length);
             catBuffer = '';
           }
         }
@@ -221,7 +240,7 @@
     }
 
     function saveTextAsFile(text, filename) {
-      const clean = filename.startsWith('_') ? filename.slice(1) : filename;
+      const clean = filename.startsWith('/') ? filename.slice(1) : filename;
       const blob = new Blob([text], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -241,7 +260,7 @@
       const decoder = new TextDecoderStream();
       port.readable.pipeTo(decoder.writable);
       reader = decoder.readable.getReader();
-      connectButton.remove();
+      connectButton.style.display = 'none';
       send('status\n');
       readSerial();
     }
@@ -316,6 +335,44 @@
         log('Chyba: ' + e.message, 'err');
       }
     });
+
+    async function cleanupSerial() {
+      lineBuffer = '';
+      rawBuffer = '';
+      readingCat = false;
+      catMetadata = null;
+      catBuffer = '';
+      if (reader) {
+        try {
+          await reader.cancel();
+        } catch (e) { /* ignore */ }
+        try {
+          reader.releaseLock();
+        } catch (e) { /* ignore */ }
+        reader = null;
+      }
+      if (writer) {
+        try {
+          await writer.close(); 
+        } catch (e) { /* ignore */ }
+        try {
+          writer.releaseLock();
+        } catch (e) { /* ignore */ }
+        writer = null;
+      }
+      if (port) {
+        try {
+          await port.close(); 
+        } catch (e) { /* ignore */ }
+        port = null;
+      }
+      terminal.textContent = '';
+      statusBar.style.display = 'none';
+      fileGrid.innerHTML = '';
+      progressBar.style.display = 'none';
+      progressBar.value = 0;
+      connectButton.style.display = '';
+    }
   </script>
 </body>
 </html>
