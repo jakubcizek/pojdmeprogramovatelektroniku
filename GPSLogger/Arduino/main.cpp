@@ -1,6 +1,6 @@
 /*
 
-GPS Tracker 0.3 Beta 250621 - kód je živý a stále ve vývoji!
+GPS Tracker 0.3 Beta 250622 - kód je živý a stále ve vývoji!
 
 Hardware:
  - LaskaKit ESPink-Shelf-2.13: https://www.laskakit.cz/en/laskakit-espink-shelf-213-esp32-e-paper/
@@ -466,7 +466,7 @@ bool wasButtonPressed() {                                                      /
                                                                                //   ls/n                           – vrátíme seznam soubprů na SD kartě
                                                                                //   cat SOUBOR\n                   – vypíšeme obsah souboru (předpokládáme, že se jedná o text)
                                                                                //   rm SOUBOR\n                    - smažeme soubor
-                                                                               //   store SOUBOR POCETBAJTU\nBAJTY - uložíme soubor na SD kartu po 64B blocích. Další blok posíláme až poté, co obdržíme ACK status: response;cmd:store;filename:%s;status:block_ack\r\n. Tímto se vyvarujeme toho, že zaplníme buffery kvůli rozdílené rychlosti UART a SD I/O
+                                                                               //   store SOUBOR POCETBAJTU\nBAJTY - uložíme soubor na SD kartu po 64B blocích. Další blok posíláme až poté, co obdržíme Store Ready ACK: "SR". Tímto se vyvarujeme toho, že zaplníme buffery kvůli rozdílené rychlosti UART a SD I/O
                                                                                //   status\n                       - vypíšeme hodnoty konfiguračních proměnných a stav akumulátoru
                                                                                // Odpověď vždy ve formátu: response;cmd:PRIKAZ;DATA
                                                                                // Příklad pro ls\n:
@@ -478,9 +478,9 @@ bool wasButtonPressed() {                                                      /
                                                                                // Příklad pro store:
                                                                                // store soubor.txt 1000\n
                                                                                // (prvních 64 B)
-                                                                               // dorazí odpověď: response;cmd:store;filename:soubor.txt;status:block_ack\r\n
+                                                                               // dorazí odpověď: SR\n (Store Ready)
                                                                                // (posíláme dalších 64 B)
-                                                                               // dorazí odpověď: response;cmd:store;filename:soubor.txt;status:block_ack\r\n
+                                                                               // dorazí odpověď: SR\n
                                                                                // atd...
                                                                                //
                                                                                // Čekání na data lze ukončit krátkým stiskem tlačítka, anebo při neaktivitě (žádná sériová data po stanovený čas) 
@@ -489,6 +489,7 @@ void waitForSerialDataOrTimeoutOrButton() {
   while (digitalRead(GPIO_BUTTON) == HIGH) {
     delay(10);
   }
+  Serial.flush();
   uint32_t lastActivity = millis();
   while (millis() - lastActivity < UART_INACTIVITY_TIMEOUT_MS) {
     if (Serial.available()) {
@@ -570,10 +571,7 @@ void waitForSerialDataOrTimeoutOrButton() {
               bytesReceived += got;
               lastStoreActivity = millis();
               lastActivity      = millis();
-              Serial.printf(
-                "response;cmd:store;filename:%s;status:block_ack\r\n",
-                filename.c_str()
-              );
+              Serial.println("SR");
             }
             else if (millis() - lastStoreActivity > UART_STORE_TIMEOUT_MS) {
               f.close();
@@ -584,8 +582,6 @@ void waitForSerialDataOrTimeoutOrButton() {
               break;
             }
           }
-
-          // 5) Dokončení
           f.close();
           if (bytesReceived == expectedSize) {
             Serial.printf(
@@ -620,6 +616,8 @@ void waitForSerialDataOrTimeoutOrButton() {
       while (digitalRead(GPIO_BUTTON) == HIGH) {
         delay(10);
       }
+      Serial.println("system;poweroff;reason:device");
+      Serial.flush();
       pinMode(GPIO_POWER, OUTPUT); digitalWrite(GPIO_POWER, HIGH);
       display.init(115200,true,2,false);
       updateTopRightStats();
@@ -632,6 +630,8 @@ void waitForSerialDataOrTimeoutOrButton() {
     }
     delay(1);
   }
+  Serial.println("system;poweroff;reason:timeout");
+  Serial.flush();
   pinMode(GPIO_POWER, OUTPUT); digitalWrite(GPIO_POWER, HIGH);
   display.init(115200,true,2,false);
   updateTopRightStats();
@@ -766,7 +766,7 @@ double distanceBetween(double lat0, double lng0, double lat1, double lng1) {   /
   return delta * 6372795;                                                      // Střední poloměr Země: Přesnější ve středních změmepisných šířkách, méně na rovníku a v polárních oblastech
 }
 
-void logToFile(File &f) {                                                      // Uložíme fix do CSV souboru na SD
+void logToFile(File &f) {                                                      // Uložíme fixu do CSV souboru na SD
   double d = 0;
   if (hasLastPosition) {
     d = distanceBetween(fix.lat, fix.lng, lastLat, lastLng);
