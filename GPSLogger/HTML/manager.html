@@ -2,7 +2,7 @@
 <html lang="cs">
 <head>
   <meta charset="UTF-8">
-  <title>GPS Tracker File Manager 1.6</title>
+  <title>GPS Tracker File Manager 1.7</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
@@ -27,6 +27,8 @@
     #terminal { width: 100%; max-width: none; height: 30vh; overflow-y: auto; background: #111; color: #0f0; font-family: monospace; padding: 1rem; white-space: pre-wrap; border-top: 4px solid #333; box-sizing: border-box; }
     #terminal .rx {color: #6dd59c;}
     #terminal .tx {color: #68a7bc;}
+    #terminal .err {color: #dd5555;}
+    #terminal .sys {color: #cccc00;}
     #helpOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 9998; }
     #helpBox { background: #222; color: #fff; padding: 2rem; border-radius: 8px; max-width: 800px; text-align: left; z-index: 9999; }
     #statusBar {
@@ -48,6 +50,42 @@
     .status-cell:last-child {
       border-right: none;
     }
+    #changelog {
+      display: flex;
+      flex-direction: column;
+      align-items: center;    /* nadpisy a hlavní boxy budou vycentrované */
+      width: 100%;
+      max-width: 600px;
+      margin: 1rem auto 2rem;
+      padding: 1rem;
+      background: #f7f9fc;
+      border: 1px solid #aaa;
+      border-radius: 8px;
+      color: #888
+    }
+
+    #changelog h3 {
+      margin: 0.5rem 0 0.25rem;
+      text-align: center;
+    }
+
+    #changelog ul {
+      /* “shrink–wrap” box */
+      display: table;
+      /* vytlačit doprava */
+      margin: 0 0 1rem auto;
+      /* text uvnitř seznamu stále zarovnaný vlevo */
+      text-align: left;
+    }
+
+    #changelog.hidden {
+      opacity: 0;
+      pointer-events: none;
+      height: 0;
+      margin: 0;
+      padding: 0 1rem;
+      overflow: hidden;
+    }
     @media (max-width: 480px) { button { font-size: 0.9rem; padding: 0.4rem 0.8rem; } h1 { font-size: 2rem; } }
   </style>
 </head>
@@ -62,13 +100,29 @@
       <p>5. Pokud během minuty neprovedeš žádnou akci, GPS Tracker ukončí USB režim a přepne se do standardního</p>
       <p>6. Klepnutím na soubor jej můžeš smazat, nebo stáhnout do PC</p>
       <p>7. Pokud chceš soubor nahrát na SD (třeba novou konfiguraci config.json), přetáhni jej z počítače do okna správce souborů</p>
-      <p>8. Po nahrání nové konfigurace GPS Tracker vypni a zapni hlavním vypínačem. Potřebujeme kompletní restart systému!</p>
+      <p>8. Po nahrání nové konfigurace GPS Tracker vypni a 6)zapni hlavním vypínačem. Potřebujeme kompletní restart systému!</p>
       <p>Správce souborů používá ke komunikaci technologii WebSerial API, kterou podporují jen prohlížeče na bázi Chromium/Chrome. V tuto chvíli tedy desktopové verze Chrome/Edge 89 a vyšší a Opera 75 a vyšší. Testováno na Windows 11.</p>
     </div>
   </div>
   <div id="main">
-    <h1>GPS Tracker File Manager 1.6</h1>
+    <h1>GPS Tracker File Manager 1.7</h1>
     <button id="connectButton">Připojit</button>
+    <div id="changelog">
+      <h3>Verze 1.7 (3. července 2025)</h3>
+      <ul>
+        <li>Snad už konečně zmizelo „zamrzání“ po úvodním připojení</li>
+        <li>Keep-alive ping každých 45 sekund. Dokud je otevřený prohlížeč, krabička se neodpojí kvůli timeoutu</li>
+      </ul>
+      <h3>Verze 1.6 (20. června 2025)</h3>
+      <ul>
+        <li>Příkaz „status“ vypíše v patičce stránky stav zařízení</li>
+        <li>Transparentní ukončení spojení a upozornění na straně prohlížeče po stisku tlačítka/timeoutu</li>
+      </ul>
+      <h3>Verze 1.5 (15. června 2025)</h3>
+      <ul>
+        <li>Příkaz „store“ pro nahrávání souborů a implementace pomocí drag&drop na straně prohlížeče. Pouze po jednom!</li>
+      </ul>
+    </div>
     <div id="fileGrid"></div>
   </div>
   <progress id="progressBar" value="0" max="100"></progress>
@@ -92,11 +146,13 @@
     helpOverlay.addEventListener('click', () => helpOverlay.style.display = 'none');
 
     let port, writer, reader;
+    let blocking_io = false;
     let lineBuffer = '', rawBuffer = '';
     let readingCat = false, catMetadata = null, catBuffer = '';
     let selectedDiv = null;
     let statusReceived = false;
-    const statusLabels = ["Záznam", "GPS baudrate", "Nutné polohy", "GPS timeout (ms)", "Perioda (minuty)", "Uložené body", "Vzdálenost (m)", "Poslední Z.Š.", "Poslední Z.D.", "Napětí (V)", "Nabití (%)", "Boot"];
+    let keepAliveTimer = null;
+    const statusLabels = ["Záznam", "GPS baudrate", "Nutné polohy", "GPS timeout (ms)", "Perioda (minuty)", "Body", "Vzdálenost (m)", "Poslední Z.Š.", "Poslední Z.D.", "Napětí (V)", "Nabití (%)", "Boot"];
 
     function log(line, direction = 'rx') {
       const span = document.createElement('span');
@@ -225,6 +281,7 @@
           progressBar.value = pct;
           if (catBuffer.length >= catMetadata.size) {
             saveTextAsFile(catBuffer, catMetadata.filename);
+            blocking_io = false;
             readingCat = false;
             catMetadata = null;
             catBuffer = '';
@@ -254,14 +311,44 @@
     }
 
     async function connectSerial() {
+      log("Pokouším se spojit s GPS Trackerem...", "sys");
       port = await navigator.serial.requestPort();
       await port.open({ baudRate: 115200, dataBits: 8, stopBits: 1, parity: 'none', flowControl: 'none' });
+
+      // Zkusíme načíst/smazat případné smětí v UART bufferu
+      log("Čistím komunikační buffery...", "sys");
+      const tempReader = port.readable.getReader();
+      try {
+        const start = performance.now();
+        while (performance.now() - start < 500) {
+          const { value, done } = await Promise.race([
+            tempReader.read(),
+            new Promise(res => setTimeout(() => res({ done: true }), 500 - (performance.now() - start)))
+          ]);
+          if (done) break;
+        }
+      } catch (_) {
+      } finally {
+        await tempReader.cancel();
+        tempReader.releaseLock();
+      }
+
+      // Konec očisty, pokračujeme
       writer = port.writable.getWriter();
       const decoder = new TextDecoderStream();
       port.readable.pipeTo(decoder.writable);
       reader = decoder.readable.getReader();
       connectButton.style.display = 'none';
+      document.getElementById('changelog').classList.add('hidden');
+      log("Zjišťuji stav GPS Trackeru...", "sys");
       send('status\n');
+
+      keepAliveTimer = setInterval(() => {
+        if (!blocking_io) {
+          send('keep-alive\n');
+        }
+      }, 45000);
+
       readSerial();
     }
 
@@ -285,6 +372,7 @@
         });
         div.querySelector('.download-btn').addEventListener('click', e => {
           e.stopPropagation();
+          blocking_io = true;
           send(`cat /${name}\n`);
         });
         div.querySelector('.delete-btn').addEventListener('click', e => {
@@ -305,6 +393,7 @@
       if (!writer) return alert('Nejprve se připojte.');
       const files = Array.from(e.dataTransfer.files);
       for (const file of files) {
+        blocking_io = true;
         const data = new Uint8Array(await file.arrayBuffer());
         const totalBytes = data.length;
         currentStoreFile = file.name;
@@ -323,6 +412,7 @@
         progressBar.style.display = 'none';
         progressBar.value = 0;
       }
+      blocking_io = false;
     });
 
     connectButton.addEventListener('click', async () => {
@@ -366,12 +456,18 @@
         } catch (e) { /* ignore */ }
         port = null;
       }
+      if (keepAliveTimer) {
+        clearInterval(keepAliveTimer);
+        keepAliveTimer = null;
+      }
+      blocking_io = false;
       terminal.textContent = '';
       statusBar.style.display = 'none';
       fileGrid.innerHTML = '';
       progressBar.style.display = 'none';
       progressBar.value = 0;
       connectButton.style.display = '';
+      document.getElementById('changelog').classList.remove('hidden');
     }
   </script>
 </body>
