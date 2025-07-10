@@ -1,6 +1,6 @@
 /*
 
-GPS Tracker 0.3 Beta 250622 - kód je živý a stále ve vývoji!
+GPS Tracker 0.4 Beta 250707 - kód je živý a stále ve vývoji!
 
 Hardware:
  - LaskaKit ESPink-Shelf-2.13: https://www.laskakit.cz/en/laskakit-espink-shelf-213-esp32-e-paper/
@@ -54,6 +54,8 @@ TODO:
 #define GPS_FIX_TIMEOUT_MS                 60000                               // Výchozí timeout v milisekundách pro čekání na fix
 #define WAKE_PERIOD_MINUTES                10                                  // Výchozí perioda probouzení v minutách
 #define REQUIRED_FIXES                     4                                   // Výchozí počet fixů musíme získat (týká se UART režimu a NMEA zpráv)
+#define GPS_MAX_FAILS_BEFORE_DELAY         3                                   // Výchozí počet nezdařených pokusů o GPS fix, po kterých zdvojnásobíme prodlevu. ta se resetuje po úspěšném fixu 
+#define GPS_FAILED_DELAY_COEF              3                                   // Výchozí koeficient pro prodloužení času spánku v případě série neúspěšných pokusů o fix (nova_prodleva = prodleva * koeficient)
 
 
 #define BUTTON_DEBOUNCE_MS                 50                                  // Ochrana před mechanickými fluktuacemi stisku tlačítka v milisekundách (debouncing)
@@ -79,6 +81,7 @@ struct Fix {                                                                   /
   double speed;                                                                // Rychlost pohybu v km/h
   double hdop;                                                                 // Horizontální přenost HDOP
   uint8_t sats;                                                                // Počet satelitů
+  uint16_t course;                                                             // Kurz
   uint8_t hour;                                                                // Čas a datum v UTC (výpočet toho poledníkového je relativně složitý, protože politické hranice, ale některé přijímače to umějí)
   uint8_t minute; 
   uint8_t second; 
@@ -99,6 +102,7 @@ RTC_DATA_ATTR double      lastLng                      = 0.0;                  /
 RTC_DATA_ATTR bool        hasLastPosition              = false;                // Kontrola, jestli máme poslední známou polohu
 RTC_DATA_ATTR double      totalDistanceMeters          = 0.0;                  // Celková vzdálenost expedice v metrech. Pouze orientační; přčesnost limituje nízká frekvence ukládání dat a výpočet na kouli
 RTC_DATA_ATTR uint32_t    logCounter                   = 0;                    // Počítadlo uložených poloh na SD
+RTC_DATA_ATTR uint32_t    gpsFailedCounter             = 0;
                                                                                // Konfigurační část RTC RAM s hodnotami, které načteme z /config.json na SD, anebo použijeme výchozí hodnoty
 RTC_DATA_ATTR char        filename[80];                                        // Název souboru, do kterého ukládáme data
 RTC_DATA_ATTR uint32_t    minimum_change_to_log_meters = 0;                    // Minimální vzdálenost dvou po sobě jdoucích fixů, abychom uložili polohu
@@ -106,6 +110,8 @@ RTC_DATA_ATTR uint32_t    gps_fix_timeout_ms           = 0;                    /
 RTC_DATA_ATTR uint16_t    wake_period_minutes          = 0;                    // Perioda probouzení v minutách
 RTC_DATA_ATTR uint8_t     required_fixes               = 0;                    // Počet fixů musíme získat (týká se UART režimu a NMEA zpráv)
 RTC_DATA_ATTR uint32_t    serial_nmea_baudrate         = 0;                    // Rychlost GPS UART
+RTC_DATA_ATTR uint8_t     gps_max_fails_before_delay   = 0;                    // Počet po sobě jdoucích nezjištěných poloh (kvůli timeoutu), než prodloužíme prodlevu probouzení
+RTC_DATA_ATTR uint8_t     gps_failed_delay_coef        = 0;                    // Koeficient prodloužení prodlevy probouzení, pokud opakovaně nedokážeme najít polohu (pokud třeba 2, prodleva bude mít délku wake_period_minutes * 2)
 
 
 esp_reset_reason_t reset_reason;                                               // Důvod resetu čipu ESP32. Ukládáme na SD pro ladění
@@ -168,6 +174,8 @@ void setup() {                                                                 /
       Serial.printf(" - Pocet uspesnych fixu: %d\n", required_fixes);
       Serial.printf(" - GPS timeout: %d ms\n", gps_fix_timeout_ms);
       Serial.printf(" - Perioda probouzeni: %d minut\n", wake_period_minutes);
+      Serial.printf(" - Maximalni pocet GPS chyb pred delsi pauzou: %d\n", gps_max_fails_before_delay);
+      Serial.printf(" - Koeficient prodlouzeni pauzy pri chybach GPS: %d\n", gps_failed_delay_coef);
     }else{
       strncpy(filename, FILENAME, sizeof(filename) - 1); 
       filename[sizeof(filename) - 1] = '\0';
@@ -176,12 +184,16 @@ void setup() {                                                                 /
       wake_period_minutes = WAKE_PERIOD_MINUTES;
       required_fixes = REQUIRED_FIXES;
       serial_nmea_baudrate = SERIAL_NMEA_BAUDRATE;
+      gps_max_fails_before_delay = GPS_MAX_FAILS_BEFORE_DELAY;
+      gps_failed_delay_coef = GPS_FAILED_DELAY_COEF;
       Serial.println("Nepodarilo se nacist konfiguraci z SD, volim vychozi hodnoty:");
       Serial.printf(" - Soubor: %s\n", filename);
       Serial.printf(" - GPS baudrate: %d b/s\n", serial_nmea_baudrate);
       Serial.printf(" - Pocet uspesnych fixu: %d\n", required_fixes);
       Serial.printf(" - GPS timeout: %d ms\n", gps_fix_timeout_ms);
       Serial.printf(" - Perioda probouzeni: %d minut\n", wake_period_minutes);
+      Serial.printf(" - Maximalni pocet GPS chyb pred delsi pauzou: %d\n", gps_max_fails_before_delay);
+      Serial.printf(" - Koeficient prodlouzeni pauzy pri chybach GPS: %d\n", gps_failed_delay_coef);
     }
     if(loadLastFixAndStats()){
       Serial.println("Nactena statistika z SD:");
@@ -252,19 +264,21 @@ void setup() {                                                                 /
                                                                                // postupně zpřesňuje. Mohli bychom pracovat i s HDOP, počtem družic atp., ale pak hrozí, že někde v údolí se slabým příjmem
                                                                                // bychom nikdy nesplnili podmínku. Bereme to tak, že chceme to nejlepší dostupné, ať už to má jakoukoliv kvalitu
         if (fixes >= required_fixes) {
-          fix.lat = gps.location.lat();
-          fix.lng = gps.location.lng();
-          fix.alt = gps.altitude.meters();
-          fix.speed = gps.speed.kmph();
-          fix.hdop = gps.hdop.value();
-          fix.sats = gps.satellites.value();
-          fix.day = gps.date.day();
-          fix.month = gps.date.month();
-          fix.year = gps.date.year();
-          fix.hour = gps.time.hour();
+          fix.lat    = gps.location.lat();
+          fix.lng    = gps.location.lng();
+          fix.alt    = gps.altitude.meters();
+          fix.speed  = gps.speed.kmph();
+          fix.hdop   = gps.hdop.value();
+          fix.sats   = gps.satellites.value();
+          fix.course = (uint16_t)gps.course.deg();
+          fix.day    = gps.date.day();
+          fix.month  = gps.date.month();
+          fix.year   = gps.date.year();
+          fix.hour   = gps.time.hour();
           fix.minute = gps.time.minute();
           fix.second = gps.time.second();
           timeout = false;
+          gpsFailedCounter = 0;
           break;
         }
       }
@@ -272,11 +286,18 @@ void setup() {                                                                 /
   }
 
   if(timeout){                                                                 // V případě timoutu vypíšeme chybové hlášení a přepneme se do hlubokého spánku
+    gpsFailedCounter++;
     Serial.println("Timeout!");
     Serial.println("Nemam fix! Usnu a zkusim to znovu v dalsim kole");
     updateTopRightStats();
-    addToCell(2, &FreeSansBold9pt7b, "Nemohu najit GPS!");
-    addToCell(3, &FreeSansBold9pt7b, "Opakuji za %d minut", wake_period_minutes);
+    if(gpsFailedCounter >= gps_max_fails_before_delay){
+      uint16_t delayed_wake_period_minutes = wake_period_minutes * gps_failed_delay_coef;
+      addToCell(2, &FreeSansBold9pt7b, "Nemohu %d. najit GPS!", gpsFailedCounter);
+      addToCell(3, &FreeSansBold9pt7b, "Prodluzuji spanek na %d minut", delayed_wake_period_minutes);
+    }else{
+      addToCell(2, &FreeSansBold9pt7b, "Nemohu najit GPS!");
+      addToCell(3, &FreeSansBold9pt7b, "Opakuji za %d minut", wake_period_minutes);
+    }
     refresh();
     display.powerOff();
     digitalWrite(GPIO_POWER, LOW);
@@ -354,6 +375,8 @@ bool loadConfig() {                                                           //
   wake_period_minutes = doc["wake_period_minutes"] | WAKE_PERIOD_MINUTES;
   required_fixes = doc["required_fixes"] | REQUIRED_FIXES;
   serial_nmea_baudrate = doc["serial_nema_baudrate"] | SERIAL_NMEA_BAUDRATE;
+  gps_failed_delay_coef = doc["gps_failed_delay_coef"] | GPS_FAILED_DELAY_COEF;
+  gps_max_fails_before_delay = doc["gps_max_fails_before_delay"] | GPS_MAX_FAILS_BEFORE_DELAY;
   return true;
 }
 
@@ -363,7 +386,7 @@ bool loadLastFixAndStats() {                                                   /
     Serial.printf("Soubor %s se nepodařilo otevřít pro získání poslední známé polohy\n", filename);
     return false;
   }
-  const size_t maxLine = 256;
+  const size_t maxLine = 600;
   char line[maxLine] = {0};
   size_t size = f.size();
   if (size < 2) {
@@ -417,7 +440,7 @@ void updateTopRightStats(){                                                    /
   addToCell(
     1, 
     &FreeSansBold9pt7b, 
-    "%dS %c %.2fV (%d%%)", fix.sats,
+    "%dS %c %.2fV %d%%", fix.sats,
     getResetReason(), 
     vbat, vbatToPercent(vbat)
   ); 
@@ -442,7 +465,12 @@ int vbatToPercent(float vbat){
   
 void goodNight(){  
   rtcRamOk = true; 
-  esp_sleep_enable_timer_wakeup((uint64_t) wake_period_minutes * 60ULL * 1000000UL);
+  if(gpsFailedCounter >= gps_max_fails_before_delay){
+    uint16_t delayed_wake_period_minutes = wake_period_minutes * gps_failed_delay_coef;
+    esp_sleep_enable_timer_wakeup((uint64_t) delayed_wake_period_minutes * 60ULL * 1000000UL);
+  }else{
+    esp_sleep_enable_timer_wakeup((uint64_t) wake_period_minutes * 60ULL * 1000000UL);
+  }
   esp_sleep_enable_ext0_wakeup((gpio_num_t)GPIO_BUTTON, 1); 
   esp_deep_sleep_start();
 }
@@ -677,7 +705,7 @@ void refreshDisplay(){                                                         /
   addToCell(                                                                   // Buňka 0: Čas fixu          
     0, 
     &FreeSansBold9pt7b, 
-    "%02d:%02d:%02d", fix.hour, fix.minute, fix.second
+    "%02d:%02d %dM", fix.hour, fix.minute, wake_period_minutes 
   );
   
    updateTopRightStats();                                                      // Buňka 1: Počet satelitů, iniciátor startu, napětí a nabití baterie  
@@ -787,9 +815,9 @@ void logToFile(File &f) {                                                      /
   lastLat = fix.lat;
   lastLng = fix.lng;
   hasLastPosition=true;
-  char line[512];
+  char line[600];
   snprintf(line,sizeof(line),
-    "%02d.%02d. %04d;%02d:%02d:%02d;%d;%.6f;%.6f;%.1f;%.1f;%.2f;%.1f;%d;%d;%.1f;%.3f;%d;%d;%d\n",
+    "%02d.%02d. %04d;%02d:%02d:%02d;%d;%.6f;%.6f;%.1f;%.1f;%.2f;%.1f;%d;%d;%.1f;%d;%.3f;%d;%d;%d\n",
     fix.day, fix.month, fix.year,                                              // DD.MM. YYYY
     fix.hour, fix.minute, fix.second,                                          // HH:MM:SS
     logCounter,                                                                // Počítalo uložených záznamů
@@ -800,8 +828,9 @@ void logToFile(File &f) {                                                      /
     totalDistanceMeters/1000.0,                                                // Celková vzdálenost (km)
     d,                                                                         // Vzdálenost mezi po sobě jdoucími fixy                         
     fix.timetofix,                                                             // Doma k získání prvního fixu (ms)
-    fix.sats,                                                                  // Počet staelitů
+    fix.sats,                                                                  // Počet satelitů
     fix.hdop,                                                                  // HDOP / Horizontální přesnost
+    fix.course,                                                                // Kurz
     vbat,                                                                      // Napětí baterie (V)
     vbatToPercent(vbat),                                                       // Nabití baterie (%)
     reset_reason,                                                              // Důvod resetu
