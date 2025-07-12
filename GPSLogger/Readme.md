@@ -70,13 +70,14 @@ Deska v jeden okamžik spíná napájení GPS přijímače i e-ink displeje. Pok
 
 Ve výchozím stavu deska měří polohu každých 10 minut (viz konfigurace config.json) a po zbytek času se přepíná do hlubokého spánku. Během této doby je odpojeno i napájení GPS přijímače, každé nové hledání polohy proto může zabrat 0,5-30 sekund podle toho, jestli se stačila dobít udržovací baterie GPS modulu.
 
-![Co je na displeji](prilohy/displej.png)]
+![Co je na displeji](prilohy/displej.png)
 
 Díky nižší frekvenci zjišťování polohy může GPS tracker s vhodnou baterií (2500 mAh a více) vydržet i několik dlouhých týdnů. GPS tracker zároveň ukládá polohu jen tehdy, pokud se dvě po sobě jdoucí polohy liší o určitou vzdálenost (parametr `minimum_change_to_log_meters` v config.json). Zároveň se neukládá hned první validní fix, ale čekáme na několik poloh s předpokladem, že se bude postupně zpřesňovat (parametr required_fixes v `config.ini`). Je třeba zároveň nastavit správnou rychlost sériového spojení s GPS přijímačem (parametr `serial_nema_baudrate`).
 
 Pokud bude vše fungovat, až několikatýdenní GPS tracker může zaznamenat trasu třeba jako na obrázku níže. Vlevo GPS tracker, vpravo běžný záznam aktivity ve sportovní aplikaci Strava.
 
 ![Srovnání záznamu](prilohy/srovnani1.png)
+
 ---
 
 ## Tlačítko a režim UART
