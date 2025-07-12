@@ -89,6 +89,7 @@ V **UART režimu** (rychlost **115200 b/s**) zařízení poslouchá na primárn�
 - `ls` (ukončeno znakem `\n`) – vypíše seznam souborů na SD kartě  
 - `cat NAZEVSOUBORU\n` – vypíše obsah daného souboru (předpokládá se, že jde o text)  
 - `rm NAZEVSOUBORU\n` – smaže daný soubor
+- `store NAZEVSOUBORU POCETBAJTU\n64B←SR\n64B←SR\n...` – uloží soubor na SD kartu po 64B blocích s ACK. Po odeslání každého bloku čekáme na SR\n potvrzení (Store Ready), že zařízení zpracovalo dávku a je připraveno na dálší blok
 
 Zařízení odpovídá ve formátu:
 
