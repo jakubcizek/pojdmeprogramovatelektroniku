@@ -110,11 +110,9 @@ response;cmd:PRIKAZ;DATA
   ahoj
   ```
 
-  - Na příkaz `store config.json 154
-    (prvních 64 B)`
-    odpoví:
+- Na příkaz `store config.json 154\n(prvních 64 B)` odpoví:
   ```
- SR
+  SR
   ```
 
 Čekání na sériová data je možné kdykoliv ukončit:
