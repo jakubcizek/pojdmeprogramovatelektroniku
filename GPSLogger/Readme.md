@@ -21,6 +21,7 @@
 Tlačítko a kondenzátor vyžadují pájení! Všechny ostatní komponenty jsou zacvakávací. Tlačítko ale není pro základní funkci nutné (jen pro ruční ukládání poloh a kopírování dat z SD skrze USB). Aktuální verze firmwaru zároveň snižuje výkon procesoru na 40 MHz, čímž se snižuje proud a kondenzátor by možná nebyl potřeba (viz sekce Zapojení). Netestováno!
 
 ![Co je na displeji](prilohy/displej.png)]
+
 ---
 
 ## Zdrojové kódy
