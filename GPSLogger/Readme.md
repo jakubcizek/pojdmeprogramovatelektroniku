@@ -1,6 +1,6 @@
 # GPS Tracker na dovolenou
 
-**Příloha projektu GPS trackeru s dlouhou výdrží** na letní expedici, které se věnuji i v článku v časopisu [Computer 07/2025](https://www.ikiosek.cz/computer).
+**Příloha projektu „GPS tracker s dlouhou výdrží na letní expedici“**, kterému se věnuji v časopisu [Computer 07/2025](https://www.ikiosek.cz/computer).
 
 **Pozor, tato stručná dokumentace na GitHubu není náhradou článku, ale pouze jeho doplněním!** Podpořte kutilskou žurnalistiku a kupte si časopis Computer, který je k dispozici i v elektronické podobě :-).
 
