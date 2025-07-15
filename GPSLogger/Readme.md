@@ -129,7 +129,7 @@ Po startu zařízení navíc čeká, dokud uživatel neuvolní tlačítko. To je
 
 ### HTML GUI
 
-V adresáři `HTML` najdete jednoduchý prototyp webové stránky manager.html, která pomocí technologie WebSerial API pomocí povelů výše dokáže zobrazit a stáhnout soubory na SD kartě po připojení zařízení k počítači. Manager.html musí běžet na HTTPS serveru, jinak webový prohlížeč odmítne připojení k USB. Technologii WebSerial podporují jen některé webové prohlížeče a ne na všech operačních systémech. Testováno v Chromu na Windows. Manager je dostupný i online na adrese [kloboukuv.cloud/gpstracker/manager.html](https://kloboukuv.cloud/gpstracker/manager.html).
+V adresáři `HTML` najdete jednoduchý prototyp webové stránky manager.html, která pomocí technologie WebSerial API a povelů výše dokáže zobrazit a stáhnout soubory na SD kartě po připojení zařízení k počítači. Manager.html musí běžet na HTTPS serveru, jinak webový prohlížeč odmítne připojení k USB. Technologii WebSerial podporují jen některé webové prohlížeče a ne na všech operačních systémech. Testováno v Chromu na Windows. Manager je dostupný i online na adrese [kloboukuv.cloud/gpstracker/manager.html](https://kloboukuv.cloud/gpstracker/manager.html).
 
 ![HTML manager](prilohy/manager.png)
 
