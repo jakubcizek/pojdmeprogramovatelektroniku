@@ -24,7 +24,7 @@ Tlačítko a kondenzátor vyžadují pájení! Všechny ostatní komponenty jsou
 
 ## Zdrojové kódy
 
-Zdrojový kód pro prototypovací desku [ESPInk-Shelf](https://www.laskakit.cz/en/laskakit-espink-shelf-213-esp32-e-paper/) najdete v adresáři `Arduino`. Kód je připraven pro [Platformio IDE](https://platformio.org/platformio-ide). Adresář obsahuje i konfigurační soubor `platformio.ini`.
+Zdrojový kód pro prototypovací desku [ESPInk-Shelf](https://www.laskakit.cz/en/laskakit-espink-shelf-213-esp32-e-paper/) najdete v adresáři `Arduino`. Kód je připraven pro [Platformio IDE](https://platformio.org/platformio-ide). Adresář obsahuje i konfigurační soubor `platformio.ini`, který se postará o automatické stažení všech potřebných prerekvizit (knihovny aj.).
 
 V adresáři `SD karta` najdete ukázkový obsah na microSD zasunuté do prototypovací desky. Soubor `zaznam.txt` obsahuje ukázku zaznamenaných dat ve formátu CSV (pořadí položek viz dokumentace ve zdrojovém kódu main.cpp), klíčový je ale především soubor `config.json` s konfigurací programu. Pokud bude soubor chybět, použije se výchozí konfigurace, která je součástí firmwaru.
 
