@@ -1,0 +1,46 @@
+# Testovací programy pro mikrokontroler ESP32-P4
+
+**Příloha článku „Stíhačka z Asie ESP32-P4“**, kterému se věnuji v časopisu [Computer 10/2025](https://www.ikiosek.cz/computer).
+
+1. program 01_ahoj_svete: Vypíše informace o čipu a pamětech a spustí někonečnou smyčku se zdravicemi, které budou střídavě vypisovat jednotlivá HP jádra procesoru
+2. program 02_ram_benchamrk: Provede primitivní benchmark čtení a zápisu do 32MB externí SPI PSRAM. A to jak skrze standardní memcpy po malých blocích, tak pomocí DMA a asynchronního memcpy
+3. program 03_camera_jpeg_server: Spustí webový server s ovládací stránkou pro pořizování fotek a aktivaci MJPEG streamu. Zatím pomalé kvůli režii Wi-Fi na sekundárním čipu; je třeba doladit konfiguraci
+
+- Použitý hardware: [Waveshare ESP32-P4-WIFI6](https://www.waveshare.com/esp32-p4-wifi6.htm?sku=32020) (zmenšenína oficiálního devkitu od Espressifu)
+- Použitá kamera: [Libovolný klon RPi kamery se snímačem OV5647 a rozhraním MIPI CSI](https://www.waveshare.com/rpi-camera-b.htm)
+- Propojovací kabel kamery s užší/Mini koncovkou pro konektor desky: [Raspberry Pi Camera Cable Standard - Mini 200 mm](https://rpishop.cz/mipi/6501-raspberry-pi-5-camera-cable-standard-mini-200-mm.html)
+- Vývojové prostředí: [ESP-IDF](https://docs.espressif.com/projects/esp-idf/en/stable/esp32p4/get-started/index.html)
+
+## Řešení problémů
+
+Překlad kódu proběhne v pořádku, ale Visual Studio Code mi červeným podtržením hlásí neznámé funkce a hlavičkové soubory:
+
+- Vytvořte ve VSC nový projekt (Ctrl+Shift+P -> ESP-IDF: New Project) a poté z adresáře nového projektu do toho stávajícího zkopírujte vygenerovaný .vscode/c_cpp_properties.json.
+
+Soubor bude mít zhruba tuto podobu:
+
+```json
+{
+  "configurations": [
+    {
+      "name": "ESP-IDF",
+      "compilerPath": "${config:idf.toolsPathWin}\\tools\\xtensa-esp-elf\\esp-14.2.0_20241119\\xtensa-esp-elf\\bin\\xtensa-esp32-elf-gcc.exe",
+      "compileCommands": "${config:idf.buildPath}/compile_commands.json",
+      "includePath": [
+        "${config:idf.espIdfPath}/components/**",
+        "${config:idf.espIdfPathWin}/components/**",
+        "${workspaceFolder}/**"
+      ],
+      "browse": {
+        "path": [
+          "${config:idf.espIdfPath}/components",
+          "${config:idf.espIdfPathWin}/components",
+          "${workspaceFolder}"
+        ],
+        "limitSymbolsToIncludedHeaders": true
+      }
+    }
+  ],
+  "version": 4
+}
+```
