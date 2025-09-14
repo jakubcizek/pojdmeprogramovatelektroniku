@@ -2,9 +2,9 @@
 
 **Příloha článku „Stíhačka z Asie ESP32-P4“**, kterému se věnuji v časopisu [Computer 10/2025](https://www.ikiosek.cz/computer).
 
-1. program 01_ahoj_svete: Vypíše informace o čipu a pamětech a spustí někonečnou smyčku se zdravicemi, které budou střídavě vypisovat jednotlivá HP jádra procesoru
-2. program 02_ram_benchamrk: Provede primitivní benchmark čtení a zápisu do 32MB externí SPI PSRAM. A to jak skrze standardní memcpy po malých blocích, tak pomocí DMA a asynchronního memcpy
-3. program 03_camera_jpeg_server: Spustí webový server s ovládací stránkou pro pořizování fotek a aktivaci MJPEG streamu. Zatím pomalé kvůli režii Wi-Fi na sekundárním čipu; je třeba doladit konfiguraci
+1. program **01_ahoj_svete**: Vypíše informace o čipu a pamětech a spustí někonečnou smyčku se zdravicemi, které budou střídavě vypisovat jednotlivá HP jádra procesoru
+2. program **02_ram_benchamrk**: Provede primitivní benchmark čtení a zápisu do 32MB externí SPI PSRAM. A to jak skrze standardní memcpy po malých blocích, tak pomocí DMA a asynchronního memcpy
+3. program **03_camera_jpeg_server**: Spustí webový server s ovládací stránkou pro pořizování fotek a aktivaci MJPEG streamu. Zatím pomalé kvůli režii Wi-Fi na sekundárním čipu; je třeba doladit konfiguraci
 
 - Použitý hardware: [Waveshare ESP32-P4-WIFI6](https://www.waveshare.com/esp32-p4-wifi6.htm?sku=32020) (zmenšenína oficiálního devkitu od Espressifu)
 - Použitá kamera: [Libovolný klon RPi kamery se snímačem OV5647 a rozhraním MIPI CSI](https://www.waveshare.com/rpi-camera-b.htm)
