@@ -1,0 +1,6 @@
+# Aktivujeme experimentalni funkce
+# Diky tomu budeme moci nastavit 200MHz PSRAM
+CONFIG_IDF_EXPERIMENTAL_FEATURES=y
+
+# Aktivujeme externi SPI RAM / PSRAM
+CONFIG_SPIRAM=y
