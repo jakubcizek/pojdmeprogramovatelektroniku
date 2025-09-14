@@ -10,4 +10,4 @@ Program vypíše velikost volné RAM a flashové paměti. Poté začne v nekone�
 
 Výstup do konzole sériové linky by mohl vypadat třeba takto (Visual Studio Code s pluginem ESP-IDF. Víz odkaz výše):
 
-![GPS tracker](esp32p4_program_01.jpg)]
+![Prvni program](esp32p4_program_01.jpg)]
