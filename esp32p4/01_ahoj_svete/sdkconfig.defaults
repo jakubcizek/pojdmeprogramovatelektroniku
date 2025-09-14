@@ -1,0 +1,25 @@
+# Aktivujeme experimentalni funkce
+# Diky tomu budeme moci nastavit 200MHz PSRAM
+CONFIG_IDF_EXPERIMENTAL_FEATURES=y
+
+# Aktivujeme externi SPI RAM / PSRAM
+CONFIG_SPIRAM=y
+
+# ESP32-P4 podporuje SPI RAM az v 16bit DDR rezimu (HPI / HyperRAM)
+# HPI / HyperRAM:  16bit sirka
+# OPI / Octet SPI: 8bit sirka
+# QPI / Quad SPI:  4bit sirka
+# DPI / Dual SPI:  2bit sirka 
+CONFIG_SPIRAM_MODE_HEX=y
+
+# SPI RAM taktujeme na 200 MHz
+# Starsi cipy ESP32 podporuji jen 20-40 MHz (ESP32-S3 experimentalne 120 MHz)
+CONFIG_SPIRAM_SPEED_200M=y
+
+
+# Pouzivame desku s externi flash od GigaDevice
+CONFIG_SPI_FLASH_SUPPORT_GD_CHIP=y
+
+# Externi flash ma velikost 32 MB
+CONFIG_ESPTOOLPY_FLASHSIZE_32MB=y
+CONFIG_ESPTOOLPY_FLASHSIZE="32MB"
