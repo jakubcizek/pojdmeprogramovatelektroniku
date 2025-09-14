@@ -1,3 +1,5 @@
+CONFIG_IDF_TARGET="esp32p4"
+
 # Aktivujeme experimentalni funkce
 # Diky tomu budeme moci nastavit 200MHz PSRAM
 CONFIG_IDF_EXPERIMENTAL_FEATURES=y
