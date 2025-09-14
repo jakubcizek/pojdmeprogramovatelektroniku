@@ -57,10 +57,14 @@ void app_main(void){
 // Webhandler pro kořen / na primárním serveru
 // Vrátíme stringovou konstantu INDEX_HTML ze souboru html.h
 //-----------------------------------------------------------------------------
-static esp_err_t webhandler_index(httpd_req_t *req){
+static esp_err_t webhandler_index(httpd_req_t *http_req){
     ESP_LOGI(TAG, "HTTP GET: /");
-    httpd_resp_set_type(req, "text/html; charset=utf-8");
-    httpd_resp_send(req, INDEX_HTML, HTTPD_RESP_USE_STRLEN);
+    httpd_resp_set_type(http_req, "text/html; charset=utf-8");
+    // Žádné kešování na straně ptohlížeče!
+    httpd_resp_set_hdr(http_req, "Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+    httpd_resp_set_hdr(http_req, "Pragma", "no-cache");
+    httpd_resp_set_hdr(http_req, "Expires", "0");
+    httpd_resp_send(http_req, INDEX_HTML, HTTPD_RESP_USE_STRLEN);
     return ESP_OK;
 }
 
@@ -150,6 +154,7 @@ static esp_err_t webhandler_capture_jpeg(httpd_req_t *http_req){
         }
     }
     duration_warming = esp_timer_get_time() - t;
+    ESP_LOGI(TAG, "Zahřívání kamery trvalo %" PRId64 " us", duration_warming);
 
 
     // Přečteme snímek z kamery ve formátu RGB565
@@ -229,6 +234,11 @@ static esp_err_t webhandler_capture_jpeg(httpd_req_t *http_req){
     httpd_resp_set_hdr(http_req, "X-Duration-Gfx", str_duration_gfx);
     httpd_resp_set_hdr(http_req, "X-Duration-Jpeg", str_duration_jpeg);
 
+    // Žádné kešování na straně ptohlížeče!
+    httpd_resp_set_hdr(http_req, "Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+    httpd_resp_set_hdr(http_req, "Pragma", "no-cache");
+    httpd_resp_set_hdr(http_req, "Expires", "0");
+
     // Odešleme data klientovi
     t = esp_timer_get_time();
     if(httpd_resp_send_chunk(http_req, (const char*)jpg, jpg_len) != ESP_OK){
@@ -294,7 +304,6 @@ static esp_err_t webhandler_mjpeg_loop(httpd_req_t *http_req){
         httpd_resp_sendstr(http_req, "JPEG init failed\n");
         return ESP_OK;
     }
-    
 
     // HTTP hlavičky pro proud JPEG obrázků oddělených slovem "frame"
     httpd_resp_set_type(http_req, "multipart/x-mixed-replace; boundary=frame");
