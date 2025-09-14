@@ -1,0 +1,11 @@
+menu "Připojení k Wi-Fi"
+
+config WIFI_SSID
+    string "SSID Wi-Fi"
+    default "MojeSit"
+
+config WIFI_PASSWORD
+    string "Heslo Wi-Fi"
+    default "tajneheslo"
+
+endmenu

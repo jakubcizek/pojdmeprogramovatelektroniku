@@ -1,0 +1,65 @@
+# Aktivujeme experimentalni funkce
+# Diky tomu budeme moci nastavit 200MHz PSRAM
+CONFIG_IDF_EXPERIMENTAL_FEATURES=y
+
+# Aktivujeme externi SPI RAM / PSRAM
+CONFIG_SPIRAM=y
+
+# ESP32-P4 podporuje SPI RAM v 16bit DDR rezimu (HPI / HyperRAM)
+# To je tedy az 8x vice nez u starsich cipu ESP32:
+# OPI / Octet SPI: 8bit sirka
+# QPI / Quad SPI: 4bit sirka
+# DPI / Dual SPI: 2bit sirka 
+CONFIG_SPIRAM_MODE_HEX=y
+
+# SPI RAM taktujeme na 200 MHz
+# Starsi cipy ESP32 podporuji jen 20-40 MHz (ESP32-S3 experimentalne 120 MHz)
+CONFIG_SPIRAM_SPEED_200M=y
+
+# Pouzivame desku s externi flash od GigaDevice
+CONFIG_SPI_FLASH_SUPPORT_GD_CHIP=y
+
+# Externi flash ma velikost 32 MB
+CONFIG_ESPTOOLPY_FLASHSIZE_32MB=y
+CONFIG_ESPTOOLPY_FLASHSIZE="32MB"
+
+# Chceme hodne mista pro firmware
+# Ale neni nutne, aplikace se tak tak vejde i do maleho oddilu
+# Viz menuconfig
+CONFIG_PARTITION_TABLE_SINGLE_APP_LARGE=y
+
+# Vychozi nastaveni driveru kamery na cip OV5647 a rezim snimani RAW8 800x640 px
+# Espressif pripravil ovladace i pro dalsi kamery a vyssi rozliseni vcetne FHD
+# Viz Menuconfig a sekce Espressif Camera Sensors Configurations / Camera Sensor Configuration / Select and Set Camera Sensor
+CONFIG_CAMERA_OV5647=y
+CONFIG_CAMERA_OV5647_MIPI_RAW8_800X640_50FPS=y
+CONFIG_CAMERA_OV5647_AUTO_DETECT_MIPI_INTERFACE_SENSOR=y
+CONFIG_CAMERA_OV5647_MIPI_IF_FORMAT_INDEX_DEFAULT=1
+CONFIG_CAMERA_OV5647_CSI_LINESYNC_ENABLE=y
+CONFIG_CAMERA_OV5647_DEFAULT_IPA_JSON_CONFIGURATION_FILE=y
+
+# Nastaveni WI-Fi SSID a hesla, at ho nemame v kodu
+CONFIG_WIFI_SSID="Nazev Wifi"
+CONFIG_WIFI_PASSWORD="HEslo Wifi"
+
+# Doporucene nastaveni rozhrani ESP Hosted (ESP32-P4 - SDIO - ESP32C6 Wi-Fi)
+# Neni to ale idealni, Wi-Fi je pomale a je treba dale ladit menuconfig
+# Pro co nejrychlejsi prenos dat je ale vhodnejsi kabelovy ethernet
+# Wi-Fi skrze SDIO ma rezii a je mnohem pomalejsil variantu desky s ethernetem vyzkousim
+# https://github.com/espressif/esp-hosted-mcu/blob/main/docs/esp32_p4_function_ev_board.md#2-set-up-esp-idf
+CONFIG_ESP_WIFI_STATIC_RX_BUFFER_NUM=16
+CONFIG_ESP_WIFI_DYNAMIC_RX_BUFFER_NUM=64
+CONFIG_ESP_WIFI_DYNAMIC_TX_BUFFER_NUM=64
+CONFIG_ESP_WIFI_AMPDU_TX_ENABLED=y
+CONFIG_ESP_WIFI_TX_BA_WIN=32
+CONFIG_ESP_WIFI_AMPDU_RX_ENABLED=y
+CONFIG_ESP_WIFI_RX_BA_WIN=32
+
+# A stejne tak doporucene nastaveni lwIP (lightweight IP) TC/IP stacku
+# S hodnotami se da dale pohrat v menuconfig
+CONFIG_LWIP_TCP_SND_BUF_DEFAULT=65534
+CONFIG_LWIP_TCP_WND_DEFAULT=65534
+CONFIG_LWIP_TCP_RECVMBOX_SIZE=64
+CONFIG_LWIP_UDP_RECVMBOX_SIZE=64
+CONFIG_LWIP_TCPIP_RECVMBOX_SIZE=64
+CONFIG_LWIP_TCP_SACK_OUT=y
