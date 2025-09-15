@@ -1,0 +1,13 @@
+idf_component_register(
+    SRCS 
+       "main.c"
+    INCLUDE_DIRS 
+        "include"
+    REQUIRES 
+        gfx
+        camera
+        jpeg
+        ethernet
+        esp_timer
+        esp_http_server
+)

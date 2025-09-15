@@ -1,0 +1,10 @@
+idf_component_register(
+    SRCS 
+        "ethernet.c"
+    INCLUDE_DIRS 
+        "include"
+    REQUIRES
+        esp_event
+        esp_eth
+        esp_netif
+)

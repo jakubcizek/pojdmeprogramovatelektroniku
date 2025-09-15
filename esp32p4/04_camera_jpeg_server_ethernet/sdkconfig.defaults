@@ -1,0 +1,47 @@
+CONFIG_IDF_TARGET="esp32p4"
+
+# Aktivujeme experimentalni funkce
+# Diky tomu budeme moci nastavit 200MHz PSRAM
+CONFIG_IDF_EXPERIMENTAL_FEATURES=y
+
+# SPI RAM --------------------------------------------------------------------------------------------------------------------
+# Aktivujeme externi SPI RAM / PSRAM
+CONFIG_SPIRAM=y
+# ESP32-P4 podporuje SPI RAM v 16bit DDR rezimu (HPI / HyperRAM)
+# To je tedy az 8x vice nez u starsich cipu ESP32:
+# OPI / Octet SPI: 8bit sirka
+# QPI / Quad SPI: 4bit sirka
+# DPI / Dual SPI: 2bit sirka 
+CONFIG_SPIRAM_MODE_HEX=y
+# SPI RAM taktujeme na 200 MHz
+# Starsi cipy ESP32 podporuji jen 20-40 MHz (ESP32-S3 experimentalne 120 MHz)
+CONFIG_SPIRAM_SPEED_200M=y
+
+# SPI FLASH ------------------------------------------------------------------------------------------------------------------
+# Pouzivame desku s externi flash od GigaDevice
+CONFIG_SPI_FLASH_SUPPORT_GD_CHIP=y
+# Externi flash ma velikost 32 MB
+CONFIG_ESPTOOLPY_FLASHSIZE_32MB=y
+CONFIG_ESPTOOLPY_FLASHSIZE="32MB"
+
+# PARTITION ------------------------------------------------------------------------------------------------------------------
+# Chceme hodne mista pro firmware
+# Ale neni nutne, aplikace se tak tak vejde i do maleho oddilu
+# Viz menuconfig
+CONFIG_PARTITION_TABLE_SINGLE_APP_LARGE=y
+
+# KAMERA ---------------------------------------------------------------------------------------------------------------------
+# Vychozi nastaveni driveru kamery na cip OV5647 a rezim snimani RAW8 800x640 px
+# Espressif pripravil ovladace i pro dalsi kamery a vyssi rozliseni vcetne FHD
+# Viz Menuconfig a sekce Espressif Camera Sensors Configurations / Camera Sensor Configuration / Select and Set Camera Sensor
+CONFIG_CAMERA_OV5647=y
+CONFIG_CAMERA_OV5647_MIPI_RAW8_800X640_50FPS=y
+# Alternativni nastavení pro 1080p
+#CONFIG_CAMERA_OV5647_MIPI_RAW10_1920X1080_30FPS=y
+
+CONFIG_CAMERA_OV5647_AUTO_DETECT_MIPI_INTERFACE_SENSOR=y
+CONFIG_CAMERA_OV5647_MIPI_IF_FORMAT_INDEX_DEFAULT=1
+CONFIG_CAMERA_OV5647_CSI_LINESYNC_ENABLE=y
+CONFIG_CAMERA_OV5647_DEFAULT_IPA_JSON_CONFIGURATION_FILE=y
+
+# ETHERNET ------------------------------------------------------------------------------------------------------------------
