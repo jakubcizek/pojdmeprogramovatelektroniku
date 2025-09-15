@@ -11,6 +11,35 @@
 - Propojovací kabel kamery s užší/Mini koncovkou pro konektor desky: [Raspberry Pi Camera Cable Standard - Mini 200 mm](https://rpishop.cz/mipi/6501-raspberry-pi-5-camera-cable-standard-mini-200-mm.html)
 - Vývojové prostředí: [ESP-IDF](https://docs.espressif.com/projects/esp-idf/en/stable/esp32p4/get-started/index.html)
 
+## fontgenerator.py
+
+Tento skript v Pythonu postavený na knihovně PIL/Pillow slouží ke generování rastrových fontů pro komponentu gfx.h, kteoru používáme ve třetím programu
+Příklad použití: 
+
+Zobrazí nápovědu:
+
+```bash
+python fontgenerator.py -h
+```
+
+Vytvoří rastrové písmo arial30 s 30px znaky z TTF fontu arial do souboru arial30px.h. Použije se výchozí znaková sada (běžné znaky na klávesnici)
+
+```bash
+python fontgenerator.py --ttf arial.ttf --size 30 --name arial30 --out arial30px.h
+```
+
+Vytváříme jen rastrové znaky/glyfy pro písmena 0-9
+
+```bash
+python fontgenerator.py --ttf arial.ttf --size 30 --name arial30 --out arial30px.h --charset 0123456789
+```
+
+Vytváříme jen rastrové znaky/glyfy pro písmena v souboru text.txt
+
+```bash
+python fontgenerator.py --ttf arial.ttf --size 30 --name arial30 --out arial30px.h --charset_file text.txt
+```
+
 ## Řešení problémů
 
 Překlad kódu proběhne v pořádku, ale Visual Studio Code mi červeným podtržením hlásí neznámé funkce a hlavičkové soubory:
