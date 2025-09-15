@@ -98,9 +98,6 @@ def main():
             charset = f.read()
     codepoints = ustr_to_codepoints(charset)
 
-    if 32 not in codepoints:
-        codepoints.insert(0, 32)
-
     try:
         font = ImageFont.truetype(args.ttf, args.size)
     except Exception as e:
@@ -187,7 +184,7 @@ def main():
         f.write(hdr)
 
     print(f"Vytvořil jsem bitmapový AA font {args.out}")
-    print(f"Glyfy: {len(glyphs)}  Bajty: {len(bitmap_bytes)}  Ascent: {ascent}  Descent: {descent} Řádek: {line_height}")
+    print(f"Glyfy: {len(glyphs)} Bajty: {len(bitmap_bytes)}  Ascent: {ascent}  Descent: {descent} Řádkový krok: {line_height}")
 
 if __name__ == "__main__":
     main()
