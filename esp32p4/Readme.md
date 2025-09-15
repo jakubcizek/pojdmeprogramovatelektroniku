@@ -28,10 +28,10 @@ Vytvoří rastrové písmo arial30 s 30px znaky z TTF fontu arial do souboru ari
 python fontgenerator.py --ttf arial.ttf --size 30 --name arial30 --out arial30px.h
 ```
 
-Vytváříme jen rastrové znaky/glyfy pro písmena 0-9
+Vytváříme jen rastrové znaky/glyfy pro písmena 0-9 a mezeru
 
 ```bash
-python fontgenerator.py --ttf arial.ttf --size 30 --name arial30 --out arial30px.h --charset 0123456789
+python fontgenerator.py --ttf arial.ttf --size 30 --name arial30 --out arial30px.h --charset "0123456789 "
 ```
 
 Vytváříme jen rastrové znaky/glyfy pro písmena v souboru text.txt
