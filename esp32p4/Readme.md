@@ -8,7 +8,7 @@
 4. program **04_camera_jpeg_server_ethernet**: Spustí webový server s ovládací stránkou pro pořizování fotek a aktivaci MJPEG streamu. NAmísto Wi-Fi používáme rychlejší ethernet a variantu desky s RJ-45 a PHY čipem IP101
 
 - Použitý hardware: [Waveshare ESP32-P4-WIFI](https://www.waveshare.com/esp32-p4-wifi6.htm?sku=32020) (zmenšenína oficiálního devkitu od Espressifu)
-- Použitý hardware (4. program): [Waveshare ESP32-P4-ETH](https://www.waveshare.com/esp32-p4-wifi6.htm?sku=32020)(zmenšenína oficiálního devkitu od Espressifu, varianta s ethernetem a RJ-45 namísto Wi-Fi)
+- Použitý hardware (4. program): [Waveshare ESP32-P4-ETH](https://www.waveshare.com/esp32-p4-wifi6.htm?sku=32020) (zmenšenína oficiálního devkitu od Espressifu)
 - Použitá kamera: [Libovolný klon RPi kamery se snímačem OV5647 a rozhraním MIPI CSI](https://www.waveshare.com/rpi-camera-b.htm)
 - Propojovací kabel kamery s užší/Mini koncovkou pro konektor desky: [Raspberry Pi Camera Cable Standard - Mini 200 mm](https://rpishop.cz/mipi/6501-raspberry-pi-5-camera-cable-standard-mini-200-mm.html)
 - Vývojové prostředí: [ESP-IDF](https://docs.espressif.com/projects/esp-idf/en/stable/esp32p4/get-started/index.html)
