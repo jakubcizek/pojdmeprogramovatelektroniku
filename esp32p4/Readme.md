@@ -5,7 +5,7 @@
 1. program **01_ahoj_svete**: Vypíše informace o čipu a pamětech a spustí někonečnou smyčku se zdravicemi, které budou střídavě vypisovat jednotlivá HP jádra procesoru
 2. program **02_ram_benchamrk**: Provede primitivní benchmark čtení a zápisu do 32MB externí SPI PSRAM. A to jak skrze standardní memcpy po malých blocích, tak pomocí DMA a asynchronního memcpy
 3. program **03_camera_jpeg_server**: Spustí webový server s ovládací stránkou pro pořizování fotek a aktivaci MJPEG streamu. Zatím pomalé kvůli režii Wi-Fi na sekundárním čipu; je třeba doladit konfiguraci
-4. program **04_camera_jpeg_server_ethernet**: Spustí webový server s ovládací stránkou pro pořizování fotek a aktivaci MJPEG streamu. NAmísto Wi-Fi používáme rychlejší ethernet a variantu desky s RJ-45 a PHY čipem IP101
+4. program **04_camera_jpeg_server_ethernet**: Spustí webový server s ovládací stránkou pro pořizování fotek a aktivaci MJPEG streamu. Namísto Wi-Fi používáme rychlejší ethernet a variantu desky s RJ-45 a PHY čipem IP101
 
 - Použitý hardware: [Waveshare ESP32-P4-WIFI](https://www.waveshare.com/esp32-p4-wifi6.htm?sku=32020) (zmenšenína oficiálního devkitu od Espressifu)
 - Použitý hardware (4. program): [Waveshare ESP32-P4-ETH](https://www.waveshare.com/esp32-p4-wifi6.htm?sku=32020) (zmenšenína oficiálního devkitu od Espressifu)
