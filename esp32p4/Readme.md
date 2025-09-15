@@ -3,7 +3,7 @@
 **Příloha článku „Stíhačka z Asie ESP32-P4“**, kterému se věnuji v časopisu [Computer 10/2025](https://www.ikiosek.cz/computer).
 
 1. program **01_ahoj_svete**: Vypíše informace o čipu a pamětech a spustí někonečnou smyčku se zdravicemi, které budou střídavě vypisovat jednotlivá HP jádra procesoru
-2. program **02_ram_benchamrk**: Provede primitivní benchmark čtení a zápisu do 32MB externí SPI PSRAM. A to jak skrze standardní memcpy po malých blocích, tak pomocí DMA a asynchronního memcpy
+2. program **02_ram_benchmark**: Provede primitivní benchmark čtení a zápisu do 32MB externí SPI PSRAM. A to jak skrze standardní memcpy po malých blocích, tak pomocí DMA a asynchronního memcpy
 3. program **03_camera_jpeg_server**: Spustí webový server s ovládací stránkou pro pořizování fotek a aktivaci MJPEG streamu. Zatím pomalé kvůli režii Wi-Fi na sekundárním čipu; je třeba doladit konfiguraci
 4. program **04_camera_jpeg_server_ethernet**: Spustí webový server s ovládací stránkou pro pořizování fotek a aktivaci MJPEG streamu. Namísto Wi-Fi používáme rychlejší ethernet a variantu desky s RJ-45 a PHY čipem IP101
 
