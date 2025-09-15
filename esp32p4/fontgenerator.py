@@ -14,34 +14,11 @@ DEFAULT_CHARSET = (
     ",.;()[]{}<>|\\/°'|\"_"
 )
 
-HEADER_TMPL = r"""#pragma once
+HEADER_TMPL = r"""#ifndef FONT_{uname}_H
+#define FONT_{uname}_H
+
 #include <stdint.h>
-
-#ifdef __cplusplus
-extern "C" {{
-#endif
-
-// =================== AA font structures ===================
-typedef struct {{
-    uint32_t codepoint;      // Unicode (U+XXXX)
-    uint16_t width;          // bitmap width (px)
-    uint16_t height;         // bitmap height (px)
-    int16_t  xAdvance;       // advance after drawing (px)
-    int16_t  xOffset;        // left bearing (px) relative to pen
-    int16_t  yOffset;        // top offset (px) relative to baseline
-    uint32_t bitmap_offset;  // index to grayscale bitmap[]
-}} GfxGlyphAA;
-
-typedef struct {{
-    const uint8_t  *bitmap;      // concatenated grayscale (0..255)
-    const GfxGlyphAA *glyphs;    // sorted by codepoint asc
-    uint32_t glyph_count;
-    int16_t ascent;              // baseline→top
-    int16_t descent;             // baseline→bottom (>=0)
-    int16_t line_height;         // recommended line step
-}} GfxFontAA;
-
-// =================== Data ===================
+#include "gfx.h"
 
 static const uint8_t {name}_bitmap[] = {{
 {bitmap_rows}
@@ -60,8 +37,6 @@ static const GfxFontAA {name} = {{
     .line_height = {line_height}
 }};
 
-#ifdef __cplusplus
-}}
 #endif
 """
 
@@ -172,6 +147,7 @@ def main():
 
     hdr = HEADER_TMPL.format(
         name=name,
+        uname=name.upper(),
         bitmap_rows="\n".join(bm_rows),
         glyph_rows="\n".join(gl_rows),
         glyph_count=len(glyphs),
