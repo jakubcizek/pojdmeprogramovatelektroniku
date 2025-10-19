@@ -8,7 +8,8 @@ except ModuleNotFoundError:
 
 # Webový server pomocí knihovny Tornado: https://www.tornadoweb.org/en/stable/
 try:
-    import tornado
+    import tornado.web
+    import tornado.ioloop
 except ModuleNotFoundError:
     print("Nejprve musíš nainstalovat knihovnu Tornado:\nhttps://www.tornadoweb.org/en/stable/")
     exit()
@@ -347,6 +348,7 @@ def rainProcessor(lat = None, lon = None, precipitation_threshold = None, size_t
     response = {
         "return": True,
         "img_source": RADARIMAGESOURCE,
+        "radar_type": RADARIMAGETYPE,
         "img_time": radardatum_local.strftime("%H:%M"),
         "setup": {
             "lat": lat,
