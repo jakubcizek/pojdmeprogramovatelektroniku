@@ -23,7 +23,7 @@ import os
 import glob
 
 # Konfigurace serveru a vyhledávače deště
-HTTPS = True           # Má webový server používat HTTPS? (certifikáty si musíte zajsaitit svépomocí)
+HTTPS = True           # Má webový server používat HTTPS? (certifikáty si musíte zajistit svépomocí)
 LOGGING = False        # Máme logovat do souboru/stdout?
 DRAWTESTIMAGE = False  # Máme kreslit tetsovací snímky s vyznačením nejbližšího nalezeného deště oproti pozorovateli?
 
