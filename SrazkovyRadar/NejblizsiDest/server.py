@@ -1,18 +1,42 @@
-# Práce s bitmapou radaru pomocí knohovny Pillow: https://pillow.readthedocs.io/en/stable/
-from PIL import Image
-from PIL import ImageDraw
+# Práce s bitmapou radaru pomocí knihovny Pillow: https://pillow.readthedocs.io/en/stable/
+try:
+    from PIL import Image
+    from PIL import ImageDraw
+except ModuleNotFoundError:
+    print("Nejprve musíš nainstalovat knihovnu Pillow:\nhttps://pillow.readthedocs.io/en/stable/")
+    exit()
 
-# Webový serve rpomocí knihovny Tornado: https://www.tornadoweb.org/en/stable/
-import tornado.ioloop
-import tornado.web
+# Webový server pomocí knihovny Tornado: https://www.tornadoweb.org/en/stable/
+try:
+    import tornado.ioloop
+    import tornado.web
+except ModuleNotFoundError:
+    print("Nejprve musíš nainstalovat knihovnu Tornado:\nhttps://www.tornadoweb.org/en/stable/")
+    exit()
 
-# Plánování stahovaní nového snímku každých pět minut pomocí knihovny Schedule: https://schedule.readthedocs.io/en/stable/
-import schedule
+# Plánování stahování nového snímku každých pět minut pomocí knihovny Schedule: https://schedule.readthedocs.io/en/stable/
+try:
+    import schedule
+except ModuleNotFoundError:
+    print("Nejprve musíš nainstalovat knihovnu Schedule:\nhttps://schedule.readthedocs.io/en/stable/")
+    exit()
 
 # Stahování snímku ze serveru ČHMÚ pomocí knihovny Requests: https://requests.readthedocs.io/en/latest/
-import requests
+try:
+    import requests
+except ModuleNotFoundError:
+    print("Nejprve musíš nainstalovat knihovnu Requests:\nhttps://requests.readthedocs.io/en/latest/")
+    exit()
 
-# Další knihovny jsou už vestavěno usoučástí Pythonu; používáme nejnovější dostupnou verzi!
+# Na některých systémech (Windows) mohou chybět informace o časových zónach, které používáme při převodu mezi UTC a Europe/Prague
+# Proto si vynutíme instalaci balíčku tzdata: https://tzdata.readthedocs.io/en/latest/
+try:
+    import tzdata
+except ModuleNotFoundError:
+    print("Nejprve musíš nainstalovat knihovnu Tzdata:\nhttps://tzdata.readthedocs.io/en/latest/")
+    exit()
+
+# Další knihovny jsou už vestavěnou součástí Pythonu; používáme nejnovější dostupnou verzi!
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
 import time
@@ -25,30 +49,30 @@ import glob
 # Konfigurace serveru a vyhledávače deště
 HTTPS = True           # Má webový server používat HTTPS? (certifikáty si musíte zajistit svépomocí)
 LOGGING = False        # Máme logovat do souboru/stdout?
-DRAWTESTIMAGE = False  # Máme kreslit tetsovací snímky s vyznačením nejbližšího nalezeného deště oproti pozorovateli?
+DRAWTESTIMAGE = False  # Máme kreslit testovací snímky s vyznačením nejbližšího nalezeného deště oproti pozorovateli?
 
 # Zdroj radarových snímků
-# 'network', nebo 'filesystem'. Filesystem se hodí při vývoji, kdy nechceme ze serveru ČHMÚ stahovat čerstvé snímky třeba v situaci, když neprší
-# Pokud jsme nastavili 'filesystem', ale ve složce RADARIMAGESPATH není žádný PNG snímek radaru, stáhne a uloží se čerstvý 
+# 'network' nebo 'filesystem'. Filesystem se hodí při vývoji, kdy nechceme ze serveru ČHMÚ stahovat čerstvé snímky třeba v situaci, když neprší.
+# Pokud jsme nastavili 'filesystem', ale ve složce RADARIMAGESPATH není žádný PNG snímek radaru, stáhne se a uloží se čerstvý.
 RADARIMAGESOURCE = "network" 
 RADARIMAGESPATH = os.path.join(os.path.dirname(__file__), "data")
 
-RADARIMAGETYPE = "CAPPI" # 'CAPPI', nebo 'MAXZ' typ snímku. MAXZ je řez celým výškovým sloupcem (odhalí jádro bouřky výše v atmosféře). CAPPI je řez ve 2 km a odpovídá spíše vypadávajícímu dešti
-MAXDISTANCELIMIT = 50 # Nejbližšší déšť budeme hledat jen do vzdálenosti cca 50 km (50 px). Čím větší vzdálenost, tím delší výpočet zvoleného algorimtu! Při nasazení na serveru se hodí spíše 20-30 km
+RADARIMAGETYPE = "CAPPI" # 'CAPPI' nebo 'MAXZ' – typ snímku. MAXZ je řez celým výškovým sloupcem (odhalí jádro bouřky výše v atmosféře). CAPPI je řez ve 2 km a odpovídá spíše vypadávajícímu dešti.
+MAXDISTANCELIMIT = 50 # Nejbližší déšť budeme hledat jen do vzdálenosti cca 50 km (50 px). Čím větší vzdálenost, tím delší výpočet zvoleného algoritmu! Při nasazení na serveru se hodí spíše 20–30 km.
 
 # Výchozí parametry vyhledávače deště
-DEFAULT_PRECIP_THRESHOLD = 0.1 # Detekujeme pouze pixely, které představují déšť s tímto úhrnem mm/hod. V praxi se hodí nastavit třeba  1 mm/h. Viz barevná stupnice radaru na webu ČHMÚ 
-DEFAULT_SIZE_THRESHOLD = 6     # Detekujeme pouze déšť, který v daném okně obsahuje alespoň tolik pixelů. Ignorujeme maličké a osamocené šmouhy
-DEFAULT_WINDOW = 10            # Velikost vyheldávacího okna v pixelech (1 px = cca 1km). Pokud narazíme na pixel deště, v tomto okně okolo něj začneme počítat pixely (viz výše)
-DEFAULT_MAX_DISTANCE = 20      # Výchozí maximální vzdálenost deště. Viz výše. MAXDISTANCELIMIT stabovuje maximální možný limit, DEFAULT_MAX_DISTANCE ten výchozí, pokud skrze URL nenastavíme jiný
+DEFAULT_PRECIP_THRESHOLD = 0.1 # Detekujeme pouze pixely, které představují déšť s tímto úhrnem mm/hod. V praxi se hodí nastavit třeba 1 mm/h. Viz barevná stupnice radaru na webu ČHMÚ.
+DEFAULT_SIZE_THRESHOLD = 6     # Detekujeme pouze déšť, který v daném okně obsahuje alespoň tolik pixelů. Ignorujeme maličké a osamocené šmouhy.
+DEFAULT_WINDOW = 10            # Velikost vyhledávacího okna v pixelech (1 px = cca 1 km). Pokud narazíme na pixel deště, v tomto okně okolo něj začneme počítat pixely (viz výše).
+DEFAULT_MAX_DISTANCE = 20      # Výchozí maximální vzdálenost deště. Viz výše. MAXDISTANCELIMIT stanovuje maximální možný limit, DEFAULT_MAX_DISTANCE ten výchozí, pokud skrze URL nenastavíme jiný.
 
 radarimage = None              # Objekt radarového snímku
 radardatum_orig = None         # Originální UTC datum snímku
-radardatum_local = None        # Přepočítané místní datumn (SEĆ/SELČ)
-pixels = None                  # Pole pxielů radarového snímku, ve kterém budeme vyhledávat déšť
+radardatum_local = None        # Přepočítané místní datum (SEČ/SELČ)
+pixels = None                  # Pole pixelů radarového snímku, ve kterém budeme vyhledávat déšť
 
-# LUT tabulka pro přepočet dBz na hodinový úhrn srážek
-# Ručně opsáno podle barevné stupncie na webu ČHMÚ
+# LUT tabulka pro přepočet dBZ na hodinový úhrn srážek
+# Ručně opsáno podle barevné stupnice na webu ČHMÚ
 DBZLUT = {
     4: 0.1,
     8: 0.325,
@@ -85,8 +109,8 @@ def getRadarImage(type=None, datum=None, attempts=5, minutes_step=5, source=None
     if type == None:
         type = RADARIMAGETYPE
 
-    # Pokud je zdrojem filesystem, pokusíme se načíst obrázek podle názvu ze složky RADARIMAGESPATH
-    # Obrázke musí mít název ve formátu radar_YYYYMMDDHHMMSS.png (UTC zóna, třeba radar_202510061150.png)
+    # Pokud je zdrojem filesystem, pokusíme se načíst obrázek podle názvu ze složky RADARIMAGESPATH.
+    # Obrázek musí mít název ve formátu radar_YYYYMMDDHHMM.png (UTC zóna, třeba radar_202510061150.png).
     if source == "filesystem":
         files = glob.glob(f"{RADARIMAGESPATH}/radar_*.png")
         if files:
@@ -98,15 +122,15 @@ def getRadarImage(type=None, datum=None, attempts=5, minutes_step=5, source=None
             radardatum_orig = datetime.strptime(ts, "%Y%m%d%H%M").replace(tzinfo=timezone.utc)
             radardatum_local = radardatum_orig.astimezone(ZoneInfo("Europe/Prague"))
             return True
-        # Pokud ve složce obrázek není, pokusíme se stáhnout čerstvý a uložíme ho do složky
+        # Pokud ve složce obrázek není, pokusíme se stáhnout čerstvý a uložíme ho do složky.
         else:
             if getRadarImage(type, datum, attempts, minutes_step, "network"):
                 radarimage.save(f"{RADARIMAGESPATH}/radar_{radardatum_orig.strftime('%Y%m%d%H%M')}.png")
                 return True
             else:
                 return False
-    # Pokud je zdrojem network, stáhneme čerstvý snímek ze serveru ČHMÚ    
-    # Pokud tam podle aktuálního času ještě není aktuální soubor, ubereme pět minut a stáhneme starší
+    # Pokud je zdrojem network, stáhneme čerstvý snímek ze serveru ČHMÚ.    
+    # Pokud tam podle aktuálního času ještě není aktuální soubor, ubereme pět minut a stáhneme starší.
     elif source == "network":
         if datum == None:
             datum = datetime.now(timezone.utc) 
@@ -170,9 +194,9 @@ def getAzimuth(xo, yo, xt, yt):
     az = math.degrees(math.atan2(dx, dy)) % 360.0
     return az
 
-# Výpočet dBz deště podle barvy pixelu. Pokud barva přesně neodpovídá, použijeme tu nejbližší
-# Vždycky bycho mtedy měli dostat nějaké dBz, i kdyby barva přesně neodpovídala. Pozor tedy na případné pomocné prvky ve scéně, které nepředsatvují déšť
-# Jejich barvy bychom zde mohl ignorovat; třeba černé textové popisky, rám atd.
+# Výpočet dBZ deště podle barvy pixelu. Pokud barva přesně neodpovídá, použijeme tu nejbližší.
+# Vždycky bychom tedy měli dostat nějaké dBZ, i kdyby barva přesně neodpovídala. Pozor tedy na případné pomocné prvky ve scéně, které nepředstavují déšť.
+# Jejich barvy bychom zde mohli ignorovat; třeba černé textové popisky, rám atd.
 # Ručně opsáno podle barevné stupnice na snímku ČHMÚ
 def colorToDbz(r,g,b):
     color_to_level = {
@@ -201,7 +225,7 @@ def colorToDbz(r,g,b):
             best_level = level
     return best_level
 
-# Funkce pro komplexní vyhledání deště pomocí algorimtu BFS / Prohledávání do šířky
+# Funkce pro komplexní vyhledání deště pomocí algoritmu BFS / Prohledávání do šířky
 # https://cs.wikipedia.org/wiki/Prohled%C3%A1v%C3%A1n%C3%AD_do_%C5%A1%C3%AD%C5%99ky
 def findNearestRainBFS(x: int, y: int,window: int, size_threshold: int, precipitation_threshold: float, max_distance: int):
     width, height = radarimage.size
@@ -215,8 +239,8 @@ def findNearestRainBFS(x: int, y: int,window: int, size_threshold: int, precipit
         r, g, b, a = pixels[ix, iy]
         return (a > 0 and (r | g | b) != 0, r, g, b)
 
-    # Pomocná funkce pro spočítání barevných pixelů v okolním okně pro zjištění, jestli déšť splňuje podmínku velikosti
-    # Vrátíme i statistiku nejsilnějšího nalezeného dBz v okně a nejsilnějšího pixelu deště
+    # Pomocná funkce pro spočítání barevných pixelů v okolním okně pro zjištění, jestli déšť splňuje podmínku velikosti.
+    # Vrátíme i statistiku nejsilnějšího nalezeného dBZ v okně a nejsilnějšího pixelu deště.
     def countRainyPixelsInArea(cx: int, cy: int):
         dbz_max = -1
         r_max = 0
@@ -251,7 +275,7 @@ def findNearestRainBFS(x: int, y: int,window: int, size_threshold: int, precipit
     if inBounds(x, y):
         queue.append((x, y))
 
-    # Vychozí nastavení sousedů = okolních vrcholl = pixelů
+    # Výchozí nastavení sousedů = okolních vrcholů = pixelů
     neighbors = ((1, 0), (-1, 0), (0, 1), (0, -1))
 
     # A tady už procházíme graf sousedských vrcholů/pixelů od výchozí pozice a hledáme déšť
@@ -265,17 +289,17 @@ def findNearestRainBFS(x: int, y: int,window: int, size_threshold: int, precipit
             continue
 
         # Pokud jsme mimo čtverec, ve kterém chceme hledat, nepřidáme do vyhledávací fronty další prvky
-        # a skočíme na další cyklus. Tím pádem grafový vyhledávač dokončí práci a vrátí None = žádný déšť
+        # a skočíme na další cyklus. Tím pádem grafový vyhledávač dokončí práci a vrátí None = žádný déšť.
         if max_d2 is not None:
             dx = cx - x
             dy = cy - y
             if dx*dx + dy*dy > max_d2:
                 continue
 
-        # Jakmile při procházení narazíme na další pozici, zjistíme, jestli má tento pixel nenulovou barvu
+        # Jakmile při procházení narazíme na další pozici, zjistíme, jestli má tento pixel nenulovou barvu.
         # Pokud tomu tak je a zároveň barva odpovídá minimálnímu úhrnu srážek v mm/h, který hledáme,
-        # začneme počítat veliksot deště v okolním okně. Pokud i ta splní minimální požadavek,
-        # ukončíme další průchod grafem a vrátíme všechnny popisné informace
+        # začneme počítat velikost deště v okolním okně. Pokud i ta splní minimální požadavek,
+        # ukončíme další průchod grafem a vrátíme všechny popisné informace.
         rain, r, g, b = isRainAtPos(cx, cy)
         dbz = colorToDbz(r, g, b)
         precipitation = DBZLUT.get(dbz, 0.0)
@@ -300,11 +324,11 @@ def findNearestRainBFS(x: int, y: int,window: int, size_threshold: int, precipit
     return None, None, None, None, None, None, None, None, None, None, None
 
 
-# Funkce komplexního procesoru, který ověří, že je k dispozici radarový snímek, vyhledá na něm déšť a vrátí odpověď ve formátu JSON
-# Funkci je možné volat i samostatně bez spuštěného serveru
+# Funkce komplexního procesoru, který ověří, že je k dispozici radarový snímek, vyhledá na něm déšť a vrátí odpověď ve formátu JSON.
+# Funkci je možné volat i samostatně bez spuštěného serveru.
 def rainProcessor(lat = None, lon = None, precipitation_threshold = None, size_threshold = None, window = None, max_distance = None, draw_test_image = None):
     
-    # Pokud nenastavíme některou z konfiguračních kodnot, použijeme tu výchozí
+    # Pokud nenastavíme některou z konfiguračních hodnot, použijeme tu výchozí
     if precipitation_threshold == None:
         precipitation_threshold = DEFAULT_PRECIP_THRESHOLD
 
@@ -336,7 +360,7 @@ def rainProcessor(lat = None, lon = None, precipitation_threshold = None, size_t
         }
     }
 
-     # Pokud nevyplníme lat (zeměpisná šířka) a lon (zeměpisná délka), ukončíme zpracovávání a vrátíme chybový kód v JSON  
+     # Pokud nevyplníme lat (zeměpisná šířka) a lon (zeměpisná délka), ukončíme zpracování a vrátíme chybový kód v JSON.  
     if lat == None or lon == None:
         response.update({
                 "return": False,
@@ -344,8 +368,8 @@ def rainProcessor(lat = None, lon = None, precipitation_threshold = None, size_t
         })
         return response
 
-    # Pokud mnemáme radarový snímek, pokudíme se jej stáhnout
-    # Pokud to selže, vrátíme JSON s chybovým kódem
+    # Pokud nemáme radarový snímek, pokusíme se jej stáhnout.
+    # Pokud to selže, vrátíme JSON s chybovým kódem.
     if radarimage == None:
         if getRadarImage() == False:
             response.update({
@@ -354,9 +378,9 @@ def rainProcessor(lat = None, lon = None, precipitation_threshold = None, size_t
             })
             return response
 
-    # Zeměpisné souřadnice levého horního a pravého dolního okraje radarvoho snímku
-    # Vzhledem k měřítku neprovádíme žádno usofistikovanou geografickou projekci,
-    # ale jen přepočítámš XY souřadnice na zeměpisné a naopak
+    # Zeměpisné souřadnice levého horního a pravého dolního okraje radarového snímku.
+    # Vzhledem k měřítku neprovádíme žádnou sofistikovanou geografickou projekci,
+    # ale jen přepočítáme XY souřadnice na zeměpisné a naopak.
     lon0 = 11.2673442
     lat0 = 52.1670717
     lon1 = 20.7703153
@@ -366,20 +390,20 @@ def rainProcessor(lat = None, lon = None, precipitation_threshold = None, size_t
     lat_pixel_size = degree_height / radarimage.height
     lon_pixel_size = degree_width / radarimage.width
 
-    # Pixelové souřadsnice XY pozorovatele ze souřadnice lat/lon
+    # Pixelové souřadnice XY pozorovatele ze souřadnic lat/lon
     x = int((lon - lon0) / lon_pixel_size)
     y = int((lat0 - lat) / lat_pixel_size)
 
-    # Provedeme BFS vyhledání deště a změříme čas pro účely statistiky
-    # Na času je krásně vidět, jak dramaticky roste, pokud neomezíme vyhledávání na maximální vzdálenost
-    # Mohli bychom implementovat další optimalizace, kešování některých výpočtů, anebo použít úplně jiný algoritmus
+    # Provedeme BFS vyhledání deště a změříme čas pro účely statistiky.
+    # Na času je krásně vidět, jak dramaticky roste, pokud neomezíme vyhledávání na maximální vzdálenost.
+    # Mohli bychom implementovat další optimalizace, kešování některých výpočtů, anebo použít úplně jiný algoritmus.
     t = time.time()
     rainX, rainY, r, g, b, dbz, dbz_max, precipitation, r_max, g_max, b_max = findNearestRainBFS(x, y, window, size_threshold, precipitation_threshold, max_distance)
     delta = int((time.time() - t) * 1000)
 
     # Pokud jsme nalezli déšť
     if rainX != None and rainY != None:
-        # Pokud je aktivní kreslení tetsovacího obrázku, vytvoříme ho pod názvem computed_radar_YYYYMMDDHHMM_HHMMSS.png (první datum odpovídá radarovému zdroji, druhé okamžiku kreslení)
+        # Pokud je aktivní kreslení testovacího obrázku, vytvoříme ho pod názvem computed_radar_YYYYMMDDHHMM_HHMMSS.png (první datum odpovídá radarovému zdroji, druhé okamžiku kreslení)
         if draw_test_image:
             imgtmp = radarimage.copy()
             draw = ImageDraw.Draw(imgtmp, "RGBA")
@@ -391,7 +415,7 @@ def rainProcessor(lat = None, lon = None, precipitation_threshold = None, size_t
             imgtmp.save(f"{RADARIMAGESPATH}/computed_radar_{radardatum_orig.strftime('%Y%m%d%H%M')}_{dt}.png")
             response["test_image"] = f"/get/computed_radar_{radardatum_orig.strftime('%Y%m%d%H%M')}_{dt}.png"
 
-        # Naplníme JSON informací, kde se déšť nachází, jako umá veliksot/sílu atp.
+        # Naplníme JSON informací, kde se déšť nachází, jakou má velikost/sílu atp.
         d = getPixelDistance(x, y, rainX, rainY)
         azimuth = getAzimuth(x, y, rainX, rainY)
         destLon = rainX * lon_pixel_size + lon0
@@ -412,20 +436,20 @@ def rainProcessor(lat = None, lon = None, precipitation_threshold = None, size_t
             "mmh_max": DBZLUT.get(dbz_max, 0.0),
             "computation_ms": delta
         })
-    # Pokud jsme déšť nenašli, vrátíme JSN s popisem aktruální konfigurace a informací rain = false
+    # Pokud jsme déšť nenašli, vrátíme JSON s popisem aktuální konfigurace a informací rain = false
     else:
         response["rain"] = False
         response["computation_ms"] = delta
 
     return response
     
-# Pokud aplikace poběží jako server, tato funkce nastartuje automatické stahování snímku každých pět minut¨
-# Volíme časy vždy minutu po celé pětiminutovce, tou dobou už totiž bude snímek s velkou pravděpodobností připravený na serveru ČHMÚ  
+# Pokud aplikace poběží jako server, tato funkce nastartuje automatické stahování snímku každých pět minut.
+# Volíme časy vždy minutu po celé pětiminutovce, tou dobou už totiž bude snímek s velkou pravděpodobností připravený na serveru ČHMÚ.
 def initScheduler():
-    for m in range(1, 60, 5):  # 1. 6. 11. 16. minuta atd.
+    for m in range(1, 60, 5):  # 1., 6., 11., 16. minuta atd.
         schedule.every().hour.at(f":{m:02d}").do(getRadarImage)
 
-# Pomocná funkce pro časovač plánovače výše. Tato funkce se volá každou sekundu
+# Pomocná funkce pro časovač plánovače výše. Tato funkce se volá každou sekundu.
 def secondTick():
     schedule.run_pending()
 
@@ -448,7 +472,7 @@ def defaultHTMLAnswer():
     """
     return string
     
-# Třída HTTP požadavku /, ze kterého zavoláme rainPRocessor a vrátíme HTTP klinetovi odpověď    
+# Třída HTTP požadavku /, ze kterého zavoláme rainProcessor a vrátíme HTTP klientovi odpověď
 class HttpIndex(tornado.web.RequestHandler):
     def initialize(self, **kwargs):
         super().initialize(**kwargs)
@@ -495,7 +519,7 @@ class HttpIndex(tornado.web.RequestHandler):
 
 # Začátek programu, pokud skript spouštíme přímo a nepoužíváme jej jako knihovnu   
 if __name__ == "__main__":
-    # Stáhneme čerstvý snímek (nebo h odle konfigurace načteme ze souboru)
+    # Stáhneme čerstvý snímek (nebo podle konfigurace načteme ze souboru)
     getRadarImage()
     # Nastartujeme časovač pro automatické stahování (v případě nastavení na zdroj filesystem se prostě znovu načte ze souboru) 
     initScheduler()
@@ -516,22 +540,25 @@ if __name__ == "__main__":
     web.listen(80)
 
     # Pokud jsme povolili HTTPS, načteme certifikáty
-    # Toto je ukázka pro bezplatné certifikáty Let's Encrypt, doménu radar.kloboukuv.cloud a výchozí cesty k certifikátpm LE na Linuxu 
+    # Toto je ukázka pro bezplatné certifikáty Let's Encrypt, doménu radar.kloboukuv.cloud a výchozí cesty k certifikátům LE na Linuxu 
     if HTTPS:
-        https = tornado.httpserver.HTTPServer(
-            web,
-            ssl_options = {
-                "certfile": "/etc/letsencrypt/live/radar.kloboukuv.cloud/fullchain.pem",
-                "keyfile": "/etc/letsencrypt/live/radar.kloboukuv.cloud/privkey.pem"
-            }
-        )
-        # HTTPS poslouchá na standaredním TCP portu 443
-        https.listen(443)
+        try:
+            https = tornado.httpserver.HTTPServer(
+                web,
+                ssl_options = {
+                    "certfile": "/etc/letsencrypt/live/radar.kloboukuv.cloud/fullchain.pem",
+                    "keyfile": "/etc/letsencrypt/live/radar.kloboukuv.cloud/privkey.pem"
+                }
+            )
+            # HTTPS poslouchá na standardním TCP portu 443
+            https.listen(443)
+        except:
+            print("Nepodařilo se nastartovat HTTPS sezení. Zkontroluj, že máš funkční certifikáty.\nServer poběží nešifrovaný")
 
     # Nastartujeme pomocný časovač secondTick pro řízení plánovače, který se bude volat systémovou smyčkou každých 1000 ms
     secondTickTask = tornado.ioloop.PeriodicCallback(secondTick, 1000)
     secondTickTask.start()
 
-    # NAstartujeme systémovou smyčku, která drží server při životě
+    # Nastartujeme systémovou smyčku, která drží server při životě
     printl("Startuji aplikační smyčku...")
     tornado.ioloop.IOLoop.current().start()
