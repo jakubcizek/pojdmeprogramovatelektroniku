@@ -8,8 +8,7 @@ except ModuleNotFoundError:
 
 # Webový server pomocí knihovny Tornado: https://www.tornadoweb.org/en/stable/
 try:
-    import tornado.ioloop
-    import tornado.web
+    import tornado
 except ModuleNotFoundError:
     print("Nejprve musíš nainstalovat knihovnu Tornado:\nhttps://www.tornadoweb.org/en/stable/")
     exit()
@@ -553,7 +552,7 @@ if __name__ == "__main__":
             # HTTPS poslouchá na standardním TCP portu 443
             https.listen(443)
         except:
-            print("Nepodařilo se nastartovat HTTPS sezení. Zkontroluj, že máš funkční certifikáty.\nServer poběží nešifrovaný")
+            print("Nepodařilo se nastartovat HTTPS sezení. Zkontroluj, že máš funkční certifikáty.\nServer poběží nešifrovaný!")
 
     # Nastartujeme pomocný časovač secondTick pro řízení plánovače, který se bude volat systémovou smyčkou každých 1000 ms
     secondTickTask = tornado.ioloop.PeriodicCallback(secondTick, 1000)
