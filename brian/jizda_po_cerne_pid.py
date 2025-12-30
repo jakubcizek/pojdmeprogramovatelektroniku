@@ -22,16 +22,19 @@ print("OK")
 # Stavy programu, které nastavujeme stiskem tlačítka na zádi
 STATE_RUNNING = 1
 STATE_STOP = 0
+state = STATE_STOP
 
 # Úvodní kalibrace černého a bílého povrchu na herním poli s čárou,
 # po které se bude roboto navigovat 
 print("Poloz na CERNOU a stiskni tlacitko")
 touch.wait_for_press_and_release()
+sleep(.5) # Drobný debouncing
 black_val = color.reflected_value()
 print(f"Cerna: {black_val}")
 
 print("Poloz na BILOU a stiskni tlacitko")
 touch.wait_for_press_and_release()
+sleep(.5) # Drobný debouncing
 white_val = color.reflected_value()
 print(f"Bila: {white_val}")
 
@@ -39,7 +42,6 @@ print(f"Bila: {white_val}")
 # To bude hodnota, které se bude robot držet při navigaci po hraně černé linky
 target = (black_val + white_val) / 2
 print(f"TARGET: {target}")
-
 
 # Parametry Kp/Ki/Kd regulátoru PID pro jemný pohyb po černé číře
 # Viz https://cs.wikipedia.org/wiki/PID_regul%C3%A1tor a další zdroje
@@ -69,6 +71,7 @@ while True:
             motor_r.brake()
             print("STOP")
             touch.wait_for_release()
+            sleep(.5) # Drobný debouncing
             state = STATE_STOP
         else:
             print("START")
@@ -76,10 +79,8 @@ while True:
             integral = 0 
             last_error = 0 
             touch.wait_for_release()
+            sleep(.5) # Drobný debouncing
             state = STATE_RUNNING
-        
-        touch.wait_for_release()
-        sleep(0.5)
 
     # Pokud jsme ve stavu RUNNING, PID regulátor se učí zjemňovat jízdu po černé
     # Cílem PIDu je to, aby robot zbrkle necukal sem a tam, ale měníl poarametry jízdy plynule, což je úkol správného nastavení složek P/I/D
