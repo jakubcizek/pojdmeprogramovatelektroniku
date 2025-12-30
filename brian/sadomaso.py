@@ -23,6 +23,7 @@ print("OK")
 # Stavy programu, které nastavujeme stiskem tlačítka na zádi
 STATE_RUNNING = 1
 STATE_STOP = 0
+state = STATE_STOP
 
 # Funkce pro dynamický návrat kladiva do výchozí pozice
 # Motor kladiva je relativně slabý, a proto používáme gumičku, kterou motor napne a ta pak pomůže zvednout kladivo
@@ -59,10 +60,12 @@ while True:
             hammer.brake()
             print("STOP")
             touch.wait_for_release()
+            sleep(.5) # Drobný debouncing
             state = STATE_STOP
         else:
             print("START")
             touch.wait_for_release()
+            sleep(.5) # Drobný debouncing
             state = STATE_RUNNING
             motor_l.run_at_speed(300)
             motor_r.run_at_speed(300)
