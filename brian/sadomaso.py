@@ -10,7 +10,7 @@ touch = sensors.EV3.TouchSensorEV3(sensors.SensorPort.S2)
 touch.wait_until_ready()
 print("OK")
 
-# Inicializace předních motoru L/R (levý/pravý) akladiva (hammer)
+# Inicializace předních motorů L/R (levý/pravý) a kladiva (hammer)
 print("Inicializuji motory... ", end="")
 motor_l = motors.EV3LargeMotor(motors.MotorPort.A)
 motor_l.wait_until_ready()
@@ -46,12 +46,6 @@ def hammerFire(impuls_sec, speed):
 
 # Čekáme na stisk tlačítka pro start, poté roztočíme motory
 print("Nastartuj tlacitkem")
-touch.wait_for_press_and_release()
-print("Startuji a jedu")
-sleep(.5)
-state = STATE_RUNNING
-motor_l.run_at_speed(300)
-motor_r.run_at_speed(300)
 
 # Nekonečná smyčka
 while True:
@@ -63,14 +57,12 @@ while True:
             motor_l.brake()
             motor_r.brake()
             hammer.brake()
-            print("Pozastaveno")
+            print("STOP")
             touch.wait_for_release()
-            sleep(.5)
             state = STATE_STOP
-        elif state == STATE_STOP:
-            print("Opet jedu")
+        else:
+            print("START")
             touch.wait_for_release()
-            sleep(.5)
             state = STATE_RUNNING
             motor_l.run_at_speed(300)
             motor_r.run_at_speed(300)
@@ -93,4 +85,3 @@ while True:
             motor_r.rotate_by_angle(-200, 300)
             motor_l.run_at_speed(300)
             motor_r.run_at_speed(300)
-            sleep(0.1)
