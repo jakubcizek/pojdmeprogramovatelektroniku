@@ -42,9 +42,7 @@ Tento repozitář obsahuje ukázkový projekt pro detekci objektů v reálném �
     ```bash
     pip3 install tornado numpy
     ```
-    *(Poznámka: Na spravovaných prostředích použijte virtuální prostředí `venv`.)*
-    ```
-    
+    *(Poznámka: Na spravovaných prostředích použijte virtuální prostředí `venv`.)* 
 
 ## 🚀 Spuštění
 
@@ -53,4 +51,4 @@ Aplikaci spustíte následujícím příkazem:
 ```bash
 python aiserver.py
 
-Ve webové mprohlížeči bude ve vcáhozí mstavu k dispozici na adrese: http://<IP adresa Raspberry Pi>:8000
+Ve webové mprohlížeči bude ve vcáhozí mstavu k dispozici na adrese: **http://<IP adresa Raspberry Pi>:8000**
