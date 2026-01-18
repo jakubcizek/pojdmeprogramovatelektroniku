@@ -40,7 +40,7 @@ Tento repozitář obsahuje ukázkový projekt pro detekci objektů v reálném �
     Projekt využívá framework `tornado` pro webový server a WebSocket.
 
     ```bash
-    pip3 install tornado numpy
+    sudo apt install python3-tornado
     ```
     *(Poznámka: Na spravovaných prostředích použijte virtuální prostředí `venv`.)* 
 
