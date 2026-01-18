@@ -22,7 +22,7 @@ Tento repozitář obsahuje ukázkový projekt pro detekci objektů v reálném �
 
 ## 🛠 Hardware a požadavky
 
-* **Raspberry Pi** (Zero 2 W, 3B+, 4, 5)
+* **Raspberry Pi** (Zero 2 W, 3B+, 4, 5 aj.)
 * **Raspberry Pi AI Camera** (Sony IMX500)
 * **Raspberry Pi OS** (Plný, nebo Lite pro jednodušší Zero 2 W)
 
