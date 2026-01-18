@@ -20,11 +20,11 @@ Tento repozitář obsahuje ukázkový projekt pro detekci objektů v reálném �
     * Posuvník pro nastavení prahu detekce (Threshold) v reálném čase.
     * Modální okno s nápovědou dostupných objektů.
 
-## 🛠 Hardware a Požadavky
+## 🛠 Hardware a požadavky
 
-* **Raspberry Pi** (Zero 2 W, 3B+, 4 nebo 5)
+* **Raspberry Pi** (Zero 2 W, 3B+, 4, 5)
 * **Raspberry Pi AI Camera** (Sony IMX500)
-* **Raspberry Pi OS** (Bookworm nebo novější)
+* **Raspberry Pi OS** (Plný, nebo Lite pro jednodušší Zero 2 W)
 
 ## 📦 Instalace
 
