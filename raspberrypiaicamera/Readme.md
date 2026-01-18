@@ -50,5 +50,6 @@ Aplikaci spustíte následujícím příkazem:
 
 ```bash
 python aiserver.py
+```
 
 Ve webové mprohlížeči bude ve vcáhozí mstavu k dispozici na adrese: **http://<IP adresa Raspberry Pi>:8000**
