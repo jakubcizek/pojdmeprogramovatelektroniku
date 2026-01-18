@@ -22,9 +22,9 @@ Tento repozitář obsahuje ukázkový projekt pro detekci objektů v reálném �
 
 ## 🛠 Hardware a Požadavky
 
-* **Raspberry Pi** (Zero 2 W, 3B+, 4 nebo 5).
-* **Raspberry Pi AI Camera** (Sony IMX500).
-* **Raspberry Pi OS** (Bookworm nebo novější).
+* **Raspberry Pi** (Zero 2 W, 3B+, 4 nebo 5)
+* **Raspberry Pi AI Camera** (Sony IMX500)
+* **Raspberry Pi OS** (Bookworm nebo novější)
 
 ## 📦 Instalace
 
@@ -33,26 +33,24 @@ Tento repozitář obsahuje ukázkový projekt pro detekci objektů v reálném �
 
     ```bash
     sudo apt update
-    sudo apt install python3-libcamera python3-kms++ rpi-imx500-models
+    sudo apt install imx500-all
     ```
 
 2.  **Instalace Python knihoven:**
     Projekt využívá framework `tornado` pro webový server a WebSocket.
 
     ```bash
-    pip3 install tornado numpy --break-system-packages
+    pip3 install tornado numpy
     ```
     *(Poznámka: Na spravovaných prostředích použijte virtuální prostředí `venv`.)*
-
-3.  **Klonování repozitáře:**
-    ```bash
-    git clone [https://github.com/vaseskupina/rpi-ai-camera-demo.git](https://github.com/vaseskupina/rpi-ai-camera-demo.git)
-    cd rpi-ai-camera-demo
     ```
+    
 
 ## 🚀 Spuštění
 
 Aplikaci spustíte následujícím příkazem:
 
 ```bash
-python3 mjpegai2.py
+python aiserver.py
+
+Ve webové mprohlížeči bude ve vcáhozí mstavu k dispozici na adrese: http://<IP adresa Raspberry Pi>:8000
