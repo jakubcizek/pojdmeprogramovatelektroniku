@@ -1,8 +1,8 @@
 # Raspberry Pi AI Camera – Object Detection Demo
 
-Tento repozitář obsahuje ukázkový projekt pro detekci objektů v reálném čase pomocí **Raspberry Pi AI Camera** (s čipem Sony IMX500). Aplikace běží na Raspberry Pi a poskytuje webové rozhraní pro sledování videa, telemetrie a ovládání AI modelu.
+Tento repozitář obsahuje ukázkový projekt pro detekci objektů v reálném čase pomocí **Raspberry Pi AI Camera** (s čipem Sony IMX500, který obsahuje vestavěný NPU akcelerátor). Aplikace díky tomu běží i na jednodušších Raspberry Pi a poskytuje webové rozhraní pro sledování videa, telemetrie a ovládání AI modelu.
 
-> **Poznámka:** Jedná se o doprovodný ukázkový projekt k článku o Raspberry Pi AI Camera v časopisu **Computer (únor 2026)**. Časopis je k dostání v elektronické i tištěné podobě na webu [iKiosek.cz](https://www.ikiosek.cz/computer).
+> **Poznámka:** Jedná se o doprovodný ukázkový projekt k článku v časopisu **Computer (únor 2026)**. Časopis je k dostání v elektronické i tištěné podobě na webu [iKiosek.cz](https://www.ikiosek.cz/computer).
 
 ## 🎯 Hlavní funkce
 
