@@ -42,7 +42,6 @@ Tento repozitář obsahuje ukázkový projekt pro detekci objektů v reálném �
     ```bash
     sudo apt install python3-tornado
     ```
-    *(Poznámka: Na spravovaných prostředích použijte virtuální prostředí `venv`.)* 
 
 ## 🚀 Spuštění
 
