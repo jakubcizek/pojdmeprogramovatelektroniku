@@ -37,7 +37,7 @@ Tento repozitář obsahuje ukázkový projekt pro detekci objektů v reálném �
     ```
 
 2.  **Instalace Python knihoven:**
-    Projekt využívá framework `tornado` pro webový server a WebSocket a knihovnu PiCamera2.
+    Projekt využívá framework `tornado` pro webový server a WebSocket a knihovnu `picamera2`.
 
     ```bash
     sudo apt install python3-tornado
