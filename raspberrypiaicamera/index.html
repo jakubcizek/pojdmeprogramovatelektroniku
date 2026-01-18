@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Kamera & Telemetrie</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f4f9; padding: 20px; text-align: center; color: #333; }
+        
+        .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1200px; margin: 0 auto; }
+        .panel { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        
+        .video-container { position: relative; width: 640px; margin: 0 auto; max-width: 100%; min-height: 480px; background: #000; border-radius: 8px;}
+        #vid { width: 100%; display: block; border-radius: 8px; }
+        #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        
+        .chart-container { position: relative; height: 350px; width: 100%; }
+        
+        .controls { grid-column: 1 / -1; background: white; padding: 20px; margin-bottom: 20px; border-radius: 12px; display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; align-items: center; }
+        .search-group, .slider-group { display: flex; align-items: center; gap: 10px; border: 1px solid #ddd; padding: 8px; border-radius: 8px; background: #f9f9f9; }
+        
+        .autocomplete-container { position: relative; display: inline-block; }
+        
+        input[type=text] { padding: 8px; width: 250px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
+        input[type=text]:disabled { background: #e9ecef; color: #6c757d; cursor: not-allowed; }
+
+        .suggestions-box {
+            position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ccc; border-top: none; border-radius: 0 0 4px 4px; max-height: 200px; overflow-y: auto; z-index: 1000; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: left; display: none;
+        }
+        .suggestion-item { padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #eee; }
+        .suggestion-item:last-child { border-bottom: none; }
+        .suggestion-item:hover { background-color: #e9ecef; color: #007bff; }
+        .suggestion-item strong { color: #007bff; }
+
+        button { padding: 8px 16px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 5px; font-weight: 600; transition: background 0.2s; font-size: 14px;}
+        button:hover { opacity: 0.9; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        
+        button.stop { background: #6c757d; }
+        button.search-btn { background: #28a745; }
+        button.reset { background: #dc3545; }
+        button.help-btn { background: #ffc107; color: #212529; }
+        button.help-btn:hover { background: #e0a800; }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: none;
+            justify-content: center; align-items: center;
+            z-index: 2000;
+            backdrop-filter: blur(2px);
+        }
+
+        .modal-content {
+            background: white; padding: 25px; border-radius: 12px;
+            width: 80%; max-width: 800px; max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            position: relative;
+            text-align: left;
+        }
+
+        .close-btn {
+            position: absolute; top: 15px; right: 20px;
+            font-size: 24px; font-weight: bold; color: #aaa; cursor: pointer; transition: color 0.2s;
+        }
+        .close-btn:hover { color: #333; }
+
+        .label-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+        .label-item { background: #e9ecef; padding: 6px 12px; border-radius: 20px; font-size: 14px; color: #333; border: 1px solid #dee2e6; }
+    </style>
+</head>
+<body>
+
+    <h1>AI Detektor</h1>
+
+    <div class="dashboard">
+        <div class="controls">
+            <button onclick="startSystem()">▶ START</button>
+            <button class="stop" onclick="stopSystem()">⏹ STOP</button>
+            
+            <div class="slider-group">
+                <label>Práh: <span id="threshVal">50</span>%</label>
+                <input type="range" id="thresholdRange" min="10" max="100" value="50" oninput="updateThreshold(this.value)">
+            </div>
+
+            <div class="search-group">
+                <div class="autocomplete-container">
+                    <input type="text" id="objName" placeholder="Začněte psát (např. dog)..." autocomplete="off">
+                    <div id="suggestions" class="suggestions-box"></div>
+                </div>
+                <button id="btnSearch" class="search-btn" onclick="activateSearch()">HLEDAT</button>
+                <button id="btnReset" class="reset" onclick="resetSearch()" title="Zrušit">✕</button>
+            </div>
+
+            <button class="help-btn" onclick="openHelp()">Nápověda</button>
+        </div>
+
+        <div class="panel">
+            <h3>Kamera</h3>
+            <div class="video-container">
+                <img id="vid" width="640" height="480" />
+                <canvas id="overlay" width="640" height="480"></canvas>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h3>Detekce (Vše)</h3>
+            <div class="chart-container">
+                <canvas id="detectionChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div id="helpModal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeHelp()">&times;</span>
+            <h2>Dostupné objekty k vyhledávání</h2>
+            <p>Tyto objekty umí AI model rozpoznat. Názvy jsou v angličtině.</p>
+            <div id="labelListContainer" class="label-list"></div>
+        </div>
+    </div>
+
+    <script>
+        let ws;
+        let chart;
+        let searchActive = false;
+        let availableLabels = [];
+
+        async function initLabels() {
+            try {
+                const response = await fetch('/labels');
+                const rawData = await response.json();
+                
+                availableLabels = rawData.filter(l => l !== "-");
+                
+                console.log("Slovník načten:", availableLabels.length, "slov (placeholdery odstraněny).");
+            } catch (e) {
+                console.error("Nepodařilo se stáhnout slovník:", e);
+            }
+        }
+
+        function openHelp() {
+            const modal = document.getElementById('helpModal');
+            const container = document.getElementById('labelListContainer');
+            container.innerHTML = '';
+            
+            if (availableLabels.length === 0) {
+                container.innerHTML = '<p>Seznam objektů se nepodařilo načíst.</p>';
+            } else {
+                availableLabels.forEach(label => {
+                    const span = document.createElement('span');
+                    span.className = 'label-item';
+                    span.textContent = label;
+                    container.appendChild(span);
+                });
+            }
+            modal.style.display = 'flex';
+        }
+
+        function closeHelp() { document.getElementById('helpModal').style.display = 'none'; }
+        window.addEventListener('click', function(e) { if (e.target === document.getElementById('helpModal')) closeHelp(); });
+
+        const inputField = document.getElementById('objName');
+        const suggestBox = document.getElementById('suggestions');
+
+        inputField.addEventListener('input', function() {
+            const val = this.value;
+            const lastSpaceIndex = val.lastIndexOf(' ');
+            const currentWord = val.substring(lastSpaceIndex + 1).toLowerCase();
+
+            if (!currentWord) { suggestBox.style.display = "none"; return; }
+            
+            const uniqueLabels = [...new Set(availableLabels)];
+            const matches = uniqueLabels
+                            .filter(l => l.toLowerCase().startsWith(currentWord))
+                            .sort()
+                            .slice(0, 10);
+
+            if (matches.length > 0) {
+                suggestBox.innerHTML = matches.map(m => {
+                    const highlighted = `<strong>${m.substring(0, currentWord.length)}</strong>${m.substring(currentWord.length)}`;
+                    return `<div class="suggestion-item" onclick="selectSuggestion('${m}')">${highlighted}</div>`;
+                }).join('');
+                suggestBox.style.display = "block";
+            } else { suggestBox.style.display = "none"; }
+        });
+
+        document.addEventListener('click', function(e) { if (e.target !== inputField && e.target !== suggestBox) suggestBox.style.display = "none"; });
+
+        window.selectSuggestion = function(word) {
+            const val = inputField.value;
+            const lastSpaceIndex = val.lastIndexOf(' ');
+            const prefix = val.substring(0, lastSpaceIndex + 1);
+            inputField.value = prefix + word + ' ';
+            suggestBox.style.display = "none";
+            inputField.focus();
+        };
+
+        async function startSystem() {
+            await fetch('/control', { method: 'POST', body: JSON.stringify({ command: "start" }) });
+            document.getElementById('vid').src = '/stream.mjpg?' + new Date().getTime();
+        }
+
+        async function stopSystem() {
+            await fetch('/control', { method: 'POST', body: JSON.stringify({ command: "stop" }) });
+            document.getElementById('vid').src = '';
+            const canvas = document.getElementById('overlay');
+            if(canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function activateSearch() {
+            const input = document.getElementById('objName');
+            const btn = document.getElementById('btnSearch');
+            if (!input.value.trim()) return;
+            searchActive = true;
+            input.disabled = true;
+            btn.disabled = true;
+            document.getElementById('suggestions').style.display = 'none';
+        }
+
+        function resetSearch() {
+            const input = document.getElementById('objName');
+            const btn = document.getElementById('btnSearch');
+            searchActive = false;
+            input.value = '';
+            input.disabled = false;
+            btn.disabled = false;
+            input.focus();
+        }
+
+        function initChart() {
+            const canvas = document.getElementById('detectionChart');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: [], datasets: [{ label: 'Jistota (%)', data: [], backgroundColor: 'rgba(54, 162, 235, 0.6)' }] },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, max: 100 } },
+                    animation: false
+                }
+            });
+        }
+
+        function connectWS() {
+            const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+            ws = new WebSocket(protocol + "//" + window.location.host + "/ws");
+            ws.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    requestAnimationFrame(() => {
+                        drawBoxes(data);
+                        updateChart(data); 
+                    });
+                } catch (e) {}
+            };
+            ws.onclose = () => setTimeout(connectWS, 2000);
+        }
+
+        function getTargets() {
+            return document.getElementById('objName').value.split(' ').map(s => s.trim().toLowerCase()).filter(s => s.length > 0);
+        }
+
+        function drawBoxes(detections) {
+            const canvas = document.getElementById('overlay');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            let targets = [];
+            if (searchActive) targets = getTargets();
+
+            detections.forEach(det => {
+                const label = det.label.toLowerCase();
+                if (searchActive && targets.length > 0) {
+                    if (!targets.some(t => label.includes(t))) return;
+                }
+                const [x, y, w, h] = det.box;
+                const color = searchActive ? '#00FF00' : '#00AAFF';
+                ctx.strokeStyle = color; ctx.lineWidth = 3; ctx.strokeRect(x, y, w, h);
+                ctx.fillStyle = color;
+                const text = `${det.label} ${Math.round(det.score * 100)}%`;
+                const textWidth = ctx.measureText(text).width;
+                ctx.fillRect(x, y - 20, textWidth + 10, 20);
+                ctx.fillStyle = '#000000'; ctx.font = 'bold 14px Arial'; ctx.fillText(text, x + 5, y - 5);
+            });
+        }
+
+        function updateChart(detections) {
+            if (!chart) return;
+            const labels = detections.map(d => d.label);
+            const scores = detections.map(d => Math.round(d.score * 100));
+            let targets = [];
+            if (searchActive) targets = getTargets();
+            const colors = detections.map(d => {
+                if (searchActive && targets.some(t => d.label.toLowerCase().includes(t))) return 'rgba(40, 167, 69, 0.8)'; 
+                return 'rgba(54, 162, 235, 0.6)'; 
+            });
+            chart.data.labels = labels;
+            chart.data.datasets[0].data = scores;
+            chart.data.datasets[0].backgroundColor = colors;
+            chart.update('none');
+        }
+
+        async function updateThreshold(val) {
+            document.getElementById('threshVal').innerText = val;
+            await fetch('/control', { method: 'POST', body: JSON.stringify({ threshold: val / 100.0 }) });
+        }
+
+        window.onload = function() {
+            initLabels();
+            initChart();
+            connectWS();
+        };
+    </script>
+</body>
+</html>
