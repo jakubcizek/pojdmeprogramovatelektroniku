@@ -4,7 +4,9 @@
 
 Webový chat s vizuálně-jazykovým modelem (VLM) běžící na Raspberry Pi 5 s AI akcelerátorem Hailo-10H. Aplikace zachytává obraz z kamery, zobrazuje ho jako live MJPEG stream a umožňuje klást otázky o tom, co kamera vidí.
 
-Model **Qwen2-VL-2B-Instruct** běží lokálně na Hailo-10H akcelerátoru -- žádná data se neodesílají do cloudu.
+Model **Qwen2-VL-2B-Instruct** běží lokálně na Hailo-10H akcelerátoru -- žádná data se neodesílají do cloudu. Jedná se o relativně malý model (2B parametrů), komunikace s ním proto musí probíhat v angličtině.
+
+<img src="screenshot.png" width="100%">
 
 ## Co to umí
 
@@ -81,7 +83,7 @@ Server ukončíte pomocí `Ctrl+C`.
 
 ## Konfigurace
 
-Hlavní parametry lze upravit přímo na začátku souboru `vlm_server.py`:
+Hlavní parametry lze upravit přímo na začátku souboru `vlm_chatr.py`:
 
 | Parametr | Výchozí | Popis |
 |---|---|---|
@@ -110,7 +112,7 @@ CHYBA: Kamera je obsazena jinym procesem.
 Zkontrolujte, který proces kameru blokuje:
 
 ```bash
-ps aux | grep -E 'libcamera|picamera|vlm_server'
+ps aux | grep -E 'libcamera|picamera|vlm_chat'
 ```
 
 A ukončete ho pomocí `kill <PID>`.
