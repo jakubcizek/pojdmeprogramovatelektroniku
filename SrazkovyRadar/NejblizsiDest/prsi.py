@@ -45,7 +45,7 @@ pokusy = 3
 
 while pokusy > 0:
     datum_txt = datum.strftime("%Y%m%d.%H%M")
-    url = f"https://www.chmi.cz/files/portal/docs/meteo/rad/inca-cz/data/czrad-z_cappi020/pacz2gmaps3.z_cappi020.{datum_txt}.0.png"
+    url = f"https://intranet.chmi.cz/files/portal/docs/meteo/rad/inca-cz/data/czrad-z_cappi020/pacz2gmaps3.z_cappi020.{datum_txt}.0.png"
     r = requests.get(url)
     if r.status_code != 200:
         print("Soubor neexistuje, zkusím stáhnout o 5 minut starší")
