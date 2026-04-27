@@ -55,16 +55,3 @@ Brno (49.195°N, 16.606°E), snímek ČHMÚ 680 × 460 px:
 | celý radarový snímek | (zhroucení) | **~10 ms strop** |
 
 Vektorové vyhledávání je oproti BFS přibližně **20–50× rychlejší** a strop ~10 ms platí i pro hledání přes celý radarový snímek — výseky se nikdy nezpracovávají větší, než kolik vejde do bitmapy.
-
-### Bonus: opravené chyby v původním BFS
-
-Refaktoring odhalil dvě skryté vady v BFS, které vektorová varianta nemá:
-
-1. **BFS se 4-sousedstvím expanduje v Manhattan vzdálenosti, ne v Euklidovské.** Pro Prahu původní BFS hlásila déšť na východě (azimut 90°) ve vzdálenosti 27.75 km, zatímco skutečně nejbližší déšť byl na jihozápadě (azimut 237°) ve 23.41 km. Vektorová verze používá pravou Euklidovskou vzdálenost a vrátí skutečně nejbližšího kandidáta.
-2. **Pozorovatel těsně mimo bitmapu.** Pokud při zaokrouhlování lat/lon padl výchozí pixel pod 0 nebo nad rozměr radaru (např. uživatel u okraje území ČR), BFS hned vrátila `rain=False`, i když déšť byl pár pixelů od hranice. Vektorová verze bere souřadnice pozorovatele jen jako střed hledání, ne jako startovní vrchol grafu, takže si s těmito okrajovými případy poradí.
-
-### Další úpravy
-
-- Odstraněn pevný strop `MAXDISTANCELIMIT`. Pro BFS dával smysl — bránil drahým hledáním. Pro vektorovou verzi je zbytečný, protože slice se sám ořezává na rozměry obrazu a celkový čas drží pod ~10 ms.
-- Aplikační soubor se zkrátil o ~170 řádků mrtvého kódu (původní BFS smyčka, vnořené pomocné funkce, manuální barevné porovnávání).
-- Závislost navíc: `numpy`. Žádné další knihovny.
