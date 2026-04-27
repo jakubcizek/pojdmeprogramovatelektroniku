@@ -2,13 +2,13 @@
 Příloha článku v časopisu **Computer 11/2025**. Více zde: [ikiosek.cz/computer](https://www.ikiosek.cz/computer).
 
 - **prsi.py**: Základní ukázka kódu, kestl iprší na určité XY pozici. Tento kód najdete včetně komentáře přímo v článku v časopisu Computer
-- **app.py**: Kompletní server a JSON API napsaný v Python us využitím knihovny Tornado. Identický server běží na testovací adrese **[https://radar.kloboukuv.cloud](https://radar.kloboukuv.cloud)**
+- **server.py**: Kompletní server a JSON API napsaný v Python us využitím knihovny Tornado. Identický server běží na testovací adrese **[https://radar.kloboukuv.cloud](https://radar.kloboukuv.cloud)**
 
 Testovací server běží na slabém virtuálním počítači v infrastruktuře Oracle Cloud. Výpočet nejbližšího deště tak může při větší zátěži zabrat nějaký čas.
 
 ## Aktualizace: 27. dubna 2026 ##
 
-Zatímco v článku v časopisu Computer demonstruji vyhledávání nejbližších barevných pixelů algoritmem BFS (prohledávání do šířky), nová verze v `app.py` používá **vektorové operace nad NumPy maticemi**. Výsledkem je řádové zrychlení a zároveň oprava dvou skrytých vad původního BFS.
+Zatímco v článku v časopisu Computer demonstruji vyhledávání nejbližších barevných pixelů algoritmem BFS (prohledávání do šířky), nová verze v `server.py` používá **vektorové operace nad NumPy maticemi**. Výsledkem je řádové zrychlení a zároveň oprava dvou skrytých vad původního BFS.
 
 ### V čem byla BFS pomalá
 
