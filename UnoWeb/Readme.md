@@ -1,8 +1,8 @@
 # UnoWeb — minimalistický WWW server na ATMEGA328P
 
-Demonstrace, že plnohodnotný HTTP server běží i na **ATMEGA328P se2 kB SRAM**.
+Demonstrace, že plnohodnotný HTTP server běží i na **ATMEGA328P s 2 kB SRAM**.
 Zobrazuje teplotu a vlhkost ze senzoru **SHT31** (I2C) přes vestavěný
-ethernetový čip **WIZnet W5500**. Vytvořeno v prostředí **Arduino** pro **Platformio IDE**.
+ethernetový čip **WIZnet W5500**. Vytvořeno pro desku **Keyestudio W5500 Ethernet Development Board** v prostředí **Arduino** pro **Platformio IDE**.
 
 ## Naměřené využití paměti
 
