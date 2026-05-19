@@ -15,10 +15,16 @@ to je zamer (brute-force). Selhani se pocitaji zvlast, aby nezkreslila
 statistiku uspesnych transakci.
 
 Pouziti:
-    python benchmark.py [host] [-n POCET] [-c VLAKEN] [--timeout S] [--port P]
+    python benchmark.py HOST [-n POCET] [-c VLAKEN] [--timeout S] [--port P]
+
+HOST je povinny - musi ho vzdy zadat uzivatel. Lze zadat jako holou
+IP/hostname (napr. HOST), jako HOST:PORT nebo jako URL vcetne portu
+(scheme://HOST:PORT). Port z URL se pouzije, pokud neni explicitne
+prepsan prepinacem --port; jinak je vychozi 80.
 
 Priklad:
-    python benchmark.py 172.17.16.94 -n 1000 -c 8
+    python benchmark.py HOST -n 1000 -c 8
+    python benchmark.py scheme://HOST:PORT -n 500
 
 Bez zavislosti - pouze standardni knihovna.
 """
@@ -29,8 +35,48 @@ import statistics
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from urllib.parse import urlparse
 
-DEFAULT_HOST = "172.17.16.94"   # aktualni DHCP IP desky (lze prepsat argumentem)
+DEFAULT_PORT = 80
+
+
+def parse_target(raw_host: str, port_override):
+    """Rozlozi zadany cil na (host, port).
+
+    Prijima holou IP/hostname, tvar HOST:PORT i URL vcetne portu
+    (scheme://HOST:PORT). Priorita portu:
+    explicitni --port  >  port z URL  >  DEFAULT_PORT.
+    """
+    raw_host = raw_host.strip()
+    url_port = None
+
+    if "://" in raw_host:
+        parsed = urlparse(raw_host)
+        host = parsed.hostname or ""
+        url_port = parsed.port
+    elif "/" in raw_host:
+        # napr. "HOST:PORT/cesta" bez schematu
+        parsed = urlparse("//" + raw_host)
+        host = parsed.hostname or ""
+        url_port = parsed.port
+    elif raw_host.count(":") == 1:
+        # "host:port" bez schematu (ne IPv6)
+        parsed = urlparse("//" + raw_host)
+        host = parsed.hostname or ""
+        url_port = parsed.port
+    else:
+        host = raw_host
+
+    if not host:
+        raise ValueError(f"nelze rozpoznat hostname z {raw_host!r}")
+
+    if port_override is not None:
+        port = port_override
+    elif url_port is not None:
+        port = url_port
+    else:
+        port = DEFAULT_PORT
+    return host, port
 
 
 def one_request(host: str, port: int, timeout: float):
@@ -83,9 +129,11 @@ def fmt_ms(seconds: float) -> str:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="HTTP zatezovy test pro UnoWeb")
-    ap.add_argument("host", nargs="?", default=DEFAULT_HOST,
-                    help=f"IP/hostname desky (vychozi {DEFAULT_HOST})")
-    ap.add_argument("--port", type=int, default=80)
+    ap.add_argument("host",
+                    help="POVINNE: IP/hostname, HOST:PORT nebo URL desky "
+                         "(scheme://HOST:PORT)")
+    ap.add_argument("--port", type=int, default=None,
+                    help=f"TCP port; prebije port z URL (vychozi {DEFAULT_PORT})")
     ap.add_argument("-n", "--requests", type=int, default=1000,
                     help="celkovy pocet spojeni (vychozi 1000)")
     ap.add_argument("-c", "--concurrency", type=int, default=8,
@@ -94,7 +142,13 @@ def main() -> int:
                     help="timeout na spojeni v sekundach (vychozi 5)")
     args = ap.parse_args()
 
-    print(f"Cil:        http://{args.host}:{args.port}/")
+    try:
+        host, port = parse_target(args.host, args.port)
+    except ValueError as exc:
+        print(f"Chyba: {exc}", file=sys.stderr)
+        return 2
+
+    print(f"Cil:        http://{host}:{port}/")
     print(f"Spojeni:    {args.requests}   vlaken: {args.concurrency}   "
           f"timeout: {args.timeout:g}s")
     print("Bezi ...", flush=True)
@@ -108,7 +162,7 @@ def main() -> int:
     wall_start = time.perf_counter()
     with ThreadPoolExecutor(max_workers=args.concurrency) as pool:
         futures = [
-            pool.submit(one_request, args.host, args.port, args.timeout)
+            pool.submit(one_request, host, port, args.timeout)
             for _ in range(args.requests)
         ]
         done = 0
