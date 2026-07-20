@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Časomíra – ovládací pult</title>
+<style>
+  :root {
+    --bg: #0e1116;
+    --panel: #161b22;
+    --panel-2: #1c232d;
+    --border: #2a323d;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #3fb950;
+    --accent-2: #58a6ff;
+    --danger: #f85149;
+    --warn: #d29922;
+    --shadow: 0 4px 20px rgba(0,0,0,.35);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.5;
+    padding: clamp(12px, 3vw, 28px);
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+  /* Na širokých obrazovkách (tabule pro diváky) využij víc plochy. */
+  @media (min-width: 1100px) { body { max-width: min(2100px, 96vw); } }
+  /* ---- Header: logo vlevo, decentní připojení vpravo ---- */
+  .topbar {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+    margin-bottom: 18px;
+  }
+  .brand {
+    font-size: clamp(1.2rem, 3.5vw, 1.7rem); font-weight: 700;
+    display: flex; align-items: center; gap: 8px; margin-right: auto;
+  }
+  .conn { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--danger);
+         box-shadow: 0 0 0 3px rgba(248,81,73,.15); transition: all .2s; }
+  .dot.on { background: var(--accent); box-shadow: 0 0 0 3px rgba(63,185,80,.18); }
+  .conn .status { font-size: .82rem; color: var(--muted); margin-right: 4px; }
+
+  /* ---- Buttons ---- */
+  button {
+    font: inherit; font-weight: 600; cursor: pointer;
+    border: 1px solid var(--border); background: var(--panel-2); color: var(--text);
+    border-radius: 10px; padding: 10px 16px; transition: background .15s, border-color .15s, transform .05s;
+  }
+  button:hover:not(:disabled) { background: #232c38; border-color: #39424e; }
+  button:active:not(:disabled) { transform: translateY(1px); }
+  button:disabled { opacity: .4; cursor: not-allowed; }
+  button.danger { background: transparent; border-color: var(--danger); color: var(--danger); }
+  button.danger:hover:not(:disabled) { background: rgba(248,81,73,.12); }
+  /* Decentní tlačítka v hlavičce – ovládání nemá „křičet" */
+  .conn button { padding: 6px 12px; font-size: .82rem; font-weight: 600; }
+
+  /* ---- Big timer ---- */
+  .stage {
+    position: relative;
+    background: linear-gradient(180deg, var(--panel), var(--panel-2));
+    border: 1px solid var(--border); border-radius: 18px;
+    padding: clamp(18px, 5vw, 40px) 20px; text-align: center;
+    box-shadow: var(--shadow); margin-bottom: 18px;
+  }
+  /* Přepínač Připraveno/Nepřipraveno v rohu */
+  .arm {
+    position: absolute; top: 14px; right: 16px; z-index: 2;
+    display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+    user-select: none;
+  }
+  .arm input { position: absolute; opacity: 0; width: 0; height: 0; }
+  .arm-track {
+    width: 40px; height: 22px; border-radius: 999px; background: #3a2530;
+    border: 1px solid var(--border); position: relative; transition: background .2s;
+  }
+  .arm-thumb {
+    position: absolute; top: 2px; left: 2px; width: 16px; height: 16px;
+    border-radius: 50%; background: var(--danger); transition: all .2s;
+  }
+  .arm input:checked + .arm-track { background: rgba(63,185,80,.25); }
+  .arm input:checked + .arm-track .arm-thumb { left: 20px; background: var(--accent); }
+  .arm input:disabled ~ * { opacity: .45; }
+  .arm-label { font-size: .78rem; font-weight: 700; color: var(--muted); letter-spacing: .03em; }
+  .arm-label.on { color: var(--accent); }
+
+  /* Zašednutí bloku, dokud není časomíra odemčená */
+  .stage-main { transition: opacity .2s, filter .2s; }
+  .stage-main.dim { opacity: .4; filter: grayscale(1); pointer-events: none; }
+  .state-badge {
+    display: inline-block; font-size: .78rem; font-weight: 700; letter-spacing: .08em;
+    text-transform: uppercase; padding: 4px 12px; border-radius: 999px;
+    background: #21262d; color: var(--muted); margin-bottom: 14px;
+  }
+  .state-badge.ready { background: rgba(88,166,255,.15); color: var(--accent-2); }
+  .state-badge.running { background: rgba(210,153,34,.15); color: var(--warn); }
+  .state-badge.done { background: rgba(63,185,80,.15); color: var(--accent); }
+  .timer {
+    font-family: "SF Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
+    font-size: clamp(2.6rem, 13vw, 6.5rem); font-weight: 700; line-height: 1;
+    letter-spacing: .02em; font-variant-numeric: tabular-nums;
+    color: var(--text);
+  }
+  .timer .ms { color: var(--muted); font-size: .5em; }
+  .timer.live { color: var(--warn); }
+  .timer.corrected { color: var(--accent); }
+  .hint { color: var(--muted); font-size: .85rem; margin-top: 12px; min-height: 1.2em; }
+
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 20px; }
+
+  /* ---- Rozvržení: úzké = pod sebou, široké = časomíra vlevo + žebříček vpravo ---- */
+  .layout { display: flex; flex-direction: column; gap: 18px; }
+  .layout > * { margin-bottom: 0; }
+
+  @media (min-width: 1100px) {
+    .layout { flex-direction: row; align-items: stretch; }
+    .layout .stage {
+      flex: 1 1 auto; margin-bottom: 0;
+      display: flex; flex-direction: column; justify-content: center;
+    }
+    .layout .board { flex: 0 0 clamp(340px, 28vw, 560px); align-self: flex-start; }
+    /* Časomíra může na šířku nabýt – ať zaplní plochu */
+    .timer { font-size: clamp(4rem, 11vw, 12rem); }
+  }
+
+  /* ---- Ladder ---- */
+  .board { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+  .board-head {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    padding: 14px 16px; border-bottom: 1px solid var(--border);
+  }
+  .board-head h2 { font-size: 1rem; margin: 0; margin-right: auto; }
+  .count-pill { background: var(--panel-2); color: var(--muted); border-radius: 999px;
+                padding: 2px 10px; font-size: .8rem; font-weight: 600; }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; min-width: 460px; }
+  th, td { padding: 12px 16px; text-align: left; white-space: nowrap; }
+  th {
+    font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted);
+    background: var(--panel-2); user-select: none;
+  }
+  th.sortable { cursor: pointer; }
+  th.sortable:hover { color: var(--text); }
+  th .arrow { opacity: .4; font-size: .7em; margin-left: 4px; }
+  th.active { color: var(--accent-2); }
+  th.active .arrow { opacity: 1; }
+  tbody tr { border-top: 1px solid var(--border); }
+  tbody tr:hover { background: var(--panel-2); }
+  td.rank { color: var(--muted); font-variant-numeric: tabular-nums; width: 1%; }
+  td.dur { font-family: ui-monospace, monospace; font-weight: 700; font-variant-numeric: tabular-nums; }
+  td.start { font-family: ui-monospace, monospace; color: var(--muted); font-variant-numeric: tabular-nums; }
+  tr.best td.dur { color: var(--accent); }
+  tr.best td.rank::after { content: " 🏆"; }
+  .empty { padding: 34px 16px; text-align: center; color: var(--muted); }
+
+  /* ---- Postranní menu (drawer) ---- */
+  .icon-btn { padding: 6px 10px; font-size: 1rem; line-height: 1; }
+  .drawer-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 40;
+    opacity: 0; pointer-events: none; transition: opacity .2s;
+  }
+  .drawer-overlay.open { opacity: 1; pointer-events: auto; }
+  .drawer {
+    position: fixed; top: 0; right: 0; bottom: 0; width: min(400px, 94vw);
+    background: var(--panel); border-left: 1px solid var(--border); z-index: 50;
+    transform: translateX(100%); transition: transform .25s ease;
+    overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 14px;
+  }
+  .drawer.open { transform: none; }
+  .drawer-head { display: flex; align-items: center; justify-content: space-between; }
+  .drawer-head h2 { margin: 0; font-size: 1.05rem; }
+  .drawer section {
+    border: 1px solid var(--border); border-radius: 12px; padding: 12px;
+    background: var(--panel-2);
+  }
+  .drawer section h3 { margin: 0 0 10px; font-size: .85rem; color: var(--muted);
+                       text-transform: uppercase; letter-spacing: .05em; }
+  .field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px;
+           font-size: .85rem; color: var(--muted); }
+  .field input {
+    padding: 8px 10px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--bg); color: var(--text); font: inherit;
+  }
+  .ota-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .ota-status { font-size: .8rem; color: var(--muted); margin-top: 8px; min-height: 1.1em; }
+  .progress {
+    height: 12px; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 999px; overflow: hidden;
+  }
+  .progress > div { height: 100%; width: 0%; background: var(--accent-2); transition: width .15s; }
+
+  /* ---- Ladění / nastavení ---- */
+  .tune { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 8px 0; font-size: .85rem; color: var(--muted); }
+  .tune input { width: 90px; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--border);
+                background: var(--panel-2); color: var(--text); font: inherit; }
+  .tune button { padding: 6px 12px; font-size: .82rem; }
+  .tune-note { font-size: .78rem; opacity: .8; }
+  pre.raw {
+    background: #0a0d11; border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px; max-height: 180px; overflow: auto; font-size: .78rem;
+    color: #9fb0c0; margin: 8px 0 0; white-space: pre-wrap; word-break: break-word;
+  }
+  .unsupported {
+    background: rgba(248,81,73,.1); border: 1px solid var(--danger); color: #ffb3ae;
+    border-radius: 10px; padding: 12px 14px; margin-bottom: 18px; font-size: .9rem;
+  }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">🏁 Časomíra</div>
+    <div class="conn">
+      <span id="dot" class="dot"></span>
+      <span id="status" class="status">Odpojeno</span>
+      <button id="btnUsb">🔌 USB</button>
+      <button id="btnBle">📶 Bluetooth</button>
+      <button id="btnDisconnect" hidden>Odpojit</button>
+      <button id="btnMenu" class="icon-btn" title="Nastavení">☰</button>
+    </div>
+  </header>
+
+  <div id="unsupported" class="unsupported" hidden>
+    ⚠️ Tento prohlížeč nepodporuje Web Serial ani Web Bluetooth. Použij <b>Chrome</b> nebo <b>Edge</b>
+    a otevři stránku přes <code>http://localhost</code>.
+  </div>
+
+  <div class="layout">
+    <div class="stage">
+      <label class="arm" title="Odemkne subsystém optické brány">
+        <input type="checkbox" id="armSwitch" disabled>
+        <span class="arm-track"><span class="arm-thumb"></span></span>
+        <span class="arm-label" id="armLabel">Nepřipraveno</span>
+      </label>
+
+      <div class="stage-main dim" id="stageMain">
+        <span id="badge" class="state-badge">Odpojeno</span>
+        <div id="timer" class="timer">00:00<span class="ms">,000</span></div>
+        <div id="hint" class="hint">Připoj desku a přepni na „Připraveno".</div>
+        <div class="controls">
+          <button id="btnReset" disabled>Reset</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="board">
+      <div class="board-head">
+        <h2>Žebříček sportovců</h2>
+        <span id="count" class="count-pill">0 měření</span>
+        <button id="btnExport">⬇ Export CSV</button>
+        <button id="btnClear" class="danger">🗑 Smazat vše</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th class="rank">#</th>
+              <th id="thDur" class="sortable">Výsledný čas <span class="arrow">▲▼</span></th>
+              <th id="thStart" class="sortable">Čas startu (PC) <span class="arrow">▲▼</span></th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+      <div id="empty" class="empty">Zatím žádná měření.</div>
+    </div>
+  </div>
+
+  <div id="drawerOverlay" class="drawer-overlay"></div>
+  <aside id="drawer" class="drawer" aria-label="Nastavení">
+    <div class="drawer-head">
+      <h2>Nastavení</h2>
+      <button id="btnDrawerClose" class="icon-btn" title="Zavřít">✕</button>
+    </div>
+
+    <section>
+      <h3>Časomíra</h3>
+      <div class="tune">
+        <label for="blindInput">Slepá doba po startu (ms):</label>
+        <input id="blindInput" type="number" min="200" max="60000" step="100" value="3000">
+        <button id="btnSetBlind" disabled>Nastavit</button>
+        <span class="tune-note">uloží se do desky (NVS)</span>
+      </div>
+    </section>
+
+    <section>
+      <h3>Aktualizace firmwaru (OTA přes Wi-Fi)</h3>
+      <div class="field">
+        <label for="wifiSsid">Wi-Fi síť (SSID)</label>
+        <input id="wifiSsid" type="text" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="wifiPass">Heslo</label>
+        <input id="wifiPass" type="password" autocomplete="off">
+      </div>
+      <div class="ota-row">
+        <button id="btnWifiConnect" disabled>Připojit Wi-Fi</button>
+        <button id="btnWifiOff" disabled>Odpojit Wi-Fi</button>
+      </div>
+      <div id="wifiStatus" class="ota-status">Wi-Fi vypnutá. Heslo se do desky neukládá.</div>
+
+      <div class="field" style="margin-top:10px">
+        <label for="otaFile">Soubor firmwaru (.bin)</label>
+        <input id="otaFile" type="file" accept=".bin">
+      </div>
+      <button id="btnOtaUpload" disabled>⬆ Nahrát firmware</button>
+      <div class="progress" style="margin-top:10px"><div id="otaBar"></div></div>
+      <div id="otaStatus" class="ota-status"></div>
+    </section>
+
+    <section>
+      <h3>Ladění</h3>
+      <pre id="raw" class="raw"></pre>
+    </section>
+  </aside>
+
+<script>
+"use strict";
+
+// ================== Stav ==================
+let laps = [];                 // { durUs, startWall }
+let sortKey = "dur";           // "dur" | "start"
+let sortDir = 1;               // 1 = vzestupně, -1 = sestupně
+let armed = false;             // přepínač Připraveno/Nepřipraveno (odemčení brány)
+let authed = false;            // ověřeno? (USB vždy; BLE po zadání PIN)
+let pingTimer = null;          // keep-alive, aby deska poznala živé spojení
+let otaIp = null;              // IP desky po připojení Wi-Fi (pro OTA upload)
+let otaToken = null;           // jednorázový token pro POST /ota
+
+// běžící kolo v prohlížeči
+let running = false;
+let lapStartPerf = 0;          // performance.now() při startu
+let lapStartWall = 0;          // Date.now() při startu (hodiny PC)
+let rafId = 0;
+
+// ================== Prvky ==================
+const $ = (id) => document.getElementById(id);
+const dot = $("dot"), statusEl = $("status"), badge = $("badge");
+const timerEl = $("timer"), hintEl = $("hint"), rawEl = $("raw");
+const tbody = $("tbody"), emptyEl = $("empty"), countEl = $("count");
+const btnUsb = $("btnUsb"), btnBle = $("btnBle"), btnDisconnect = $("btnDisconnect");
+const btnReset = $("btnReset"), btnClear = $("btnClear"), btnExport = $("btnExport");
+const armSwitch = $("armSwitch"), armLabel = $("armLabel"), stageMain = $("stageMain");
+const thDur = $("thDur"), thStart = $("thStart");
+const blindInput = $("blindInput"), btnSetBlind = $("btnSetBlind");
+const btnMenu = $("btnMenu"), drawer = $("drawer"),
+      drawerOverlay = $("drawerOverlay"), btnDrawerClose = $("btnDrawerClose");
+const wifiSsid = $("wifiSsid"), wifiPass = $("wifiPass"),
+      btnWifiConnect = $("btnWifiConnect"), btnWifiOff = $("btnWifiOff"),
+      wifiStatus = $("wifiStatus");
+const otaFile = $("otaFile"), btnOtaUpload = $("btnOtaUpload"),
+      otaBar = $("otaBar"), otaStatus = $("otaStatus");
+
+// ================== Formátování ==================
+function fmtDuration(us) {
+  const ms = Math.round(us / 1000);
+  const hh = Math.floor(ms / 3600000);
+  const mm = Math.floor(ms / 60000) % 60;
+  const ss = Math.floor(ms / 1000) % 60;
+  const mmm = ms % 1000;
+  const p2 = (n) => String(n).padStart(2, "0");
+  const p3 = (n) => String(n).padStart(3, "0");
+  const head = hh > 0 ? `${p2(hh)}:${p2(mm)}:${p2(ss)}` : `${p2(mm)}:${p2(ss)}`;
+  return { head, ms: p3(mmm) };
+}
+function setTimer(us, cls) {
+  const f = fmtDuration(us);
+  timerEl.innerHTML = `${f.head}<span class="ms">,${f.ms}</span>`;
+  timerEl.className = "timer" + (cls ? " " + cls : "");
+}
+function fmtWall(ts) {
+  const d = new Date(ts);
+  const p2 = (n) => String(n).padStart(2, "0");
+  return `${p2(d.getHours())}:${p2(d.getMinutes())}:${p2(d.getSeconds())}`;
+}
+
+// ================== Stavové UI ==================
+function setBadge(text, cls) { badge.textContent = text; badge.className = "state-badge" + (cls ? " " + cls : ""); }
+
+// Zpřístupní/zašedne blok časomíry podle připojení, ověření a odemčení.
+function updateArmUI() {
+  const active = !!transport && authed && armed;
+  stageMain.classList.toggle("dim", !active);
+  btnReset.disabled = !active;
+  btnSetBlind.disabled = !(transport && authed);   // nastavení jen po ověření
+  btnWifiConnect.disabled = !(transport && authed);
+  btnWifiOff.disabled = !(transport && authed && otaIp);
+  updateOtaUploadBtn();
+  armSwitch.disabled = !transport || !authed;   // dokud není ověřeno, nelze odemknout
+  armLabel.textContent = armed ? "Připraveno" : "Nepřipraveno";
+  armLabel.classList.toggle("on", armed);
+}
+
+function setConnected(on) {
+  dot.classList.toggle("on", on);
+  if (!on) statusEl.textContent = "Odpojeno";
+  // Připojovací tlačítka po připojení úplně zmizí, ať nic neruší.
+  btnUsb.hidden = on || !("serial" in navigator);
+  btnBle.hidden = on || !("bluetooth" in navigator);
+  btnDisconnect.hidden = !on;
+  if (!on) {
+    armed = false;
+    authed = false;
+    armSwitch.checked = false;
+    if (pingTimer) { clearInterval(pingTimer); pingTimer = null; }
+    stopLiveTimer();
+    setBadge("Odpojeno", "");
+  }
+  updateArmUI();
+}
+
+// ================== Živá časomíra v prohlížeči ==================
+function tick() {
+  if (!running) return;
+  setTimer((performance.now() - lapStartPerf) * 1000, "live");
+  rafId = requestAnimationFrame(tick);
+}
+function startLiveTimer() {
+  running = true;
+  lapStartPerf = performance.now();
+  lapStartWall = Date.now();
+  setBadge("Měří se…", "running");
+  hintEl.textContent = "Měří se – čekám na přesný čas z ESP32…";
+  cancelAnimationFrame(rafId);
+  rafId = requestAnimationFrame(tick);
+}
+function stopLiveTimer() { running = false; cancelAnimationFrame(rafId); }
+
+// Přesný výsledek z desky -> oprava a zápis
+function finishLap(durUs) {
+  const start = lapStartWall || (Date.now() - durUs / 1000);
+  stopLiveTimer();
+  setTimer(durUs, "corrected");
+  setBadge("Změřeno", "done");
+  hintEl.textContent = "Změřeno. Stiskni Reset pro dalšího sportovce.";
+  laps.push({ durUs, startWall: start });
+  lapStartWall = 0;
+  renderBoard();
+}
+
+// ================== Žebříček ==================
+function renderBoard() {
+  countEl.textContent = laps.length + " měření";
+  emptyEl.style.display = laps.length ? "none" : "block";
+
+  // nejlepší (nejkratší) čas
+  let bestIdx = -1, bestVal = Infinity;
+  laps.forEach((l, i) => { if (l.durUs < bestVal) { bestVal = l.durUs; bestIdx = i; } });
+
+  const sorted = laps.map((l, i) => ({ ...l, orig: i })).sort((a, b) => {
+    const va = sortKey === "dur" ? a.durUs : a.startWall;
+    const vb = sortKey === "dur" ? b.durUs : b.startWall;
+    return (va - vb) * sortDir;
+  });
+
+  tbody.innerHTML = sorted.map((l, i) => {
+    const f = fmtDuration(l.durUs);
+    const best = l.orig === bestIdx ? " best" : "";
+    return `<tr class="${best.trim()}">
+      <td class="rank">${i + 1}</td>
+      <td class="dur">${f.head},${f.ms}</td>
+      <td class="start">${fmtWall(l.startWall)}</td>
+    </tr>`;
+  }).join("");
+
+  thDur.classList.toggle("active", sortKey === "dur");
+  thStart.classList.toggle("active", sortKey === "start");
+  updateArrow(thDur, sortKey === "dur");
+  updateArrow(thStart, sortKey === "start");
+}
+function updateArrow(th, active) {
+  const a = th.querySelector(".arrow");
+  a.textContent = active ? (sortDir === 1 ? "▲" : "▼") : "▲▼";
+}
+function setSort(key) {
+  if (sortKey === key) sortDir = -sortDir;
+  else { sortKey = key; sortDir = 1; }
+  renderBoard();
+}
+
+// ================== Parser strojového protokolu ==================
+// Řádky deska -> web s prefixem "CSM ":
+//   CSM HELLO proto=1 blind_ms=3000
+//   CSM READY
+//   CSM START us=<t>
+//   CSM RESULT us=<dur>
+// Ostatní řádky (bootovací logy ESP-IDF) ignorujeme.
+let blindMs = 3000;
+
+function handleLine(line) {
+  log(line);
+  if (!line.startsWith("CSM ")) return;      // ne-protokolní řádek (log) přeskočíme
+
+  const parts = line.slice(4).trim().split(/\s+/);
+  const cmd = parts[0];
+  const kv = {};
+  for (let i = 1; i < parts.length; i++) {
+    const eq = parts[i].indexOf("=");
+    if (eq > 0) kv[parts[i].slice(0, eq)] = parts[i].slice(eq + 1);
+  }
+
+  switch (cmd) {
+    case "HELLO":
+      if (kv.blind_ms) { blindMs = parseInt(kv.blind_ms, 10) || blindMs; blindInput.value = blindMs; }
+      break;
+    case "CFG":
+      if (kv.blind_ms) { blindMs = parseInt(kv.blind_ms, 10) || blindMs; blindInput.value = blindMs; }
+      hintEl.textContent = "Slepá doba nastavena na " + blindMs + " ms.";
+      break;
+    case "ERR":
+      log("Deska hlásí chybu: " + line);
+      break;
+    case "WIFI":
+      if (parts[1] === "connecting") {
+        wifiStatus.textContent = "Připojuji k Wi-Fi…";
+      } else if (parts[1] === "ok") {
+        otaIp = kv.ip || null;
+        otaToken = kv.token || null;
+        wifiStatus.textContent = "Připojeno, IP: " + otaIp;
+        updateArmUI();
+      } else if (parts[1] === "fail") {
+        otaIp = otaToken = null;
+        wifiStatus.textContent = "Připojení selhalo – zkontroluj SSID/heslo.";
+        updateArmUI();
+      } else if (parts[1] === "off") {
+        otaIp = otaToken = null;
+        wifiStatus.textContent = "Wi-Fi vypnutá.";
+        updateArmUI();
+      }
+      break;
+    case "OTA":
+      if (parts[1] === "start") {
+        otaStatus.textContent = "Deska přijímá a zapisuje firmware…";
+      } else if (parts[1] === "done") {
+        otaBar.style.width = "100%";
+        otaStatus.textContent = "✅ Hotovo – deska se restartuje s novým firmwarem.";
+      } else if (parts[1] === "fail") {
+        otaStatus.textContent = "❌ OTA selhalo – firmware se nezapsal, deska běží dál na starém.";
+      }
+      break;
+    case "READY":
+      stopLiveTimer();
+      setBadge("Připraveno", "ready");
+      setTimer(0, "");
+      hintEl.textContent = "Časomíra vyzbrojena – čeká na přerušení paprsku.";
+      break;
+    case "IDLE":
+      // Deska se zamkla (boot / změna režimu připojení) - srovnej UI.
+      stopLiveTimer();
+      armed = false;
+      armSwitch.checked = false;
+      setTimer(0, "");
+      setBadge("Uzamčeno", "");
+      hintEl.textContent = 'Časomíra zamčena. Přepni na „Připraveno".';
+      updateArmUI();
+      break;
+    case "AUTH":
+      if (parts[1] === "ok") {
+        authed = true;
+        setBadge("Uzamčeno", "");
+        hintEl.textContent = 'Ověřeno. Přepni na „Připraveno".';
+        updateArmUI();
+      } else if (parts[1] === "fail") {
+        authed = false;
+        updateArmUI();
+        if (confirm("Špatný PIN. Zkusit znovu?")) authenticateBle();
+        else disconnect();
+      } else if (parts[1] === "required") {
+        authenticateBle();
+      }
+      break;
+    case "START":
+      if (!armed) break;              // zamčeno (Nepřipraveno) -> ignoruj bránu
+      if (!running) startLiveTimer();
+      break;
+    case "RESULT":
+      if (!armed) break;              // zamčeno -> výsledek nezapisujeme
+      if (kv.us !== undefined) finishLap(parseInt(kv.us, 10));
+      break;
+  }
+}
+
+// ================== Přenos: USB (Web Serial) / BLE (Web Bluetooth) ==================
+// Nordic UART Service – shodné UUID jako ve firmwaru (ble_uart.c).
+const NUS_SERVICE = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
+const NUS_RX      = "6e400002-b5a3-f393-e0a9-e50e24dcca9e"; // web -> deska (zápis)
+const NUS_TX      = "6e400003-b5a3-f393-e0a9-e50e24dcca9e"; // deska -> web (notifikace)
+
+let transport = null;   // aktivní přenos: { kind, send(str), close() }
+let rxBuf = "";         // sběr příchozích bajtů do celých řádků
+
+// Příchozí text (z libovolného přenosu) rozseká na řádky a předá parseru.
+function feed(text) {
+  rxBuf += text;
+  let nl;
+  while ((nl = rxBuf.indexOf("\n")) >= 0) {
+    const line = rxBuf.slice(0, nl).replace(/\r$/, "").trim();
+    rxBuf = rxBuf.slice(nl + 1);
+    if (line) handleLine(line);
+  }
+}
+
+function onConnected(kind) {
+  rxBuf = "";
+  authed = (kind !== "Bluetooth");   // USB je důvěryhodné; BLE vyžaduje PIN
+  setConnected(true);
+  if (pingTimer) clearInterval(pingTimer);
+  pingTimer = setInterval(() => sendCmd("PING\n"), 1000);   // keep-alive
+  statusEl.textContent = "Připojeno přes " + kind;
+  setBadge("Uzamčeno", "");
+  hintEl.textContent = authed
+    ? 'Přepni vpravo na „Připraveno" pro odemčení brány.'
+    : "Ověř se PIN…";
+}
+
+// Vyžádá PIN a pošle ho desce k ověření (jen BLE).
+function authenticateBle() {
+  const pin = prompt("Zadej PIN časomíry (Bluetooth):", "");
+  if (pin === null) {   // uživatel zrušil
+    hintEl.textContent = "Bez PIN nelze ovládat. Odpoj a zkus znovu.";
+    return;
+  }
+  sendCmd("AUTH " + pin.trim() + "\n");
+  hintEl.textContent = "Ověřuji PIN…";
+}
+
+async function sendCmd(str) {
+  if (!transport) return;
+  try { await transport.send(str); }
+  catch (e) { log("Odeslání selhalo: " + e.message); }
+}
+
+async function disconnect() {
+  const t = transport;
+  transport = null;
+  if (t) { try { await t.close(); } catch {} }
+  setConnected(false);
+  hintEl.textContent = "Odpojeno.";
+}
+
+// ---------- USB: Web Serial ----------
+async function connectSerial() {
+  let port, reader, writer;
+  try {
+    port = await navigator.serial.requestPort();
+    await port.open({ baudRate: 115200 });
+    writer = port.writable.getWriter();
+  } catch (e) {
+    if (!e || e.name === "NotFoundError") return;   // uživatel zavřel dialog
+    log("Chyba USB: " + e.name + " – " + e.message);
+    return;
+  }
+  let alive = true;
+  transport = {
+    kind: "USB",
+    send: (s) => writer.write(new TextEncoder().encode(s)),
+    close: async () => {
+      alive = false;
+      try { await reader.cancel(); } catch {}
+      try { writer.releaseLock(); } catch {}
+      try { await port.close(); } catch {}
+    },
+  };
+  onConnected("USB");
+  // Čtecí smyčka (dekódujeme ručně, ať jde port spolehlivě zavřít).
+  (async () => {
+    const dec = new TextDecoder();
+    reader = port.readable.getReader();
+    try {
+      while (alive) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        feed(dec.decode(value, { stream: true }));
+      }
+    } catch (e) {
+      if (alive) log("USB čtení přerušeno: " + e.message);
+    } finally {
+      try { reader.releaseLock(); } catch {}
+      if (alive) disconnect();   // kabel vytažen / port zmizel
+    }
+  })();
+}
+
+// ---------- Bluetooth: Web Bluetooth (BLE / NUS) ----------
+async function connectBle() {
+  let device, rxChar;
+  try {
+    device = await navigator.bluetooth.requestDevice({
+      filters: [{ namePrefix: "Casomira" }],
+      optionalServices: [NUS_SERVICE],
+    });
+    const server = await device.gatt.connect();
+    const svc = await server.getPrimaryService(NUS_SERVICE);
+    const txChar = await svc.getCharacteristic(NUS_TX);
+    rxChar = await svc.getCharacteristic(NUS_RX);
+    const dec = new TextDecoder();
+    await txChar.startNotifications();
+    txChar.addEventListener("characteristicvaluechanged", (ev) => {
+      feed(dec.decode(ev.target.value));
+    });
+  } catch (e) {
+    if (!e || e.name === "NotFoundError") return;   // uživatel zavřel dialog
+    log("Chyba Bluetooth: " + e.name + " – " + e.message);
+    return;
+  }
+  transport = {
+    kind: "Bluetooth",
+    send: async (s) => {
+      // Po kouscích <=20 B (bezpečné i bez vyjednání většího MTU);
+      // firmware skládá řádky ze streamu, takže dělení nevadí.
+      const buf = new TextEncoder().encode(s);
+      for (let i = 0; i < buf.length; i += 20) {
+        const chunk = buf.slice(i, i + 20);
+        if (rxChar.writeValueWithoutResponse) await rxChar.writeValueWithoutResponse(chunk);
+        else await rxChar.writeValue(chunk);
+      }
+    },
+    close: async () => { try { device.gatt.disconnect(); } catch {} },
+  };
+  device.addEventListener("gattserverdisconnected", () => {
+    if (transport && transport.kind === "Bluetooth") {
+      transport = null;
+      setConnected(false);
+      hintEl.textContent = "Bluetooth odpojeno.";
+    }
+  });
+  onConnected("Bluetooth");
+  authenticateBle();   // hned si vyžádej PIN
+}
+
+// ================== Log ==================
+function log(text) {
+  const t = new Date().toLocaleTimeString();
+  rawEl.textContent += `[${t}] ${text}\n`;
+  rawEl.scrollTop = rawEl.scrollHeight;
+  if (rawEl.textContent.length > 20000) rawEl.textContent = rawEl.textContent.slice(-15000);
+}
+
+// ================== Události ==================
+btnUsb.addEventListener("click", connectSerial);
+btnBle.addEventListener("click", connectBle);
+btnDisconnect.addEventListener("click", disconnect);
+
+// Přepínač Připraveno/Nepřipraveno = odemčení/uzamčení optické brány.
+armSwitch.addEventListener("change", () => {
+  if (!transport) { armSwitch.checked = false; return; }
+  armed = armSwitch.checked;
+  if (armed) {
+    sendCmd("r\n");                   // odemkni bránu = vyzbroj časomíru
+    stopLiveTimer();
+    setTimer(0, "");
+    setBadge("Připravuji…", "ready");
+    hintEl.textContent = "Odemykám bránu – čekám na start.";
+  } else {
+    stopLiveTimer();
+    setBadge("Uzamčeno", "");
+    hintEl.textContent = 'Brána uzamčena. Přepni na „Připraveno".';
+  }
+  updateArmUI();
+});
+
+// Reset = nový start pro dalšího závodníka (posílá 'r').
+btnReset.addEventListener("click", () => {
+  sendCmd("r\n");
+  stopLiveTimer();
+  setTimer(0, "");
+  setBadge("Připravuji…", "ready");
+  hintEl.textContent = "Reset – čekám na start.";
+});
+btnClear.addEventListener("click", () => {
+  if (laps.length && !confirm("Opravdu smazat celý žebříček (" + laps.length + " měření)?")) return;
+  laps = [];
+  stopLiveTimer();
+  setTimer(0, "");
+  renderBoard();
+  hintEl.textContent = "Žebříček vymazán.";
+});
+
+// Export žebříčku do CSV (vysledky.csv). Oddělovač ';' + BOM kvůli Excelu (CZ).
+btnExport.addEventListener("click", () => {
+  if (!laps.length) { hintEl.textContent = "Není co exportovat."; return; }
+  const rows = [["Poradi", "Vysledny cas", "Vysledny cas [ms]", "Cas startu"]];
+  laps.forEach((l, i) => {
+    const f = fmtDuration(l.durUs);
+    const d = new Date(l.startWall);
+    const p2 = (n) => String(n).padStart(2, "0");
+    const start = `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())} ` +
+                  `${p2(d.getHours())}:${p2(d.getMinutes())}:${p2(d.getSeconds())}`;
+    rows.push([i + 1, `${f.head},${f.ms}`, Math.round(l.durUs / 1000), start]);
+  });
+  const csv = rows.map((r) => r.join(";")).join("\r\n");
+  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "vysledky.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+// ---- Postranní menu ----
+function openDrawer()  { drawer.classList.add("open");  drawerOverlay.classList.add("open"); }
+function closeDrawer() { drawer.classList.remove("open"); drawerOverlay.classList.remove("open"); }
+btnMenu.addEventListener("click", openDrawer);
+btnDrawerClose.addEventListener("click", closeDrawer);
+drawerOverlay.addEventListener("click", closeDrawer);
+
+// ---- OTA přes Wi-Fi ----
+function updateOtaUploadBtn() {
+  btnOtaUpload.disabled = !(otaIp && otaToken && otaFile.files.length === 1);
+}
+otaFile.addEventListener("change", updateOtaUploadBtn);
+
+btnWifiConnect.addEventListener("click", () => {
+  const ssid = wifiSsid.value.trim();
+  if (!ssid) { wifiStatus.textContent = "Zadej SSID."; return; }
+  // Tab jako oddělovač - SSID smí obsahovat mezery.
+  sendCmd("WIFI " + ssid + "\t" + wifiPass.value + "\n");
+  wifiStatus.textContent = "Odesílám přihlašovací údaje…";
+});
+
+btnWifiOff.addEventListener("click", () => sendCmd("WIFI OFF\n"));
+
+btnOtaUpload.addEventListener("click", () => {
+  const file = otaFile.files[0];
+  if (!file || !otaIp || !otaToken) return;
+  if (!confirm('Nahrát „' + file.name + '" (' + Math.round(file.size / 1024) + ' kB) do desky?')) return;
+
+  const xhr = new XMLHttpRequest();
+  xhr.open("POST", "http://" + otaIp + "/ota");
+  xhr.setRequestHeader("X-Auth", otaToken);
+  xhr.timeout = 180000;
+
+  btnOtaUpload.disabled = true;
+  otaBar.style.width = "0%";
+  otaStatus.textContent = "Nahrávám…";
+
+  xhr.upload.onprogress = (e) => {
+    if (!e.lengthComputable) return;
+    const pct = Math.round((e.loaded / e.total) * 100);
+    otaBar.style.width = pct + "%";
+    otaStatus.textContent = "Nahrávám… " + pct + " % (deska průběžně zapisuje do flash)";
+  };
+  xhr.upload.onload = () => { otaStatus.textContent = "Nahráno – dokončuji zápis a ověřuji obraz…"; };
+  xhr.onload = () => {
+    updateOtaUploadBtn();
+    if (xhr.status === 200) {
+      otaBar.style.width = "100%";
+      otaStatus.textContent = "✅ Firmware zapsán – deska se restartuje…";
+    } else {
+      otaStatus.textContent = "❌ Chyba " + xhr.status + ": " + xhr.responseText;
+    }
+  };
+  xhr.onerror = xhr.ontimeout = () => {
+    updateOtaUploadBtn();
+    otaStatus.textContent = "❌ Spojení s deskou selhalo (Wi-Fi dosah? stejná síť jako PC?).";
+  };
+  xhr.send(file);
+});
+
+// Změna slepé doby (ladění). Deska ji uloží do NVS a potvrdí CSM CFG.
+btnSetBlind.addEventListener("click", () => {
+  const v = parseInt(blindInput.value, 10);
+  if (!(v >= 200 && v <= 60000)) { hintEl.textContent = "Slepá doba musí být 200–60000 ms."; return; }
+  sendCmd("SET blind_ms " + v + "\n");
+  hintEl.textContent = "Odesílám nastavení…";
+});
+
+thDur.addEventListener("click", () => setSort("dur"));
+thStart.addEventListener("click", () => setSort("start"));
+
+// ================== Init ==================
+function showBanner(html) {
+  const b = $("unsupported");
+  b.innerHTML = html;
+  b.hidden = false;
+}
+
+const hasSerial = "serial" in navigator;
+const hasBle = "bluetooth" in navigator;
+btnUsb.disabled = !hasSerial;
+btnBle.disabled = !hasBle;
+
+// Varujeme jen tehdy, když prohlížeč neumí ani jeden způsob připojení.
+if (!hasSerial && !hasBle) {
+  showBanner('⚠️ Tento prohlížeč nepodporuje Web Serial ani Web Bluetooth. Použij <b>Chrome</b> nebo <b>Edge</b>.');
+}
+renderBoard();
+</script>
+</body>
+</html>

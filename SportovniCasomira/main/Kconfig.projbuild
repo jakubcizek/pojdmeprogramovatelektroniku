@@ -1,0 +1,42 @@
+menu "Casomira"
+
+    choice CASOMIRA_OLED_CTRL
+        prompt "Radic OLED displeje"
+        default CASOMIRA_OLED_SH1106
+        help
+            SSD1306: typicky 0.96" moduly. SH1106: typicky 1.3" moduly
+            (napr. DIYMORE). SH1106 ma RAM 132 sloupcu (kresli se s offsetem 2)
+            a neumi horizontal addressing - pouziva se strankovy zapis.
+
+        config CASOMIRA_OLED_SSD1306
+            bool "SSD1306 (0.96\")"
+        config CASOMIRA_OLED_SH1106
+            bool "SH1106 (1.3\")"
+    endchoice
+
+    config CASOMIRA_PIN
+        string "PIN pro Bluetooth ovladani"
+        default "1234"
+        help
+            PIN, ktery musi BLE klient poslat prikazem "AUTH <pin>" pred tim,
+            nez deska prijme jakykoli prikaz. USB je duveryhodne fyzicky
+            (pristup ke kabelu), takze se PIN tyka jen Bluetooth.
+
+    config CASOMIRA_BLE_NAME
+        string "Nazev Bluetooth zarizeni"
+        default "Casomira"
+        help
+            Jmeno, pod kterym se deska inzeruje v Bluetooth. Webove rozhrani
+            filtruje zarizeni podle prefixu "Casomira" - pokud nazev zmenis
+            tak, aby timto prefixem nezacinal, uprav i filtr v casomira.html.
+
+    config CASOMIRA_BLIND_MS
+        int "Vychozi slepa doba po startu [ms]"
+        default 3000
+        range 200 60000
+        help
+            Slepa doba po startu, behem ktere se ignoruji dalsi preruseni
+            paprsku (kolo prejizdi zavoru, odrazka poblikava). Toto je vychozi
+            hodnota; da se menit za behu prikazem SET a ulozi se do NVS.
+
+endmenu
