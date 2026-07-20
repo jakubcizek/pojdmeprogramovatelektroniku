@@ -30,7 +30,7 @@ Visual Studio Code**:
    stáhne a nastaví.
 
 Návod od Espressifu:
-<https://github.com/espressif/vscode-esp-idf-extension/blob/master/docs/tutorial/install.md>
+<https://docs.espressif.com/projects/vscode-esp-idf-extension/en/latest/>
 
 ## Nahrání firmwaru
 
