@@ -50,18 +50,6 @@ provést bezdrátově přes webové rozhraní (OTA).
 
 ## Webové rozhraní
 
-Ovládací pult a tabule s výsledky běží v souboru `casomira.html`. Spustíte ho
-lokálním serverem (Web Bluetooth i Web Serial vyžadují `http://localhost`,
-ne `file://`):
-
-```bash
-python server.py
-```
-
-Skript otevře stránku v prohlížeči. K desce se pak připojíte přes **USB**
-nebo bezdrátově přes **Bluetooth LE** a můžete časomíru ovládat, sledovat
-žebříček a exportovat výsledky.
-
-## Licence
+Ovládací pult a tabule s výsledky běží v souboru `casomira.html`. Pro bezdrátové spojení skrze Web Bluetooth ho můžete rovnou otevřít jako lokální soubor v prohlížeči, který Web Bluetooth podporuje. To je dnes Chrome a odvozené (funguje i na Androidu). Pro drátové USB spojení (Web Serial) je třeba stránku otevřít skrze vlastní HTTP server.
 
 Viz článek v časopisu Computer (srpen 2026).
