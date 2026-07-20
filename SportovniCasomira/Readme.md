@@ -1,4 +1,3 @@
-TBD
 # Sportovní časomíra pro amatérské závody
 
 Sportovní časomíra (nejen) pro amatérské cyklistické závody, postavená na optické závoře
