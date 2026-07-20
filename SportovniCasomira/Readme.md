@@ -5,7 +5,7 @@ E3F-R2N2. Změří čas kola s přesností na milisekundy a výsledky zobrazuje 
 malém OLED displeji i ve webovém rozhraní.
 
 > 📖 Tento projekt je **přílohou časopisu Computer (srpen 2026)**. Podrobný popis
-> zapojení, principu i kódu najdete v článku — toto README slouží jen jako
+> zapojení a principu funkce najdete v článku — toto README slouží jen jako
 > rychlý úvod pro zprovoznění.
 
 ## Co budete potřebovat
